@@ -148,7 +148,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
               Room Information
             </h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="glass-panel-secondary p-3 rounded-xl flex items-center gap-3">
+              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
                 <Users className="w-4 h-4 text-[#96928A]" />
                 <div>
                   <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Capacity</p>
@@ -156,7 +156,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 </div>
               </div>
 
-              <div className="glass-panel-secondary p-3 rounded-xl flex items-center gap-3">
+              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
                 <IndianRupee className="w-4 h-4 text-[#96928A]" />
                 <div>
                   <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Price</p>
@@ -168,7 +168,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-              <div className="glass-panel-secondary p-3 rounded-xl flex items-center gap-3">
+              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
                 <NotebookPen className="w-4 h-4 text-[#96928A]" />
                 <div>
                   <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Bathroom</p>
@@ -176,7 +176,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 </div>
               </div>
 
-              <div className="glass-panel-secondary p-3 rounded-xl flex items-center gap-3">
+              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
                 <NotebookPen className="w-4 h-4 text-[#96928A]" />
                 <div>
                   <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Breakfast</p>
@@ -214,7 +214,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 </h3>
               </div>
 
-              <div className="glass-panel-secondary p-4 rounded-xl space-y-2">
+              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-4 rounded-xl space-y-2">
                 {booking.guests.length === 0 ? (
                   <p className="text-xs text-[#96928A] italic">No guests currently attached.</p>
                 ) : (
@@ -254,7 +254,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
               <div className="grid grid-cols-2 gap-4">
                 {/* Stay Dates */}
                 <div className="col-span-1 md:col-span-2 space-y-3">
-                  <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked On</span>
                       <span className="font-medium text-[#F5F1E8] mt-0.5">
@@ -263,7 +263,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     </div>
                   </div>
 
-                  <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-in</span>
                       <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkIn)}</span>
@@ -274,7 +274,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     </div>
                   </div>
 
-                  <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-out</span>
                       <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkOut)}</span>
@@ -287,14 +287,14 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 </div>
 
                 <div className="grid grid-rows-2 gap-4">
-                  <div className="glass-panel-secondary p-3 rounded-xl flex items-center gap-3">
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
                     <Phone className="w-4 h-4 text-[#96928A]" />
                     <div>
                       <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Phone</p>
                       <p className="text-sm font-medium text-[#F5F1E8]">{booking.guestPhone || "N/A"}</p>
                     </div>
                   </div>
-                  <div className="glass-panel-secondary p-3 rounded-xl flex items-center gap-3">
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
                     <IndianRupee className="w-4 h-4 text-[#96928A]" />
                     <div>
                       <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Amount</p>
@@ -310,7 +310,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
             {/* Partner & Notes */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="glass-panel-secondary p-3 rounded-xl flex items-start gap-3 col-span-1 md:col-span-2">
+                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-start gap-3 col-span-1 md:col-span-2">
                   <NotebookPen className="w-4 h-4 text-[#96928A] mt-0.5" />
                   <div>
                     <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Special Notes</p>
@@ -318,7 +318,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   </div>
                 </div>
 
-                <div className="glass-panel-secondary p-3 rounded-xl flex items-center gap-3 col-span-1 md:col-span-2">
+                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3 col-span-1 md:col-span-2">
                   <Briefcase className="w-4 h-4 text-[#96928A]" />
                   <div>
                     <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked By Partner</p>
