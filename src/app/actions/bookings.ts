@@ -160,7 +160,9 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
         return { success: false, error: "You are not authorized to create this booking." };
       }
       
-      return { success: false, error: "Failed to create booking. Please try again." };
+      const detailedError = `RPC Error: ${rpcError.code} - ${rpcError.message} | Details: ${rpcError.details} | Hint: ${rpcError.hint}`;
+      console.error("FINAL RPC ERROR RETURNED:", detailedError);
+      return { success: false, error: detailedError };
     }
 
     // 8. Insert guests
@@ -185,7 +187,7 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
       });
       // The booking was already created via RPC, but the guests failed. 
       // This is a partial failure state.
-      return { success: false, error: "Unable to save guest information." };
+      return { success: false, error: `Guest creation failed: ${guestError.message || 'Unknown error'}` };
     }
 
     return { success: true, bookingId: bookingId };
@@ -220,12 +222,14 @@ export async function updateBookingStatusAction(
       return { success: false, error: "Unauthorized." };
     }
 
+    const updatePayload: any = {
+      status,
+      updated_at: new Date().toISOString(),
+    };
+
     const { error: updateError } = await supabase
       .from("bookings")
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq("id", bookingId);
 
     if (updateError) {

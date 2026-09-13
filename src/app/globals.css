@@ -28,6 +28,25 @@ body {
   letter-spacing: 0.02em;
 }
 
+@media (max-width: 767px) {
+  body {
+    background-color: var(--color-primary); /* #F5F1E8 */
+    background-image: none;
+    color: var(--color-background); /* #080706 */
+  }
+
+  /* Make all glass panels solid on mobile */
+  .glass-panel, 
+  .glass-panel-secondary, 
+  .glass-panel-strong {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+  }
+}
+
 @layer utilities {
   .glass-panel {
     background: rgba(255, 255, 255, 0.055);

@@ -41,7 +41,9 @@ export interface DbBooking {
   room_id: string;
   partner_id: string;
   check_in: string; // YYYY-MM-DD
+  check_in_time?: string; // DEPRECATED
   check_out: string; // YYYY-MM-DD
+  check_out_time?: string; // DEPRECATED
   status: BookingStatus;
   number_of_guests: number;
   nightly_rate: number;
@@ -68,7 +70,10 @@ export interface CurrentBookingDetails {
   guests: BookingGuest[];
   guestPhone?: string;
   checkIn: string; // YYYY-MM-DD
+  checkInTime?: string; // DEPRECATED
   checkOut: string; // YYYY-MM-DD
+  checkOutTime?: string; // DEPRECATED
+  createdAt?: string;
   bookedBy: string; // Partner Name
   partnerId?: string;
   bookingAmount: number;

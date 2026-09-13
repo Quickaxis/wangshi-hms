@@ -224,10 +224,10 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
                       : "bg-[rgba(255,255,255,0.03)] border-[rgba(255,255,255,0.08)] text-[#E5E5E5]"
                   )}
                 >
-                  <User className="w-3 h-3 opacity-70" />
+                  <User className="w-3 h-3 text-[#C7C3BA]" />
                   <span>{guest.name}</span>
                   {guest.isPrimary && (
-                    <span className="opacity-50 text-[10px] uppercase ml-1 tracking-wider">
+                    <span className="text-[#96928A] text-[10px] uppercase ml-1 tracking-wider">
                       (Primary)
                     </span>
                   )}
@@ -235,7 +235,7 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
                     type="button"
                     onClick={() => handleRemoveGuest(idx)}
                     disabled={isSubmitting}
-                    className="ml-1 p-0.5 rounded-full hover:bg-black/20 text-white/50 hover:text-white transition-colors"
+                    className="ml-1 p-0.5 rounded-full hover:bg-[rgba(255,255,255,0.1)] text-[#96928A] hover:text-white transition-colors"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -270,25 +270,31 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <GlassInput
-            label="Check-in"
-            type="date"
-            icon={<CalendarIcon className="w-4 h-4" />}
-            value={formData.checkIn}
-            onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
-            required
-            disabled={isSubmitting}
-          />
-          <GlassInput
-            label="Check-out"
-            type="date"
-            icon={<CalendarIcon className="w-4 h-4" />}
-            value={formData.checkOut}
-            onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
-            required
-            disabled={isSubmitting}
-          />
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <GlassInput
+              label="Check-in Date"
+              type="date"
+              icon={<CalendarIcon className="w-4 h-4" />}
+              value={formData.checkIn}
+              onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
+              required
+              disabled={isSubmitting}
+            />
+            <GlassInput
+              label="Check-out Date"
+              type="date"
+              icon={<CalendarIcon className="w-4 h-4" />}
+              value={formData.checkOut}
+              onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+          
+          <div className="flex items-center justify-center p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] text-[11px] font-medium text-[#C7C3BA]">
+            Standard check-in: 12:00 PM &nbsp;&bull;&nbsp; Standard check-out: 11:00 AM
+          </div>
         </div>
 
         <GlassInput

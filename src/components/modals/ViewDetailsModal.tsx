@@ -1,5 +1,7 @@
 "use client";
 
+import { formatISTDateTime, formatISTCompactDate } from "@/lib/dateUtils";
+
 import { useState } from "react";
 import { GlassModal } from "../ui/GlassModal";
 import { GlassButton } from "../ui/GlassButton";
@@ -250,13 +252,38 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
             {/* Phone & Booking Info */}
             <div className="space-y-4 pt-1">
               <div className="grid grid-cols-2 gap-4">
-                <div className="glass-panel-secondary p-3 rounded-xl flex flex-col gap-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CalendarIcon className="w-3.5 h-3.5 text-[#F18F9B]" />
-                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Stay Dates</span>
+                {/* Stay Dates */}
+                <div className="col-span-1 md:col-span-2 space-y-3">
+                  <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked On</span>
+                      <span className="font-medium text-[#F5F1E8] mt-0.5">
+                        {booking.createdAt ? formatISTDateTime(booking.createdAt) : 'Unknown'}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-[13px] font-medium text-[#F5F1E8]">In: {booking.checkIn}</p>
-                  <p className="text-[13px] font-medium text-[#F5F1E8]">Out: {booking.checkOut}</p>
+
+                  <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-in</span>
+                      <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkIn)}</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
+                      <span className="font-medium text-[#F5F1E8] mt-0.5">12:00 PM</span>
+                    </div>
+                  </div>
+
+                  <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-out</span>
+                      <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkOut)}</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
+                      <span className="font-medium text-[#F5F1E8] mt-0.5">11:00 AM</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-rows-2 gap-4">

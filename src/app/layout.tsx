@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { AppShell } from "@/components/layout/AppShell";
+import { AppShellWrapper } from "@/components/layout/AppShellWrapper";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -30,7 +30,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans text-primary bg-background">
         <AuthProvider>
           <HMSProvider>
-            <AppShell>{children}</AppShell>
+            <AppShellWrapper>{children}</AppShellWrapper>
           </HMSProvider>
         </AuthProvider>
       </body>

@@ -12,6 +12,7 @@ import {
   BookingActionResult,
 } from "@/app/actions/bookings";
 import { format } from "date-fns";
+import { getISTDateString, getCurrentISTDate } from "@/lib/dateUtils";
 
 interface HMSContextType {
   rooms: UI_Room[];
@@ -22,6 +23,7 @@ interface HMSContextType {
   createBooking: (input: CreateBookingInput) => Promise<BookingActionResult>;
   updateBookingStatus: (bookingId: string, status: BookingStatus) => Promise<BookingActionResult>;
   cancelBooking: (bookingId: string) => Promise<BookingActionResult>;
+  currentISTDate: Date | null;
 }
 
 const HMSContext = createContext<HMSContextType | undefined>(undefined);
@@ -34,7 +36,8 @@ export function HMSProvider({
   initialRooms?: UI_Room[];
 }) {
   const [rooms, setRooms] = useState<UI_Room[]>(initialRooms);
-  const [selectedDate, setSelectedDate] = useState<string>(() => format(new Date(), "yyyy-MM-dd"));
+  const [selectedDate, setSelectedDate] = useState<string>(() => getISTDateString());
+  const [currentISTDate, setCurrentISTDate] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Stable Supabase client instance
@@ -66,6 +69,7 @@ export function HMSProvider({
           partner_id,
           check_in,
           check_out,
+          created_at,
           status,
           number_of_guests,
           nightly_rate,
@@ -116,6 +120,7 @@ export function HMSProvider({
             guestPhone: primaryGuest?.phone || undefined,
             checkIn: matchingBooking.check_in,
             checkOut: matchingBooking.check_out,
+            createdAt: matchingBooking.created_at,
             bookedBy: matchingBooking.partners?.name || "Partner",
             partnerId: matchingBooking.partner_id,
             bookingAmount: matchingBooking.total_amount,
@@ -156,6 +161,17 @@ export function HMSProvider({
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Setup the global Ticking IST clock (updates once per minute)
+  useEffect(() => {
+    setCurrentISTDate(getCurrentISTDate()); // Initialize on mount to prevent hydration mismatch
+    
+    const interval = setInterval(() => {
+      setCurrentISTDate(getCurrentISTDate());
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Realtime subscription setup
   useEffect(() => {
@@ -234,6 +250,7 @@ export function HMSProvider({
         createBooking,
         updateBookingStatus,
         cancelBooking,
+        currentISTDate,
       }}
     >
       {children}

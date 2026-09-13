@@ -69,7 +69,9 @@ CREATE TABLE IF NOT EXISTS bookings (
     room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
     partner_id UUID NOT NULL REFERENCES partners(id),
     check_in DATE NOT NULL,
+    check_in_time TIME,
     check_out DATE NOT NULL,
+    check_out_time TIME,
     status TEXT NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'checked_in', 'checked_out', 'cancelled')),
     number_of_guests INTEGER NOT NULL DEFAULT 1 CHECK (number_of_guests > 0),
     nightly_rate INTEGER NOT NULL CHECK (nightly_rate > 0),
@@ -79,6 +81,10 @@ CREATE TABLE IF NOT EXISTS bookings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT check_out_after_check_in CHECK (check_out > check_in)
 );
+
+-- Safely migrate bookings table columns if previously created with earlier schema
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS check_in_time TIME;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS check_out_time TIME;
 
 -- ==========================================================
 -- 5. DOUBLE-BOOKING EXCLUSION CONSTRAINT (CRITICAL CONCURRENCY PROTECTION)
@@ -132,7 +138,9 @@ CREATE OR REPLACE FUNCTION create_booking_atomic(
     p_room_id UUID,
     p_partner_id UUID,
     p_check_in DATE,
+    p_check_in_time TIME,
     p_check_out DATE,
+    p_check_out_time TIME,
     p_number_of_guests INTEGER,
     p_notes TEXT DEFAULT NULL
 )
@@ -184,7 +192,9 @@ BEGIN
         room_id,
         partner_id,
         check_in,
+        check_in_time,
         check_out,
+        check_out_time,
         status,
         number_of_guests,
         nightly_rate,
@@ -194,14 +204,15 @@ BEGIN
         p_room_id,
         p_partner_id,
         p_check_in,
+        p_check_in_time,
         p_check_out,
+        p_check_out_time,
         'confirmed',
         p_number_of_guests,
         v_room.nightly_rate,
         v_total,
         p_notes
-    )
-    RETURNING id INTO v_booking_id;
+    ) RETURNING id INTO v_booking_id;
 
     RETURN v_booking_id;
 END;

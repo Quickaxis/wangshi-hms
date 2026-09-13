@@ -24,6 +24,7 @@ import { updateBookingStatusAction, cancelBookingAction } from "@/app/actions/bo
 import { GlassModal } from "@/components/ui/GlassModal";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { cn } from "@/lib/utils";
+import { formatISTDateTime, formatISTCompactDate, combineDateAndTime } from "@/lib/dateUtils";
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<DbBooking[]>([]);
@@ -61,7 +62,12 @@ export default function BookingsPage() {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching bookings:", error);
+        console.error("Error fetching bookings:", {
+          message: error?.message,
+          details: error?.details,
+          hint: error?.hint,
+          code: error?.code
+        });
       } else if (data) {
         setBookings(data as unknown as DbBooking[]);
       }
@@ -177,22 +183,22 @@ export default function BookingsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-2xl font-medium text-[#F5F1E8]">Booking Management</h2>
-          <p className="text-[#96928A] mt-1 text-sm tracking-wide">
-            View, search, and manage all homestay reservations from Supabase.
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 md:text-[#F5F1E8]">Booking Management</h2>
+          <p className="text-gray-500 md:text-[#96928A] mt-1 text-xs md:text-sm tracking-wide">
+            View, search, and manage all reservations.
           </p>
         </div>
 
         {/* Stats Pills */}
-        <div className="flex items-center gap-2 text-xs">
-          <span className="px-3 py-1.5 rounded-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] text-[#C7C3BA]">
-            Total: <strong className="text-white">{bookings.length}</strong>
+        <div className="flex flex-wrap items-center gap-2 text-[10px] md:text-xs">
+          <span className="px-3 py-1.5 rounded-full bg-gray-100 md:bg-[rgba(255,255,255,0.03)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] text-gray-600 md:text-[#C7C3BA] font-medium">
+            Total: <strong className="text-gray-900 md:text-white">{bookings.length}</strong>
           </span>
-          <span className="px-3 py-1.5 rounded-full bg-[rgba(79,231,123,0.1)] border border-[rgba(79,231,123,0.2)] text-[#4FE77B]">
+          <span className="px-3 py-1.5 rounded-full bg-emerald-50 md:bg-[rgba(79,231,123,0.1)] border border-emerald-100 md:border-[rgba(79,231,123,0.2)] text-emerald-600 md:text-[#4FE77B] font-medium">
             Confirmed:{" "}
             <strong>{bookings.filter((b) => b.status === "confirmed").length}</strong>
           </span>
-          <span className="px-3 py-1.5 rounded-full bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.2)] text-[#F59E0B]">
+          <span className="px-3 py-1.5 rounded-full bg-amber-50 md:bg-[rgba(245,158,11,0.1)] border border-amber-100 md:border-[rgba(245,158,11,0.2)] text-amber-600 md:text-[#F59E0B] font-medium">
             Checked In:{" "}
             <strong>{bookings.filter((b) => b.status === "checked_in").length}</strong>
           </span>
@@ -200,64 +206,64 @@ export default function BookingsPage() {
       </div>
 
       {/* Filter Bar */}
-      <GlassPanel className="p-4 rounded-2xl glass-panel-secondary border border-[rgba(255,255,255,0.05)] flex flex-wrap items-center gap-3">
+      <GlassPanel className="p-3 md:p-4 rounded-[20px] md:rounded-2xl bg-white md:glass-panel-secondary border border-gray-100 md:border-[rgba(255,255,255,0.05)] shadow-[0_2px_10px_rgba(0,0,0,0.03)] md:shadow-none flex flex-wrap items-center gap-2.5 md:gap-3">
         {/* Search */}
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="w-4 h-4 text-[#96928A] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-gray-400 md:text-[#96928A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by guest, phone, room, or ID..."
-            className="w-full bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl pl-9 pr-4 py-2 text-xs text-[#F5F1E8] placeholder-[#96928A] outline-none focus:border-[rgba(255,255,255,0.2)] transition-colors"
+            placeholder="Search bookings..."
+            className="w-full bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl pl-9 pr-4 py-2 md:py-2.5 text-xs font-medium text-gray-900 md:text-[#F5F1E8] placeholder-gray-400 md:placeholder-[#96928A] outline-none focus:border-gray-300 md:focus:border-[rgba(255,255,255,0.2)] transition-colors"
           />
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-1 bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1">
-          <Filter className="w-3.5 h-3.5 text-[#96928A] ml-1" />
+        <div className="flex items-center gap-1 bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1.5 md:py-1">
+          <Filter className="w-3.5 h-3.5 text-gray-400 md:text-[#96928A] ml-1" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-transparent text-xs text-[#F5F1E8] outline-none cursor-pointer py-1 pr-2"
+            className="bg-transparent text-[11px] md:text-xs font-medium text-gray-700 md:text-[#F5F1E8] outline-none cursor-pointer py-0.5 pr-1 md:pr-2"
           >
-            <option value="all" className="bg-[#1C1A17] text-white">All Statuses</option>
-            <option value="confirmed" className="bg-[#1C1A17] text-[#F59E0B]">Confirmed</option>
-            <option value="checked_in" className="bg-[#1C1A17] text-[#4FE77B]">Checked In</option>
-            <option value="checked_out" className="bg-[#1C1A17] text-[#96928A]">Checked Out</option>
-            <option value="cancelled" className="bg-[#1C1A17] text-[#FF6978]">Cancelled</option>
+            <option value="all">All Statuses</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="checked_in">Checked In</option>
+            <option value="checked_out">Checked Out</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         </div>
 
         {/* Room Filter */}
-        <div className="flex items-center gap-1 bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1">
-          <BedDouble className="w-3.5 h-3.5 text-[#96928A] ml-1" />
+        <div className="flex items-center gap-1 bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1.5 md:py-1">
+          <BedDouble className="w-3.5 h-3.5 text-gray-400 md:text-[#96928A] ml-1" />
           <select
             value={roomFilter}
             onChange={(e) => setRoomFilter(e.target.value)}
-            className="bg-transparent text-xs text-[#F5F1E8] outline-none cursor-pointer py-1 pr-2"
+            className="bg-transparent text-[11px] md:text-xs font-medium text-gray-700 md:text-[#F5F1E8] outline-none cursor-pointer py-0.5 pr-1 md:pr-2"
           >
-            <option value="all" className="bg-[#1C1A17] text-white">All Rooms</option>
-            <option value="1" className="bg-[#1C1A17] text-white">Room 1</option>
-            <option value="2" className="bg-[#1C1A17] text-white">Room 2</option>
-            <option value="3" className="bg-[#1C1A17] text-white">Room 3</option>
-            <option value="4" className="bg-[#1C1A17] text-white">Room 4</option>
+            <option value="all">All Rooms</option>
+            <option value="1">Room 1</option>
+            <option value="2">Room 2</option>
+            <option value="3">Room 3</option>
+            <option value="4">Room 4</option>
           </select>
         </div>
 
         {/* Date Filter */}
-        <div className="flex items-center gap-1.5 bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-1">
-          <CalendarIcon className="w-3.5 h-3.5 text-[#96928A]" />
+        <div className="flex items-center gap-1.5 bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-1.5 md:py-1">
+          <CalendarIcon className="w-3.5 h-3.5 text-gray-400 md:text-[#96928A]" />
           <input
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="bg-transparent text-xs text-[#F5F1E8] outline-none cursor-pointer py-1"
+            className="bg-transparent text-[11px] md:text-xs font-medium text-gray-700 md:text-[#F5F1E8] outline-none cursor-pointer py-0.5"
           />
           {dateFilter && (
             <button
               onClick={() => setDateFilter("")}
-              className="text-[10px] text-[#96928A] hover:text-white ml-1"
+              className="text-[10px] text-gray-400 hover:text-gray-600 md:text-[#96928A] md:hover:text-white ml-1 font-bold"
             >
               Clear
             </button>
@@ -265,9 +271,85 @@ export default function BookingsPage() {
         </div>
       </GlassPanel>
 
-      {/* Bookings Table */}
-      <GlassPanel className="p-1 rounded-[24px] glass-panel-secondary border border-[rgba(255,255,255,0.05)] overflow-hidden">
-        <div className="w-full overflow-x-auto hide-scrollbar">
+      {/* Bookings Display */}
+      <GlassPanel className="p-0 md:p-1 rounded-[24px] bg-transparent border-transparent md:bg-[rgba(255,255,255,0.02)] md:border-[rgba(255,255,255,0.05)] shadow-none md:shadow-lg overflow-hidden">
+        
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden flex flex-col gap-3 pb-4">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-2">
+              <Loader2 className="w-6 h-6 text-[#F59E0B] animate-spin" />
+              <span className="text-gray-500 text-xs">Loading bookings...</span>
+            </div>
+          ) : filteredBookings.length === 0 ? (
+            <div className="bg-white border border-gray-100 shadow-sm rounded-[20px] p-8 flex flex-col items-center justify-center gap-2 text-center">
+              <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-1">
+                <Search className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="text-gray-700 font-bold text-sm">No bookings found</div>
+              <div className="text-xs text-gray-400 font-medium">Try adjusting your filters or search criteria.</div>
+            </div>
+          ) : (
+            filteredBookings.map((booking) => {
+              const primaryGuest = booking.guests?.find((g) => g.is_primary) || booking.guests?.[0];
+              return (
+                <div key={booking.id} className="bg-white border border-gray-100 shadow-sm rounded-[20px] p-4 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-700 text-xs shrink-0">
+                        {primaryGuest?.name?.substring(0, 1) || "G"}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-sm truncate max-w-[140px]">
+                          {primaryGuest?.name || "Guest"}
+                        </h4>
+                        <div className="text-[10px] text-gray-500 font-medium">
+                          {booking.rooms?.name || `Room ${booking.room_id}`}
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      className={cn(
+                        "inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest uppercase border",
+                        booking.status === "confirmed" && "bg-amber-50 border-amber-200 text-amber-600",
+                        booking.status === "checked_in" && "bg-emerald-50 border-emerald-200 text-emerald-600",
+                        booking.status === "checked_out" && "bg-gray-50 border-gray-200 text-gray-500",
+                        booking.status === "cancelled" && "bg-rose-50 border-rose-200 text-rose-600"
+                      )}
+                    >
+                      {booking.status.replace("_", " ")}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 bg-gray-50 rounded-xl p-2.5 mt-1 border border-gray-100">
+                    <div>
+                      <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Stay Dates</div>
+                      <div className="text-[11px] font-medium text-gray-700">
+                        {formatISTCompactDate(booking.check_in)} • 12:00 PM
+                        <br />
+                        {formatISTCompactDate(booking.check_out)} • 11:00 AM
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Amount</div>
+                      <div className="text-sm font-bold text-gray-900">₹{booking.total_amount.toLocaleString("en-IN")}</div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedBooking(booking)}
+                    className="w-full py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 active:scale-[0.98] transition-transform"
+                  >
+                    VIEW DETAILS
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop View (Table) */}
+        <div className="hidden md:block w-full overflow-x-auto hide-scrollbar">
           <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.05)] text-[10px] uppercase tracking-widest text-[#96928A]">
@@ -345,9 +427,14 @@ export default function BookingsPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-[#96928A]" />
-                          <span className="text-[#C7C3BA] text-xs">
-                            {booking.check_in} → {booking.check_out}
-                          </span>
+                          <div className="flex flex-col text-[#C7C3BA] text-xs">
+                            <span>
+                              {formatISTCompactDate(booking.check_in)} • 12:00 PM
+                            </span>
+                            <span>
+                              {formatISTCompactDate(booking.check_out)} • 11:00 AM
+                            </span>
+                          </div>
                         </div>
                       </td>
 
@@ -492,15 +579,37 @@ export default function BookingsPage() {
               </span>
             </div>
 
-            {/* Stay Info */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="glass-panel-secondary p-3 rounded-xl">
-                <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-in</p>
-                <p className="text-sm font-medium text-[#F5F1E8]">{selectedBooking.check_in}</p>
+            {/* Stay Dates */}
+            <div className="col-span-1 md:col-span-2 space-y-3">
+              <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked On</span>
+                  <span className="font-medium text-[#F5F1E8] mt-0.5">
+                    {selectedBooking.created_at ? formatISTDateTime(selectedBooking.created_at) : 'Unknown'}
+                  </span>
+                </div>
               </div>
-              <div className="glass-panel-secondary p-3 rounded-xl">
-                <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-out</p>
-                <p className="text-sm font-medium text-[#F5F1E8]">{selectedBooking.check_out}</p>
+
+              <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-in</span>
+                  <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(selectedBooking.check_in)}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
+                  <span className="font-medium text-[#F5F1E8] mt-0.5">12:00 PM</span>
+                </div>
+              </div>
+
+              <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-out</span>
+                  <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(selectedBooking.check_out)}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
+                  <span className="font-medium text-[#F5F1E8] mt-0.5">11:00 AM</span>
+                </div>
               </div>
             </div>
 

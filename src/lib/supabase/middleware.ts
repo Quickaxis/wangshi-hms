@@ -49,10 +49,21 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // If user is logged in and visits /login, redirect to dashboard
+  // If user is logged in and visits /login, redirect to dashboard (/)
   if (user && request.nextUrl.pathname.startsWith('/login') && request.method === 'GET') {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard' // Or wherever the root is
+    url.pathname = '/' // The root is the dashboard
+    return NextResponse.redirect(url)
+  }
+
+  // Handle explicit /dashboard requests (since dashboard is at /)
+  if (request.nextUrl.pathname === '/dashboard') {
+    const url = request.nextUrl.clone()
+    if (!user) {
+      url.pathname = '/login'
+    } else {
+      url.pathname = '/'
+    }
     return NextResponse.redirect(url)
   }
 
