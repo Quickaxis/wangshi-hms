@@ -8,10 +8,9 @@ import { BedDouble } from "lucide-react";
 interface RoomColumnProps {
   status: RoomStatus;
   rooms: Room[];
-  mobileVisible?: boolean;
 }
 
-export function RoomColumn({ status, rooms, mobileVisible = true }: RoomColumnProps) {
+export function RoomColumn({ status, rooms }: RoomColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
@@ -24,24 +23,23 @@ export function RoomColumn({ status, rooms, mobileVisible = true }: RoomColumnPr
     <GlassPanel 
       ref={setNodeRef}
       className={cn(
-        "flex flex-col h-auto md:h-full md:min-h-[500px] p-0 md:p-5 transition-all duration-300 relative overflow-hidden bg-transparent border-transparent shadow-none md:bg-[rgba(255,255,255,0.02)] md:border-[rgba(255,255,255,0.05)] md:shadow-lg",
-        isOver && (isAvailable ? "shadow-[inset_0_0_50px_rgba(79,231,123,0.1)] border-[#4FE77B]/30" : "shadow-[inset_0_0_50px_rgba(255,105,120,0.1)] border-[#FF6978]/30"),
-        !mobileVisible && "hidden md:flex"
+        "flex flex-col h-auto md:h-full min-h-[400px] md:min-h-[500px] min-w-[300px] sm:min-w-[340px] md:min-w-0 snap-center p-4 md:p-5 transition-all duration-300 relative overflow-hidden bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.05)] shadow-lg",
+        isOver && (isAvailable ? "shadow-[inset_0_0_50px_rgba(79,231,123,0.1)] border-[#4FE77B]/30" : "shadow-[inset_0_0_50px_rgba(255,105,120,0.1)] border-[#FF6978]/30")
       )}
     >
-      <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-100 md:border-[rgba(255,255,255,0.06)] shrink-0">
+      <div className="flex items-center justify-between mb-5 pb-4 border-b border-[rgba(255,255,255,0.06)] shrink-0">
         <div className="flex items-center gap-3">
-          <div className={cn("w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] hidden md:block", isAvailable ? "bg-[#4FE77B] text-[#4FE77B]" : "bg-[#FF6978] text-[#FF6978]")} />
-          <h2 className="text-base md:text-sm font-bold text-gray-800 md:text-[#F5F1E8] tracking-widest">{title}</h2>
+          <div className={cn("w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]", isAvailable ? "bg-[#4FE77B] text-[#4FE77B]" : "bg-[#FF6978] text-[#FF6978]")} />
+          <h2 className="text-sm font-bold text-[#F5F1E8] tracking-widest">{title}</h2>
         </div>
-        <div className="text-xs font-bold md:font-semibold tracking-wide text-gray-600 md:text-[#96928A] bg-gray-50 md:bg-[rgba(255,255,255,0.05)] px-3 py-1 rounded-full border border-gray-200 md:border-[rgba(255,255,255,0.05)]">
+        <div className="text-xs font-semibold tracking-wide text-[#96928A] bg-[rgba(255,255,255,0.05)] px-3 py-1 rounded-full border border-[rgba(255,255,255,0.05)]">
           {count} {count === 1 ? "Room" : "Rooms"}
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 md:flex-1 md:overflow-y-auto hide-scrollbar md:pb-6 z-10">
+      <div className="flex flex-col gap-4 md:flex-1 overflow-y-auto hide-scrollbar pb-6 z-10">
         {rooms.length === 0 && !isAvailable && (
-          <div className="md:hidden flex items-center justify-center py-6 text-sm font-medium text-gray-500 bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
+          <div className="md:hidden flex items-center justify-center py-6 text-sm font-medium text-[#96928A] bg-[rgba(255,255,255,0.02)] rounded-2xl border border-[rgba(255,255,255,0.05)]">
             No booked rooms
           </div>
         )}
@@ -53,7 +51,7 @@ export function RoomColumn({ status, rooms, mobileVisible = true }: RoomColumnPr
       <div 
         ref={setNodeRef}
         className={cn(
-          "mt-4 p-6 rounded-[20px] border-2 border-dashed transition-all duration-300 items-center justify-center text-center gap-3 shrink-0 hidden md:flex flex-col",
+          "mt-auto pt-4 p-6 rounded-[20px] border-2 border-dashed transition-all duration-300 items-center justify-center text-center gap-3 shrink-0 flex flex-col",
           isOver 
             ? (isAvailable ? "border-[#4FE77B]/50 bg-[#4FE77B]/10" : "border-[#FF6978]/50 bg-[#FF6978]/10")
             : "border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)]"

@@ -189,10 +189,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full gap-2 md:gap-4">
         <div className="w-full sm:max-w-md relative" ref={searchRef}>
           <div className={cn(
-            "flex items-center px-4 py-2.5 md:py-2.5 rounded-full transition-all relative z-20 bg-gray-50 md:bg-[rgba(255,255,255,0.035)] border border-gray-200 md:border-[rgba(255,255,255,0.1)] shadow-none focus-within:border-gray-300 md:focus-within:border-[rgba(245,158,11,0.4)] md:focus-within:shadow-[0_0_20px_rgba(245,158,11,0.1)]",
-            isOpen && "rounded-b-none border-b-transparent md:border-b-transparent shadow-none"
+            "flex items-center px-4 py-2.5 md:py-2.5 rounded-full transition-all relative z-20 bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.1)] shadow-none focus-within:border-[rgba(245,158,11,0.4)] focus-within:shadow-[0_0_20px_rgba(245,158,11,0.1)]",
+            isOpen && "rounded-b-none border-b-transparent shadow-none"
           )}>
-          <Search className="w-4 h-4 text-gray-500 md:text-[#96928A] mr-3 shrink-0" />
+          <Search className="w-4 h-4 text-[#96928A] mr-3 shrink-0" />
           <input 
             ref={inputRef}
             type="text" 
@@ -203,7 +203,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             }}
             onFocus={() => setIsOpen(true)}
             placeholder="Search guests, bookings or rooms..." 
-            className="bg-transparent border-none outline-none text-sm text-gray-900 md:text-[#F5F1E8] placeholder:text-gray-400 md:placeholder:text-[#96928A] w-full tracking-wide"
+            className="bg-transparent border-none outline-none text-sm text-[#F5F1E8] placeholder:text-[#96928A] w-full tracking-wide"
           />
           <div className="hidden sm:flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-medium text-[#96928A] bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.05)] ml-2">
             Ctrl K
@@ -212,27 +212,27 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
         {/* Dropdown */}
         {isOpen && (
-          <div className="absolute top-full left-0 w-full bg-white md:bg-[rgba(20,18,17,0.85)] border border-gray-200 border-t-0 md:border-t md:border-[rgba(255,255,255,0.08)] rounded-b-2xl md:rounded-2xl overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.05)] md:shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex flex-col max-h-[60vh] md:max-h-[400px] z-50 md:backdrop-blur-xl md:mt-1">
+          <div className="absolute top-full left-0 w-full bg-[rgba(20,18,17,0.85)] border border-gray-200 border-t md:border-[rgba(255,255,255,0.08)] rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex flex-col max-h-[60vh] sm:max-h-[400px] z-50 backdrop-blur-xl mt-1">
             {!query.trim() ? (
-              <div className="p-8 text-center text-gray-500 md:text-[#96928A] text-sm">
+              <div className="p-8 text-center text-[#96928A] text-sm">
                 <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
                 <p>Type to search across rooms, guests, and bookings.</p>
               </div>
             ) : !hasResults ? (
-              <div className="p-8 text-center text-gray-500 md:text-[#96928A] text-sm">
+              <div className="p-8 text-center text-[#96928A] text-sm">
                 <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                <p className="text-gray-900 md:text-[#F5F1E8] font-bold md:font-medium mb-1">No results found</p>
+                <p className="text-[#F5F1E8] font-medium mb-1">No results found</p>
                 <p>Try searching for a room, guest or booking.</p>
               </div>
             ) : (
               <div className="overflow-y-auto hide-scrollbar py-2">
-                <div className="px-3 pb-1 pt-2 text-[10px] font-bold text-gray-400 md:text-[#96928A] tracking-widest uppercase">
+                <div className="px-3 pb-1 pt-2 text-[10px] font-bold text-[#96928A] tracking-widest uppercase">
                   Search Results
                 </div>
                 
                 {results.guests.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-3 py-1.5 text-[11px] font-bold md:font-semibold text-gray-500 md:text-[#F2EEE3]/60 tracking-wider">
+                    <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-500 md:text-[#96928A] tracking-wider">
                       GUESTS
                     </div>
                     {results.guests.map((room, idx) => {
@@ -244,17 +244,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                            onClick={() => handleResultClick(room)}
                            className={cn(
                              "mx-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all flex items-start gap-3",
-                             isSelected ? "bg-gray-50 md:bg-[rgba(255,255,255,0.06)]" : "hover:bg-gray-50 md:hover:bg-[rgba(255,255,255,0.04)]"
+                             isSelected ? "bg-[rgba(255,255,255,0.06)]" : "hover:bg-[rgba(255,255,255,0.04)]"
                            )}
                          >
-                           <div className="mt-0.5 text-gray-400 md:text-[#F2EEE3]">
+                           <div className="mt-0.5 text-[#F2EEE3]">
                              <User className="w-4 h-4" />
                            </div>
                            <div>
-                             <div className="text-sm font-bold md:font-medium text-gray-900 md:text-[#F5F1E8] truncate">
+                             <div className="text-sm font-medium text-[#F5F1E8] truncate">
                                {room.currentBooking?.guests.map(g => g.name).join(", ")}
                              </div>
-                             <div className="text-xs text-gray-500 md:text-[#96928A] mt-0.5">
+                             <div className="text-xs text-[#96928A] mt-0.5">
                                Guest · {room.name} {room.currentBooking?.guests ? `· ${room.currentBooking.guests.length} guests` : ""}
                              </div>
                            </div>
@@ -266,7 +266,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
                 {results.bookings.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-3 py-1.5 text-[11px] font-bold md:font-semibold text-gray-500 md:text-[#F2EEE3]/60 tracking-wider">
+                    <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-500 md:text-[#96928A] tracking-wider">
                       BOOKINGS
                     </div>
                     {results.bookings.map((room) => {
@@ -278,17 +278,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                            onClick={() => handleResultClick(room)}
                            className={cn(
                              "mx-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all flex items-start gap-3",
-                             isSelected ? "bg-gray-50 md:bg-[rgba(255,255,255,0.06)]" : "hover:bg-gray-50 md:hover:bg-[rgba(255,255,255,0.04)]"
+                             isSelected ? "bg-[rgba(255,255,255,0.06)]" : "hover:bg-[rgba(255,255,255,0.04)]"
                            )}
                          >
-                           <div className="mt-0.5 text-gray-400 md:text-[#F2EEE3]">
+                           <div className="mt-0.5 text-[#F2EEE3]">
                              <CalendarCheck className="w-4 h-4" />
                            </div>
                            <div>
-                             <div className="text-sm font-bold md:font-medium text-gray-900 md:text-[#F5F1E8] truncate">
+                             <div className="text-sm font-medium text-[#F5F1E8] truncate">
                                {room.currentBooking?.guests.map(g => g.name).join(", ")}
                              </div>
-                             <div className="text-xs text-gray-500 md:text-[#96928A] mt-0.5 flex items-center gap-1.5">
+                             <div className="text-xs text-[#96928A] mt-0.5 flex items-center gap-1.5">
                                <span>{room.name}</span>
                                <span className="text-[10px]">•</span>
                                <span>{room.currentBooking?.checkIn} → {room.currentBooking?.checkOut}</span>
@@ -302,7 +302,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
                 {results.rooms.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-3 py-1.5 text-[11px] font-bold md:font-semibold text-gray-500 md:text-[#F2EEE3]/60 tracking-wider">
+                    <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-500 md:text-[#96928A] tracking-wider">
                       ROOMS
                     </div>
                     {results.rooms.map((room) => {
@@ -314,27 +314,27 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                            onClick={() => handleResultClick(room)}
                            className={cn(
                              "mx-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all flex items-start gap-3",
-                             isSelected ? "bg-gray-50 md:bg-[rgba(255,255,255,0.06)]" : "hover:bg-gray-50 md:hover:bg-[rgba(255,255,255,0.04)]"
+                             isSelected ? "bg-[rgba(255,255,255,0.06)]" : "hover:bg-[rgba(255,255,255,0.04)]"
                            )}
                          >
-                           <div className="mt-0.5 text-gray-400 md:text-[#F2EEE3]">
+                           <div className="mt-0.5 text-[#F2EEE3]">
                              <BedDouble className="w-4 h-4" />
                            </div>
                            <div className="w-full">
-                             <div className="text-sm font-bold md:font-medium text-gray-900 md:text-[#F5F1E8] flex justify-between items-center w-full">
+                             <div className="text-sm font-medium text-[#F5F1E8] flex justify-between items-center w-full">
                                <span>{room.name}</span>
-                               <span className="text-xs font-bold md:font-semibold text-gray-700 md:text-[#F2EEE3] bg-gray-100 md:bg-[rgba(0,0,0,0.2)] px-2 py-0.5 rounded-full">
+                               <span className="text-xs font-semibold text-[#F2EEE3] bg-[rgba(0,0,0,0.2)] px-2 py-0.5 rounded-full">
                                  ₹{room.pricePerNight.toLocaleString("en-IN")}
                                </span>
                              </div>
                              <div className="text-xs mt-0.5 flex items-center gap-1.5">
-                               <span className={room.status === "available" ? "text-[#10B981] md:text-[#4FE77B]" : "text-[#EF4444] md:text-[#FF6978]"}>
+                               <span className={room.status === "available" ? "text-[#4FE77B]" : "text-[#FF6978]"}>
                                  {room.status === "available" ? "Available" : "Booked"}
                                </span>
                                {room.currentBooking && (
                                  <>
-                                   <span className="text-[10px] text-gray-400 md:text-[#96928A]">•</span>
-                                   <span className="text-gray-500 md:text-[#96928A] truncate max-w-[100px]">{room.currentBooking.guests.map(g => g.name).join(", ")}</span>
+                                   <span className="text-[10px] text-[#96928A]">•</span>
+                                   <span className="text-[#96928A] truncate max-w-[100px]">{room.currentBooking.guests.map(g => g.name).join(", ")}</span>
                                  </>
                                )}
                              </div>
@@ -381,3 +381,4 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     </div>
   );
 }
+

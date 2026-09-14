@@ -33,7 +33,6 @@ export function RoomBoard() {
   const [activeRoom, setActiveRoom] = useState<UI_Room | null>(null);
   const [bookingRoom, setBookingRoom] = useState<UI_Room | null>(null);
   const [viewingRoom, setViewingRoom] = useState<Room | null>(null);
-  const [mobileTab, setMobileTab] = useState<"all" | "available" | "booked">("all");
 
   useEffect(() => {
     setIsMounted(true);
@@ -152,8 +151,8 @@ export function RoomBoard() {
 
   return (
     <div className="w-full flex flex-col md:flex-1 md:min-h-0 relative z-0 pb-6">
-      {/* Desktop Top Header & Stats */}
-      <div className="hidden md:flex flex-col lg:flex-row justify-between items-start lg:items-end mb-6 gap-4 shrink-0">
+      {/* Top Header & Stats */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-6 gap-4 shrink-0">
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-xl md:text-2xl font-bold text-[#F5F1E8] tracking-wide mb-1 flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
@@ -210,93 +209,6 @@ export function RoomBoard() {
         </div>
       </div>
 
-      {/* Mobile Top Header & Stats */}
-      <div className="flex md:hidden flex-col mb-4 gap-4 shrink-0">
-        <div className="flex flex-col items-start w-full gap-1">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-sm font-medium text-gray-500 tracking-wide">
-              {greeting},
-            </h2>
-            <h3 className="text-sm font-bold text-gray-900 tracking-wide">
-              {partnerDisplayName}
-            </h3>
-          </div>
-          <div className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <span>{availableRooms.length} Available</span>
-            <span className="text-gray-300">•</span>
-            <span>{bookedRooms.length} Booked</span>
-          </div>
-        </div>
-
-        <div className="w-full flex justify-between items-center bg-white px-3 py-2 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-gray-100">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5 text-[#F59E0B]" />
-            <span className="text-[13px] text-gray-800 font-bold tracking-wide">
-              {currentISTDate ? formatISTFullDate(selectedDate) : "Loading..."}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-             <button onClick={handlePrevDay} className="p-1 text-gray-400 hover:text-gray-600"><ChevronLeft className="w-4 h-4"/></button>
-             {selectedDate !== getISTDateString() && (
-                <button onClick={handleToday} className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#F59E0B]/10 text-[#F59E0B]">TODAY</button>
-             )}
-             <button onClick={handleNextDay} className="p-1 text-gray-400 hover:text-gray-600"><ChevronRight className="w-4 h-4"/></button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mt-1">
-          <div className="bg-white rounded-[16px] p-3 flex flex-col justify-center border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-            <div className="flex justify-between items-center w-full mb-1">
-              <BedDouble className="w-4 h-4 text-gray-400" />
-              <div className="text-lg font-bold text-gray-900">{rooms.length}</div>
-            </div>
-            <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Total Rooms</div>
-          </div>
-          
-          <div className="bg-white rounded-[16px] p-3 flex flex-col justify-center border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-            <div className="flex justify-between items-center w-full mb-1">
-              <div className="w-2 h-2 rounded-full bg-[#10B981]" />
-              <div className="text-lg font-bold text-gray-900">{availableRooms.length}</div>
-            </div>
-            <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Available</div>
-          </div>
-          
-          <div className="bg-white rounded-[16px] p-3 flex flex-col justify-center border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-            <div className="flex justify-between items-center w-full mb-1">
-              <div className="w-2 h-2 rounded-full bg-[#EF4444]" />
-              <div className="text-lg font-bold text-gray-900">{bookedRooms.length}</div>
-            </div>
-            <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Booked</div>
-          </div>
-          
-          <div className="bg-white rounded-[16px] p-3 flex flex-col justify-center border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-            <div className="flex justify-between items-center w-full mb-1">
-              <Users className="w-4 h-4 text-gray-400" />
-              <div className="text-lg font-bold text-gray-900">{totalGuests}</div>
-            </div>
-            <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Guests Today</div>
-          </div>
-        </div>
-
-        {/* Mobile Filter Tabs */}
-        <div className="flex items-center gap-2 mt-2 bg-gray-100 p-1.5 rounded-[16px]">
-          {(['all', 'available', 'booked'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setMobileTab(tab)}
-              className={cn(
-                "flex-1 py-2.5 min-h-[44px] text-xs font-bold rounded-xl transition-all capitalize tracking-wide flex items-center justify-center",
-                mobileTab === tab 
-                  ? "bg-white text-gray-900 shadow-sm border border-gray-200" 
-                  : "text-gray-500 hover:bg-gray-200"
-              )}
-            >
-              {tab} {tab === 'all' ? rooms.length : tab === 'available' ? availableRooms.length : bookedRooms.length}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Main Drag-and-Drop Columns */}
       <DndContext
         id="hms-room-board"
@@ -304,12 +216,12 @@ export function RoomBoard() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8 md:flex-1 md:min-h-0 relative">
+        <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar md:grid md:grid-cols-2 gap-6 md:gap-8 md:flex-1 md:min-h-0 relative w-full md:w-auto">
           {/* Vertical Divider for Desktop */}
           <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-px bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.1)] to-transparent -translate-x-1/2" />
 
-          <RoomColumn status="available" rooms={availableRooms} mobileVisible={mobileTab === 'all' || mobileTab === 'available'} />
-          <RoomColumn status="booked" rooms={bookedRooms} mobileVisible={mobileTab === 'all' || mobileTab === 'booked'} />
+          <RoomColumn status="available" rooms={availableRooms} />
+          <RoomColumn status="booked" rooms={bookedRooms} />
         </div>
 
         {isMounted && (
@@ -327,24 +239,24 @@ export function RoomBoard() {
       </DndContext>
 
       {/* Bottom Summary Bar */}
-      <div className="pt-4 border-t border-gray-200 md:border-[rgba(255,255,255,0.06)] mt-6 shrink-0 mb-4 md:mb-0">
-        <div className="text-gray-500 md:text-[#96928A] text-[10px] md:text-xs font-bold tracking-widest uppercase mb-3">
+      <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] mt-6 shrink-0 mb-4 md:mb-0">
+        <div className="text-[#96928A] text-[10px] md:text-xs font-bold tracking-widest uppercase mb-3">
           Daily Overview
         </div>
         <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3 w-full">
-          <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center bg-gray-50 border border-gray-100 shadow-sm md:glass-panel-secondary md:border md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
-            <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-gray-500 md:text-[#C7C3BA] mb-0.5 md:mb-0">Revenue</span>
-            <span className="text-sm font-bold text-gray-900 md:text-[#F2EEE3]">
+          <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center glass-panel-secondary border border-[rgba(255,255,255,0.08)] md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
+            <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-[#C7C3BA] mb-0.5 md:mb-0">Revenue</span>
+            <span className="text-sm font-bold text-[#F2EEE3]">
               ₹{totalRevenue.toLocaleString("en-IN")}
             </span>
           </GlassPanel>
-          <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center bg-gray-50 border border-gray-100 shadow-sm md:glass-panel-secondary md:border md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
-            <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-gray-500 md:text-[#C7C3BA] mb-0.5 md:mb-0">Booked</span>
-            <span className="text-sm font-bold text-gray-900 md:text-[#F2EEE3]">{totalBookings}/{rooms.length}</span>
+          <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center glass-panel-secondary border border-[rgba(255,255,255,0.08)] md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
+            <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-[#C7C3BA] mb-0.5 md:mb-0">Booked</span>
+            <span className="text-sm font-bold text-[#F2EEE3]">{totalBookings}/{rooms.length}</span>
           </GlassPanel>
-          <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center bg-gray-50 border border-gray-100 shadow-sm md:glass-panel-secondary md:border md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
-            <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-gray-500 md:text-[#C7C3BA] mb-0.5 md:mb-0">Occupancy</span>
-            <span className="text-sm font-bold text-gray-900 md:text-[#F2EEE3]">{occupancy}%</span>
+          <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center glass-panel-secondary border border-[rgba(255,255,255,0.08)] md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
+            <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-[#C7C3BA] mb-0.5 md:mb-0">Occupancy</span>
+            <span className="text-sm font-bold text-[#F2EEE3]">{occupancy}%</span>
           </GlassPanel>
         </div>
       </div>
