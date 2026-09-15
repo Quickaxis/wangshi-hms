@@ -18,7 +18,14 @@ export function RoomCard({ room }: { room: UI_Room | Room }) {
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    touchAction: "none",
+  };
+
+  const mainCardListeners = {
+    ...listeners,
+    onPointerDown: (e: React.PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      listeners?.onPointerDown?.(e);
+    },
   };
 
   const uiRoom = room as UI_Room;
@@ -36,9 +43,9 @@ export function RoomCard({ room }: { room: UI_Room | Room }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="relative z-10 md:touch-none group opacity-100 md:cursor-grab hover:md:-translate-y-1 transition-transform duration-300"
+      className="relative z-10 group opacity-100 md:cursor-grab hover:md:-translate-y-1 transition-transform duration-300"
       {...attributes}
-      {...listeners}
+      {...mainCardListeners}
     >
       <div
         className={cn(
@@ -87,28 +94,31 @@ export function RoomCard({ room }: { room: UI_Room | Room }) {
             </span>
           </div>
 
-          <div className="absolute top-2.5 left-2.5 p-1.5 rounded-full glass-panel-strong border-none text-white/70 hover:text-white transition-colors cursor-grab backdrop-blur-xl bg-black/20 block">
-            <GripVertical className="w-4 h-4" />
+          <div 
+            className="absolute top-2.5 left-2.5 p-1.5 rounded-full glass-panel-strong border-none text-white/70 hover:text-white transition-colors cursor-grab backdrop-blur-xl bg-black/20 block touch-none"
+            {...listeners}
+          >
+            <GripVertical className="w-4 h-4 pointer-events-none" />
           </div>
         </div>
 
         {/* Content Section */}
         <div className="p-4">
           <div className="flex justify-between items-start mb-1 md:mb-3">
-            <div className="flex-1 min-w-0 pr-2">
-              <h3 className="text-lg font-bold text-[#F5F1E8] tracking-wide leading-tight truncate">{room.name}</h3>
-              <div className="flex items-center gap-1.5 text-xs text-[#96928A] mt-1 font-medium">
-                <Users className="w-3.5 h-3.5 shrink-0" />
+            <div className="flex-1 min-w-0 pr-1 sm:pr-2">
+              <h3 className="text-[13px] sm:text-[15px] md:text-lg font-bold text-[#F5F1E8] tracking-wide leading-tight line-clamp-2 md:truncate">{room.name}</h3>
+              <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs text-[#96928A] mt-0.5 md:mt-1 font-medium">
+                <Users className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
                 <span className="shrink-0">Max {room.maxCapacity}</span>
-                <span className="mx-1 shrink-0">•</span>
-                <span className="truncate">{room.bathroomInfo}</span>
+                <span className="mx-0.5 md:mx-1 shrink-0">•</span>
+                <span className="truncate min-w-0">{room.bathroomInfo}</span>
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="flex items-center gap-1 text-[#F2EEE3] text-sm font-medium leading-tight">
+              <div className="flex items-center justify-end gap-1 text-[#F2EEE3] text-xs sm:text-sm font-medium leading-tight">
                 ₹{room.pricePerNight.toLocaleString("en-IN")}
               </div>
-              <p className="text-[#96928A] text-[10px] font-medium tracking-wide mt-0.5">/ night</p>
+              <p className="text-[#96928A] text-[9px] md:text-[10px] font-medium tracking-wide mt-0.5">/ night</p>
             </div>
           </div>
 

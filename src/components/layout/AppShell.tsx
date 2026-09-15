@@ -15,11 +15,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Sidebar />
       </div>
 
-      <div className="flex-1 flex flex-col min-h-screen md:h-full relative">
+      <div className="flex-1 flex flex-col min-h-screen md:h-full relative min-w-0">
         <div className="sticky top-0 z-50 md:static p-4 pl-4 md:pl-2 pb-0 pt-2 md:pt-4">
           <TopBar onMenuClick={() => setIsMobileDrawerOpen(true)} />
         </div>
-        <main className="flex-1 flex flex-col md:min-h-0 md:overflow-hidden p-4 md:pl-2 pb-8 md:pb-4 overflow-x-hidden">
+        <main className="flex-1 flex flex-col md:min-h-0 md:overflow-hidden p-4 md:pl-2 pb-8 md:pb-4 overflow-x-hidden min-w-0">
           {children}
         </main>
       </div>

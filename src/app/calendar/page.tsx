@@ -145,30 +145,30 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto hide-scrollbar space-y-4 md:space-y-6 pb-20 md:pb-10">
+    <div className="flex flex-col h-full w-full max-w-full min-w-0 overflow-y-auto overflow-x-hidden hide-scrollbar space-y-4 md:space-y-6 pb-20 md:pb-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 md:gap-4 px-1 md:px-0">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 md:text-[#F5F1E8]">Booking Calendar</h2>
-          <p className="text-gray-500 md:text-[#96928A] mt-1 text-xs md:text-sm tracking-wide">
+          <h2 className="text-xl md:text-2xl font-bold text-[#F5F1E8]">Booking Calendar</h2>
+          <p className="text-[#96928A] mt-1 text-xs md:text-sm tracking-wide">
             14-day date-based availability matrix calculated from live bookings.
           </p>
         </div>
 
         {/* Navigation */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-gray-50 md:bg-[rgba(255,255,255,0.03)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1 text-xs text-gray-600 md:text-[#C7C3BA]">
+          <div className="flex items-center bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1 text-xs text-[#C7C3BA]">
             <button
               onClick={() => {
                 const newStart = addDays(startDate, -7);
                 setStartDate(newStart);
                 setSelectedMobileDate(newStart);
               }}
-              className="p-1.5 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-white rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-transparent hover:text-white rounded-lg transition-colors cursor-pointer"
               title="Previous Week"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-2 md:px-3 font-bold md:font-medium text-gray-800 md:text-[#F5F1E8]">
+            <span className="px-2 md:px-3 font-bold md:font-medium text-[#F5F1E8]">
               {format(dates[0], "d MMM")} – {format(dates[dates.length - 1], "d MMM")}
             </span>
             <button
@@ -177,7 +177,7 @@ export default function CalendarPage() {
                 setStartDate(newStart);
                 setSelectedMobileDate(newStart);
               }}
-              className="p-1.5 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-white rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-transparent hover:text-white rounded-lg transition-colors cursor-pointer"
               title="Next Week"
             >
               <ChevronRight className="w-4 h-4" />
@@ -190,7 +190,7 @@ export default function CalendarPage() {
               setStartDate(today);
               setSelectedMobileDate(today);
             }}
-            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 md:bg-[rgba(245,158,11,0.15)] text-[#F59E0B] hover:bg-amber-100 md:hover:bg-[rgba(245,158,11,0.25)] border border-amber-200 md:border-[rgba(245,158,11,0.3)] transition-colors cursor-pointer"
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[rgba(245,158,11,0.15)] text-[#F59E0B] hover:bg-[rgba(245,158,11,0.25)] border border-[rgba(245,158,11,0.3)] transition-colors cursor-pointer"
           >
             Today
           </button>
@@ -209,90 +209,10 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* MOBILE ONLY: Date Strip & Vertical List */}
-      <div className="md:hidden flex flex-col gap-4">
-        {/* Date Strip */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 px-1 snap-x">
-          {dates.map((date, idx) => {
-            const isSelected = format(date, "yyyy-MM-dd") === format(selectedMobileDate, "yyyy-MM-dd");
-            const isToday = format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-            return (
-              <button
-                key={idx}
-                onClick={() => setSelectedMobileDate(date)}
-                className={`flex flex-col items-center justify-center min-w-[60px] p-2 rounded-[16px] transition-all snap-center border ${
-                  isSelected 
-                    ? "bg-[#F59E0B] border-[#F59E0B] text-white shadow-md shadow-amber-500/20" 
-                    : isToday 
-                      ? "bg-amber-50 border-amber-200 text-amber-900" 
-                      : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? "text-amber-100" : isToday ? "text-amber-600" : "text-gray-400"}`}>
-                  {format(date, "EEE")}
-                </span>
-                <span className={`text-lg font-bold mt-0.5 ${isSelected ? "text-white" : "text-gray-900"}`}>
-                  {format(date, "d")}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Mobile Room List */}
-        <div className="flex flex-col gap-3 px-1">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <Loader2 className="w-6 h-6 text-[#F59E0B] animate-spin" />
-              <span className="text-gray-500 text-sm font-medium">Loading availability...</span>
-            </div>
-          ) : (
-            rooms.map((room) => {
-              const booking = getBookingForRoomOnDate(room.id, selectedMobileDate);
-              const isBooked = !!booking;
-              const guestName = booking?.guests?.[0]?.name;
-
-              return (
-                <div 
-                  key={room.id}
-                  onClick={() => handleCellClick(room, selectedMobileDate)}
-                  className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col gap-3 active:scale-[0.98] transition-transform cursor-pointer"
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-900">{room.name}</span>
-                      <span className="text-xs font-medium text-gray-500 mt-0.5">₹{room.pricePerNight.toLocaleString("en-IN")} / night</span>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                      isBooked ? "bg-red-50 text-red-600 border border-red-100" : "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                    }`}>
-                      {isBooked ? "Booked" : "Available"}
-                    </div>
-                  </div>
-
-                  {isBooked && (
-                    <div className="mt-1 pt-3 border-t border-gray-100 flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Guest</span>
-                        <span className="text-xs font-bold text-gray-800">{guestName || "Guest"}</span>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Duration</span>
-                        <span className="text-[11px] font-bold text-gray-600">{format(new Date(booking.check_in), "d MMM")} - {format(new Date(booking.check_out), "d MMM")}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-
-      {/* DESKTOP ONLY: Data Table */}
-      <GlassPanel className="hidden md:block p-1 rounded-[24px] glass-panel-secondary border border-[rgba(255,255,255,0.05)] overflow-hidden">
-        <div className="w-full overflow-x-auto hide-scrollbar">
-          <table className="w-full text-left border-collapse min-w-[1050px]">
+      {/* CALENDAR MATRIX */}
+      <GlassPanel className="p-1 rounded-[24px] glass-panel-secondary border border-[rgba(255,255,255,0.05)] w-full max-w-full min-w-0">
+        <div className="w-full max-w-full overflow-x-auto overflow-y-hidden touch-pan-x">
+          <table className="w-full text-left border-collapse min-w-[800px] md:min-w-[1050px]">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.05)]">
                 <th className="px-6 py-4 font-semibold text-[11px] uppercase tracking-widest text-[#96928A] min-w-[170px] sticky left-0 bg-[rgba(20,18,17,0.95)] z-10 backdrop-blur-xl">

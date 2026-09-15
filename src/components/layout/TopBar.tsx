@@ -212,7 +212,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
         {/* Dropdown */}
         {isOpen && (
-          <div className="absolute top-full left-0 w-full bg-[rgba(20,18,17,0.85)] border border-gray-200 border-t md:border-[rgba(255,255,255,0.08)] rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex flex-col max-h-[60vh] sm:max-h-[400px] z-50 backdrop-blur-xl mt-1">
+          <div className="absolute top-full left-0 w-full bg-[rgba(20,18,17,0.85)] border border-[rgba(255,255,255,0.08)] rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex flex-col max-h-[60vh] sm:max-h-[400px] z-50 backdrop-blur-xl mt-1">
             {!query.trim() ? (
               <div className="p-8 text-center text-[#96928A] text-sm">
                 <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
@@ -232,7 +232,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 
                 {results.guests.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-500 md:text-[#96928A] tracking-wider">
+                    <div className="px-3 py-1.5 text-[11px] font-semibold text-[#96928A] tracking-wider">
                       GUESTS
                     </div>
                     {results.guests.map((room, idx) => {
@@ -266,7 +266,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
                 {results.bookings.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-500 md:text-[#96928A] tracking-wider">
+                    <div className="px-3 py-1.5 text-[11px] font-semibold text-[#96928A] tracking-wider">
                       BOOKINGS
                     </div>
                     {results.bookings.map((room) => {
@@ -302,7 +302,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
                 {results.rooms.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-500 md:text-[#96928A] tracking-wider">
+                    <div className="px-3 py-1.5 text-[11px] font-semibold text-[#96928A] tracking-wider">
                       ROOMS
                     </div>
                     {results.rooms.map((room) => {
@@ -381,4 +381,5 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     </div>
   );
 }
+
 

@@ -150,9 +150,9 @@ export function RoomBoard() {
   };
 
   return (
-    <div className="w-full flex flex-col md:flex-1 md:min-h-0 relative z-0 pb-6">
+    <div className="w-full flex flex-col flex-1 min-h-[500px] sm:min-h-0 relative z-0 pb-2 md:pb-6">
       {/* Top Header & Stats */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-6 gap-4 shrink-0">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-4 md:mb-6 gap-4 shrink-0">
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-xl md:text-2xl font-bold text-[#F5F1E8] tracking-wide mb-1 flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
@@ -216,7 +216,7 @@ export function RoomBoard() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar md:grid md:grid-cols-2 gap-6 md:gap-8 md:flex-1 md:min-h-0 relative w-full md:w-auto">
+        <div className="grid grid-cols-2 gap-3 md:gap-8 h-[500px] sm:h-[600px] md:h-auto md:flex-1 md:min-h-0 relative w-full">
           {/* Vertical Divider for Desktop */}
           <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-px bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.1)] to-transparent -translate-x-1/2" />
 
@@ -239,7 +239,7 @@ export function RoomBoard() {
       </DndContext>
 
       {/* Bottom Summary Bar */}
-      <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] mt-6 shrink-0 mb-4 md:mb-0">
+      <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] mt-4 md:mt-6 shrink-0 mb-8 md:mb-0 pb-4 md:pb-0">
         <div className="text-[#96928A] text-[10px] md:text-xs font-bold tracking-widest uppercase mb-3">
           Daily Overview
         </div>
