@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Search, LogOut, ChevronDown, Calendar as CalendarIcon, User, BedDouble, CalendarCheck } from "lucide-react";
 import { format } from "date-fns";
+import { usePathname, useRouter } from "next/navigation";
 import { useHMSContext } from "../providers/HMSProvider";
 import { useAuth } from "../providers/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -14,15 +15,23 @@ interface TopBarProps {
 }
 
 export function TopBar({ onMenuClick }: TopBarProps) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [today, setToday] = useState<string>("");
 
   useEffect(() => {
     setToday(format(new Date(), "EEE, d MMM yyyy"));
   }, []);
   
-  const { rooms } = useHMSContext();
+  const { rooms, userProfile, homestays, selectedHomestayId, setSelectedHomestayId } = useHMSContext();
   const { partner, isLoading } = useAuth();
-  const supabase = createClient();
+  
+  // Create supabase client only when needed for logout
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.replace("/login");
+  };
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -155,10 +164,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   const hasResults = allResults.length > 0;
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.replace("/login");
-  };
+  // handleLogout is defined above
 
   return (
     <div className="flex flex-col w-full mb-0 md:mb-8 pb-3 md:pb-0 relative z-50 gap-4 sm:gap-6">
@@ -173,8 +179,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         </button>
         
         <div className="flex flex-col items-center text-center">
-          <h1 className="text-[13px] font-bold tracking-[0.15em] text-[#F5F1E8] leading-tight uppercase">Wangshi</h1>
-          <h2 className="text-[9px] font-medium tracking-[0.2em] text-[#C7C3BA] mt-0.5 uppercase">Homestay</h2>
+          <h1 className="text-[13px] font-bold tracking-[0.15em] text-[#F5F1E8] leading-tight uppercase">
+            {homestays.find(h => h.id === selectedHomestayId)?.name?.split(' ')[0] || "Wangshi"}
+          </h1>
+          <h2 className="text-[9px] font-medium tracking-[0.2em] text-[#C7C3BA] mt-0.5 uppercase">
+            {homestays.find(h => h.id === selectedHomestayId)?.name?.split(' ').slice(1).join(' ') || "Homestay"}
+          </h2>
         </div>
 
         {!isLoading && partner ? (
@@ -357,8 +367,32 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           <span className="text-xs text-[#C7C3BA] font-medium tracking-wider">{today}</span>
         </div>
         
-        {/* Partner Selector Pill (Desktop only) */}
-        {!isLoading && partner && (
+        {/* Partner Selector / Homestay Selector */}
+        {!isLoading && partner && userProfile?.role === 'super_admin' ? (
+          <div className="flex items-center gap-2 glass-panel-secondary px-3 py-1.5 rounded-full">
+            <select
+              value={selectedHomestayId || ""}
+              onChange={(e) => {
+                const newId = e.target.value;
+                setSelectedHomestayId(newId);
+                if (pathname.startsWith('/admin/homestays/')) {
+                  const parts = pathname.split('/');
+                  if (parts.length >= 4) {
+                    parts[3] = newId;
+                    router.push(parts.join('/'));
+                  }
+                }
+              }}
+              className="bg-transparent border-none outline-none text-xs font-medium text-[#F5F1E8] tracking-wide focus:ring-0 cursor-pointer"
+            >
+              {homestays.map((h) => (
+                <option key={h.id} value={h.id} className="text-black bg-white">
+                  {h.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : !isLoading && partner ? (
           <div className="flex items-center gap-2 glass-panel-secondary pl-1.5 pr-3 py-1.5 rounded-full cursor-pointer hover:bg-[rgba(255,255,255,0.06)] transition-all">
             <div className="w-6 h-6 rounded-full bg-[rgba(245,158,11,0.2)] border border-[rgba(245,158,11,0.3)] flex items-center justify-center text-[#F2EEE3] font-bold text-[10px] shrink-0 shadow-[0_0_10px_rgba(245,158,11,0.1)] uppercase">
               {partner.name.substring(0, 2)}
@@ -366,7 +400,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             <span className="text-xs font-medium text-[#F5F1E8] tracking-wide">{partner.name}</span>
             <ChevronDown className="w-3.5 h-3.5 text-[#96928A] ml-1" />
           </div>
-        )}
+        ) : null}
 
         {/* Logout Button (Desktop only) */}
         <button 

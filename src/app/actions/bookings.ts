@@ -127,7 +127,6 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
       };
     }
 
-    // 6 & 7. Call the secure RPC function to create the booking atomically
     const { data: bookingId, error: rpcError } = await supabase.rpc("create_booking_atomic", {
       p_room_id: input.roomId,
       p_partner_id: partner.id,
@@ -135,6 +134,12 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
       p_check_out: formattedCheckOut,
       p_number_of_guests: guestCount,
       p_notes: input.notes?.trim() || null,
+      p_guests: input.guests.map((g, idx) => ({
+        name: g.name.trim(),
+        phone: (idx === 0 && input.guestPhone) ? input.guestPhone.trim() : (g.phone || null),
+        email: g.email?.trim() || null,
+        is_primary: idx === 0 || !!g.isPrimary
+      }))
     });
 
     if (rpcError) {
@@ -165,30 +170,7 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
       return { success: false, error: detailedError };
     }
 
-    // 8. Insert guests
-    const guestsToInsert = input.guests.map((guest, idx) => ({
-      booking_id: bookingId,
-      name: guest.name.trim(),
-      phone: (idx === 0 && input.guestPhone) ? input.guestPhone.trim() : (guest.phone || null),
-      email: guest.email?.trim() || null,
-      is_primary: idx === 0 || !!guest.isPrimary,
-    }));
 
-    const { error: guestError } = await supabase
-      .from("guests")
-      .insert(guestsToInsert);
-
-    if (guestError) {
-      console.error("Guest insertion error details:", {
-        message: guestError.message,
-        code: guestError.code,
-        details: guestError.details,
-        hint: guestError.hint,
-      });
-      // The booking was already created via RPC, but the guests failed. 
-      // This is a partial failure state.
-      return { success: false, error: `Guest creation failed: ${guestError.message || 'Unknown error'}` };
-    }
 
     return { success: true, bookingId: bookingId };
   } catch (err: any) {

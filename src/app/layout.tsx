@@ -10,8 +10,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Wangshi Homestay - HMS",
-  description: "Hotel Management System for Wangshi Homestay",
+  title: "HMS - Property Management",
+  description: "Hotel Management System for Homestays",
 };
 
 import { HMSProvider } from "@/components/providers/HMSProvider";

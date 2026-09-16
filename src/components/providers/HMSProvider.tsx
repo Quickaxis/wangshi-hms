@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { prototypeRooms, UI_Room, roomImageMap, defaultRoomImage } from "@/data/rooms";
-import { BookingStatus, BookingGuest, CurrentBookingDetails } from "@/lib/types";
+import { BookingStatus, BookingGuest, CurrentBookingDetails, Partner, Homestay } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import {
   createBookingAction,
@@ -13,6 +13,7 @@ import {
 } from "@/app/actions/bookings";
 import { format } from "date-fns";
 import { getISTDateString, getCurrentISTDate } from "@/lib/dateUtils";
+import { usePathname } from "next/navigation";
 
 interface HMSContextType {
   rooms: UI_Room[];
@@ -24,13 +25,17 @@ interface HMSContextType {
   updateBookingStatus: (bookingId: string, status: BookingStatus) => Promise<BookingActionResult>;
   cancelBooking: (bookingId: string) => Promise<BookingActionResult>;
   currentISTDate: Date | null;
+  userProfile: Partner | null;
+  selectedHomestayId: string | null;
+  setSelectedHomestayId: (id: string | null) => void;
+  homestays: Homestay[];
 }
 
 const HMSContext = createContext<HMSContextType | undefined>(undefined);
 
 export function HMSProvider({
   children,
-  initialRooms = prototypeRooms,
+  initialRooms = [],
 }: {
   children: React.ReactNode;
   initialRooms?: UI_Room[];
@@ -39,34 +44,82 @@ export function HMSProvider({
   const [selectedDate, setSelectedDate] = useState<string>(() => getISTDateString());
   const [currentISTDate, setCurrentISTDate] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<Partner | null>(null);
+  const [selectedHomestayId, setSelectedHomestayId] = useState<string | null>(null);
+  const [homestays, setHomestays] = useState<Homestay[]>([]);
+  const pathname = usePathname();
 
   // Stable Supabase client instance
   const supabase = useMemo(() => createClient(), []);
 
+  const loadProfile = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: partner } = await supabase
+          .from("partners")
+          .select("*")
+          .eq("auth_user_id", user.id)
+          .single();
+        if (partner) {
+          setUserProfile(partner as Partner);
+          // Auto-select homestay for normal partners, or default to Wangshi for testing if not set
+          if (partner.role !== 'super_admin' && partner.homestay_id) {
+            setSelectedHomestayId(partner.homestay_id);
+            // Fetch the specific homestay for the partner so TopBar and Sidebar have the correct context
+            const { data: homestayData } = await supabase.from("homestays").select("*").eq("id", partner.homestay_id).single();
+            if (homestayData) {
+              setHomestays([homestayData as Homestay]);
+            }
+          } else if (partner.role === 'super_admin') {
+            // Fetch homestays for super admin
+            const { data: homestaysData } = await supabase.from("homestays").select("*").order("name");
+            if (homestaysData) {
+              setHomestays(homestaysData as Homestay[]);
+              // Initialize selectedHomestayId only if not yet set and we have homestays available.
+              // Note: Using a functional state update here is risky if we depend on it immediately in loadData, 
+              // but loadData will run on next render if we add it correctly.
+              setSelectedHomestayId((prev: string | null) => prev ? prev : (homestaysData[0]?.id || null));
+            }
+          }
+        }
+      } else {
+        setUserProfile(null);
+      }
+    } catch (err) {
+      console.error("Failed to load user profile:", err);
+    }
+  }, [supabase]);
+
   const loadData = useCallback(async () => {
+    // If we don't have the user profile yet, we cannot correctly filter data via RLS or client logic.
+    // Wait for it, or skip. But we actually rely on RLS anyway.
     try {
       // 1. Fetch rooms from database
-      const { data: dbRooms, error: roomsError } = await supabase
-        .from("rooms")
-        .select("*")
-        .order("room_number", { ascending: true });
+      let roomsQuery = supabase.from("rooms").select("*").order("room_number", { ascending: true });
+      
+      // If super admin and a homestay is selected, filter rooms. Normal partners are filtered by RLS.
+      if (userProfile?.role === 'super_admin' && selectedHomestayId) {
+         roomsQuery = roomsQuery.eq("homestay_id", selectedHomestayId);
+      }
+
+      const { data: dbRooms, error: roomsError } = await roomsQuery;
 
       if (roomsError) {
-        console.warn("Could not fetch rooms from database, falling back to local:", roomsError.message);
+        console.warn("Could not fetch rooms from database:", roomsError.message);
         return;
       }
 
-      const activeRoomsList = (dbRooms && dbRooms.length > 0) ? dbRooms : initialRooms;
+      const activeRoomsList = dbRooms || [];
 
       // 2. Fetch active bookings overlapping selectedDate
-      // An active booking covers selectedDate if:
-      // status != 'cancelled' AND check_in <= selectedDate AND check_out > selectedDate
-      const { data: activeBookings, error: bookingsError } = await supabase
+      let bookingsQuery = supabase
         .from("bookings")
         .select(`
           id,
           room_id,
           partner_id,
+          homestay_id,
           check_in,
           check_out,
           created_at,
@@ -81,6 +134,13 @@ export function HMSProvider({
         .neq("status", "cancelled")
         .lte("check_in", selectedDate)
         .gt("check_out", selectedDate);
+
+      // If super admin and a homestay is selected, filter bookings. Normal partners are filtered by RLS.
+      if (userProfile?.role === 'super_admin' && selectedHomestayId) {
+        bookingsQuery = bookingsQuery.eq("homestay_id", selectedHomestayId);
+      }
+
+      const { data: activeBookings, error: bookingsError } = await bookingsQuery;
 
       if (bookingsError) {
         console.warn("Could not fetch active bookings:", bookingsError.message);
@@ -155,12 +215,34 @@ export function HMSProvider({
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, selectedDate, initialRooms]);
+  }, [supabase, selectedDate, initialRooms, userProfile?.role, selectedHomestayId]);
 
-  // Initial load and reload on selectedDate change
+  // Use a ref for loadData to use in realtime callbacks without recreating channels
+  const loadDataRef = React.useRef(loadData);
   useEffect(() => {
-    loadData();
+    loadDataRef.current = loadData;
   }, [loadData]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  // Refetch data when selected date, homestay, or user profile changes
+  useEffect(() => {
+    if (userProfile !== null) { // Only fetch if we have determined auth state
+      loadDataRef.current();
+    }
+  }, [selectedDate, selectedHomestayId, userProfile?.id, userProfile?.role]);
+
+  // Auto-sync selected homestay from admin route for super admins
+  useEffect(() => {
+    if (userProfile?.role === 'super_admin' && pathname) {
+      const match = pathname.match(/^\/admin\/homestays\/([^\/]+)/);
+      if (match && match[1] && match[1] !== 'new') {
+        setSelectedHomestayId(match[1]);
+      }
+    }
+  }, [pathname, userProfile?.role]);
 
   // Setup the global Ticking IST clock (updates once per minute)
   useEffect(() => {
@@ -175,6 +257,9 @@ export function HMSProvider({
 
   // Realtime subscription setup
   useEffect(() => {
+    // Only set up realtime subscriptions after the profile is loaded
+    if (!userProfile) return;
+
     // Channel for live booking and room status updates
     const channel = supabase
       .channel("hms-realtime-sync")
@@ -182,34 +267,34 @@ export function HMSProvider({
         "postgres_changes",
         { event: "*", schema: "public", table: "bookings" },
         () => {
-          loadData();
+          loadDataRef.current();
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "guests" },
         () => {
-          loadData();
+          loadDataRef.current();
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rooms" },
         () => {
-          loadData();
+          loadDataRef.current();
         }
       )
       .subscribe();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      loadData();
+      loadProfile().then(() => loadDataRef.current());
     });
 
     return () => {
       supabase.removeChannel(channel);
       subscription.unsubscribe();
     };
-  }, [supabase, loadData]);
+  }, [supabase, loadProfile, userProfile?.role]); // Only re-subscribe if role changes
 
   // Actions wrapped with local refresh
   const createBooking = async (input: CreateBookingInput): Promise<BookingActionResult> => {
@@ -251,6 +336,10 @@ export function HMSProvider({
         updateBookingStatus,
         cancelBooking,
         currentISTDate,
+        userProfile,
+        selectedHomestayId,
+        setSelectedHomestayId,
+        homestays,
       }}
     >
       {children}

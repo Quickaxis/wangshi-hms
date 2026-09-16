@@ -54,7 +54,8 @@ async function testBooking() {
     p_check_in: '2026-09-13',
     p_check_out: '2026-09-17',
     p_number_of_guests: 1,
-    p_notes: 'Test Booking'
+    p_notes: 'Test Booking',
+    p_guests: []
   });
 
   if (booking1Error) {
@@ -71,7 +72,8 @@ async function testBooking() {
     p_check_in: '2026-09-13',
     p_check_out: '2026-09-17',
     p_number_of_guests: 1,
-    p_notes: 'Test Double Booking'
+    p_notes: 'Test Double Booking',
+    p_guests: []
   });
 
   if (booking2Error) {

@@ -3,10 +3,11 @@
 import { useHMSContext } from "@/components/providers/HMSProvider";
 import { DisplayRoomCard } from "@/components/dashboard/DisplayRoomCard";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { Check } from "lucide-react";
+import { Check, BedDouble, Plus } from "lucide-react";
+import Link from "next/link";
 
 export default function RoomsPage() {
-  const { rooms } = useHMSContext();
+  const { rooms, isLoading, userProfile, selectedHomestayId } = useHMSContext();
 
   const facilities = [
     "Parking available",
@@ -25,11 +26,32 @@ export default function RoomsPage() {
         <p className="text-gray-500 md:text-[#96928A] mt-1 text-sm tracking-wide">Manage and view all rooms and their current statuses.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {rooms.map((room) => (
-          <DisplayRoomCard key={room.id} room={room} />
-        ))}
-      </div>
+      {!isLoading && rooms.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center glass-panel-secondary rounded-2xl border border-[rgba(255,255,255,0.05)]">
+          <div className="w-16 h-16 rounded-full bg-[rgba(255,255,255,0.03)] flex items-center justify-center mb-4">
+            <BedDouble className="w-8 h-8 text-[#96928A]" />
+          </div>
+          <h3 className="text-xl font-bold text-[#F5F1E8] mb-2">No rooms added yet</h3>
+          <p className="text-[#96928A] text-sm max-w-md mb-6">
+            There are currently no rooms configured for this homestay.
+          </p>
+          {userProfile?.role === 'super_admin' && (
+            <Link 
+              href={selectedHomestayId ? `/admin/homestays/${selectedHomestayId}/rooms` : "/admin/homestays"}
+              className="px-6 py-2.5 bg-[#F59E0B] text-[#141211] text-sm font-bold rounded-full hover:bg-[#FCD34D] transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Room
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {rooms.map((room) => (
+            <DisplayRoomCard key={room.id} room={room} />
+          ))}
+        </div>
+      )}
 
       <div className="mt-8">
         <h3 className="text-sm font-bold md:font-semibold tracking-[0.2em] text-gray-400 md:text-[#C7C3BA] uppercase mb-4">Property Facilities</h3>

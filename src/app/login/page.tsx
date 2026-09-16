@@ -22,7 +22,7 @@ function LoginContent() {
     if (errorMsg) return errorMsg;
     switch (urlError) {
       case "unauthorized":
-        return "Your account is not authorized to access WANGSHI HOMESTAY. Access Denied.";
+        return "Your account is not authorized to access this Homestay. Access Denied.";
       case "inactive":
         return "Your partner account has been deactivated. Please contact an administrator.";
       case "auth_failed":
@@ -117,7 +117,7 @@ function LoginContent() {
         </div>
         
         <h1 className="text-3xl font-bold text-[#f5f2eb] mb-2 tracking-wide">
-          WANGSHI HOMESTAY
+          HOMESTAY SYSTEM
         </h1>
         <p className="text-[#aaa39a] text-sm mb-8 tracking-wider">
           Partner Management System

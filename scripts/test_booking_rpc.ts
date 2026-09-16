@@ -67,7 +67,12 @@ async function testBooking() {
     p_check_in: '2026-09-22',
     p_check_out: '2026-09-23',
     p_number_of_guests: 1,
-    p_notes: 'Test note'
+    p_notes: 'Test note',
+    p_guests: [{
+      name: 'Test Guest',
+      phone: '9999999999',
+      is_primary: true
+    }]
   };
 
   console.log("Payload:", payload);
@@ -83,25 +88,6 @@ async function testBooking() {
     });
   } else {
     console.log("RPC Success! Booking ID:", data);
-
-    console.log("Testing guest insertion...");
-    const { error: guestError } = await supabase.from('guests').insert([{
-      booking_id: data,
-      name: 'Test Guest',
-      phone: '9999999999',
-      is_primary: true
-    }]);
-
-    if (guestError) {
-      console.error("Guest Insertion Error Details:", {
-        code: guestError.code,
-        message: guestError.message,
-        details: guestError.details,
-        hint: guestError.hint
-      });
-    } else {
-      console.log("Guest inserted successfully!");
-    }
   }
 }
 

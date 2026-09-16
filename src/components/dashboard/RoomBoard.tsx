@@ -21,12 +21,13 @@ import { ViewDetailsModal } from "../modals/ViewDetailsModal";
 import { useHMSContext } from "../providers/HMSProvider";
 import { useAuth } from "../providers/AuthProvider";
 import { cn } from "@/lib/utils";
-import { Calendar, CalendarIcon, ChevronLeft, ChevronRight, Loader2, BedDouble, Users } from "lucide-react";
+import { Calendar, CalendarIcon, ChevronLeft, ChevronRight, Loader2, BedDouble, Users, Plus } from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
 import { formatISTFullDate, getISTDateString } from "@/lib/dateUtils";
+import Link from "next/link";
 
 export function RoomBoard() {
-  const { rooms, selectedDate, setSelectedDate, isLoading, createBooking, currentISTDate } = useHMSContext();
+  const { rooms, selectedDate, setSelectedDate, isLoading, createBooking, currentISTDate, selectedHomestayId } = useHMSContext();
   const { partner } = useAuth();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -145,9 +146,7 @@ export function RoomBoard() {
     }
   };
 
-  const handleToday = () => {
-    setSelectedDate(getISTDateString());
-  };
+
 
   return (
     <div className="w-full flex flex-col flex-1 min-h-[500px] sm:min-h-0 relative z-0 pb-2 md:pb-6">
@@ -190,13 +189,12 @@ export function RoomBoard() {
               </button>
             </div>
 
-            {selectedDate !== getISTDateString() && (
-              <button
-                onClick={handleToday}
-                className="px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[rgba(245,158,11,0.15)] text-[#F59E0B] hover:bg-[rgba(245,158,11,0.25)] border border-[rgba(245,158,11,0.3)] transition-colors cursor-pointer"
+            {selectedDate === getISTDateString() && (
+              <div
+                className="px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border border-[rgba(245,158,11,0.3)] transition-colors cursor-default"
               >
                 Today
-              </button>
+              </div>
             )}
           </div>
         </div>
@@ -210,33 +208,54 @@ export function RoomBoard() {
       </div>
 
       {/* Main Drag-and-Drop Columns */}
-      <DndContext
-        id="hms-room-board"
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="grid grid-cols-2 gap-3 md:gap-8 h-[500px] sm:h-[600px] md:h-auto md:flex-1 md:min-h-0 relative w-full">
-          {/* Vertical Divider for Desktop */}
-          <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-px bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.1)] to-transparent -translate-x-1/2" />
-
-          <RoomColumn status="available" rooms={availableRooms} />
-          <RoomColumn status="booked" rooms={bookedRooms} />
+      {!isLoading && rooms.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] text-center glass-panel-secondary rounded-[32px] border border-[rgba(255,255,255,0.05)] p-8">
+          <div className="w-16 h-16 rounded-full bg-[rgba(255,255,255,0.03)] flex items-center justify-center mb-4">
+            <BedDouble className="w-8 h-8 text-[#96928A]" />
+          </div>
+          <h3 className="text-xl font-bold text-[#F5F1E8] mb-2">No rooms added yet</h3>
+          <p className="text-[#96928A] text-sm max-w-md mb-6">
+            There are currently no rooms configured for this homestay.
+          </p>
+          {partner?.role === 'super_admin' && (
+            <Link 
+              href={selectedHomestayId ? `/admin/homestays/${selectedHomestayId}/rooms` : "/admin/homestays"}
+              className="px-6 py-2.5 bg-[#F59E0B] text-[#141211] text-sm font-bold rounded-full hover:bg-[#FCD34D] transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Room
+            </Link>
+          )}
         </div>
+      ) : (
+        <DndContext
+          id="hms-room-board"
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="grid grid-cols-2 gap-3 md:gap-8 h-[500px] sm:h-[600px] md:h-auto md:flex-1 md:min-h-0 relative w-full">
+            {/* Vertical Divider for Desktop */}
+            <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-px bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.1)] to-transparent -translate-x-1/2" />
 
-        {isMounted && (
-          <DragOverlay
-            dropAnimation={{ duration: 180, easing: "ease-out" }}
-            className="z-50 pointer-events-none cursor-grabbing"
-          >
-            {activeRoom ? (
-              <div className="scale-[1.02] -translate-y-[2px] shadow-[0_25px_60px_rgba(0,0,0,0.5)] border border-[rgba(255,255,255,0.25)] rounded-[24px]">
-                <DisplayRoomCard room={activeRoom} />
-              </div>
-            ) : null}
-          </DragOverlay>
-        )}
-      </DndContext>
+            <RoomColumn status="available" rooms={availableRooms} />
+            <RoomColumn status="booked" rooms={bookedRooms} />
+          </div>
+
+          {isMounted && (
+            <DragOverlay
+              dropAnimation={{ duration: 180, easing: "ease-out" }}
+              className="z-50 pointer-events-none cursor-grabbing"
+            >
+              {activeRoom ? (
+                <div className="scale-[1.02] -translate-y-[2px] shadow-[0_25px_60px_rgba(0,0,0,0.5)] border border-[rgba(255,255,255,0.25)] rounded-[24px]">
+                  <DisplayRoomCard room={activeRoom} />
+                </div>
+              ) : null}
+            </DragOverlay>
+          )}
+        </DndContext>
+      )}
 
       {/* Bottom Summary Bar */}
       <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] mt-4 md:mt-6 shrink-0 mb-8 md:mb-0 pb-4 md:pb-0">

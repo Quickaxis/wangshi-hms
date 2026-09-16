@@ -11,13 +11,15 @@ import {
   Settings,
   Mountain,
   X,
-  LogOut
+  LogOut,
+  ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "../providers/AuthProvider";
+import { useHMSContext } from "../providers/HMSProvider";
 
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -33,9 +35,15 @@ const navItems = [
 export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const { partner } = useAuth();
-  const supabase = createClient();
+  const { userProfile, homestays, selectedHomestayId } = useHMSContext();
+
+  const currentHomestay = homestays.find(h => h.id === selectedHomestayId);
+  const displayName = currentHomestay?.name?.split(' ')[0] || "Wangshi";
+  const displaySubtitle = currentHomestay?.name?.split(' ').slice(1).join(' ') || "Homestay";
+  const displayLocation = currentHomestay?.location || "Shergaon, Arunachal Pradesh";
 
   const handleLogout = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     window.location.replace("/login");
   };
@@ -65,9 +73,9 @@ export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               <div className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center mb-2 shadow-sm">
                 <Mountain className="w-5 h-5 text-[#F5F1E8]" strokeWidth={1.5} />
               </div>
-              <h1 className="text-sm font-bold tracking-[0.15em] text-[#F5F1E8] leading-tight uppercase">Wangshi</h1>
-              <h2 className="text-[10px] font-bold tracking-[0.2em] text-[#C7C3BA] mt-0.5 uppercase">Homestay</h2>
-              <p className="text-[9px] text-[#96928A] mt-1.5 tracking-wider font-medium">Shergaon, Arunachal Pradesh</p>
+              <h1 className="text-sm font-bold tracking-[0.15em] text-[#F5F1E8] leading-tight uppercase">{displayName}</h1>
+              <h2 className="text-[10px] font-bold tracking-[0.2em] text-[#C7C3BA] mt-0.5 uppercase">{displaySubtitle}</h2>
+              <p className="text-[9px] text-[#96928A] mt-1.5 tracking-wider font-medium">{displayLocation}</p>
             </div>
             <button 
               onClick={onClose}
@@ -98,6 +106,25 @@ export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 </Link>
               );
             })}
+
+            {userProfile?.role === 'super_admin' && (
+              <>
+                <div className="h-px bg-[rgba(255,255,255,0.05)] my-2 mx-4" />
+                <Link
+                  href="/admin"
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-[12px] text-sm font-bold transition-all duration-300",
+                    pathname.startsWith('/admin')
+                      ? "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border border-[rgba(245,158,11,0.3)] shadow-[0_0_15px_rgba(245,158,11,0.1)]" 
+                      : "text-[#96928A] hover:text-[#F2EEE3] hover:bg-[rgba(255,255,255,0.06)] border border-transparent"
+                  )}
+                >
+                  <ShieldCheck className="h-4 w-4" strokeWidth={pathname.startsWith('/admin') ? 2 : 1.5} />
+                  <span className="tracking-[0.05em]">Admin</span>
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* Bottom actions */}

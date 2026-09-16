@@ -1,18 +1,33 @@
 export type BookingStatus = "confirmed" | "checked_in" | "checked_out" | "cancelled";
 export type RoomStatus = "available" | "booked";
 
+export interface Homestay {
+  id: string;
+  name: string;
+  slug?: string | null;
+  location?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  logo_url?: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
 export interface Partner {
   id: string;
   auth_user_id: string | null;
   name: string;
   email: string;
   role: string | null;
+  homestay_id?: string | null;
   is_active: boolean | null;
   created_at: string;
+  homestay?: Homestay;
 }
 
 export interface DbRoom {
   id: string;
+  homestay_id: string;
   room_number: string;
   name: string;
   description: string | null;
@@ -21,8 +36,10 @@ export interface DbRoom {
   nightly_rate: number;
   breakfast_included: boolean;
   breakfast_details: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
+  homestay?: Homestay;
 }
 
 export interface DbGuest {
@@ -40,6 +57,7 @@ export interface DbBooking {
   id: string;
   room_id: string;
   partner_id: string;
+  homestay_id: string;
   check_in: string; // YYYY-MM-DD
   check_in_time?: string; // DEPRECATED
   check_out: string; // YYYY-MM-DD
@@ -55,6 +73,7 @@ export interface DbBooking {
   rooms?: DbRoom;
   partners?: Partner;
   guests?: DbGuest[];
+  homestay?: Homestay;
 }
 
 export interface BookingGuest {
@@ -95,6 +114,7 @@ export interface Room {
   breakfastInfo: string;
   breakfast_included?: boolean;
   breakfast_details?: string;
+  is_active?: boolean;
   status: RoomStatus;
   imageUrl?: string;
   currentBooking?: CurrentBookingDetails;
