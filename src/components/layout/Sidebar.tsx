@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { GlassPanel } from "../ui/GlassPanel";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useHMSContext } from "../providers/HMSProvider";
@@ -71,8 +72,18 @@ export function Sidebar() {
   return (
     <GlassPanel className="h-full flex flex-col p-6 rounded-[32px]">
       <div className="mb-10 flex flex-col items-center text-center gap-2">
-        <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center shrink-0 mb-2 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
-          <Mountain className="w-6 h-6 text-[#F2EEE3]" strokeWidth={1.5} />
+        <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center shrink-0 mb-2 shadow-[0_0_15px_rgba(245,158,11,0.1)] overflow-hidden">
+          {(isAdminArea && managingHomestay?.logo_url) || (!isAdminArea && currentHomestay?.logo_url) ? (
+            <Image 
+              src={(isAdminArea && managingHomestay ? managingHomestay.logo_url : currentHomestay?.logo_url) || ''} 
+              alt="Homestay Logo" 
+              width={48} 
+              height={48} 
+              className="w-full h-full object-cover" 
+            />
+          ) : (
+            <Mountain className="w-6 h-6 text-[#F2EEE3]" strokeWidth={1.5} />
+          )}
         </div>
         <div>
           <h1 className="text-sm font-semibold tracking-[0.15em] text-[#F5F1E8] leading-tight uppercase">

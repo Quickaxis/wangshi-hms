@@ -29,6 +29,7 @@ interface HMSContextType {
   selectedHomestayId: string | null;
   setSelectedHomestayId: (id: string | null) => void;
   homestays: Homestay[];
+  refreshHomestays: () => Promise<void>;
 }
 
 const HMSContext = createContext<HMSContextType | undefined>(undefined);
@@ -223,6 +224,16 @@ export function HMSProvider({
     loadDataRef.current = loadData;
   }, [loadData]);
 
+  const refreshHomestays = useCallback(async () => {
+    if (userProfile?.role === 'super_admin') {
+      const { data } = await supabase.from("homestays").select("*").order("name");
+      if (data) setHomestays(data as Homestay[]);
+    } else if (userProfile?.homestay_id) {
+      const { data } = await supabase.from("homestays").select("*").eq("id", userProfile.homestay_id).single();
+      if (data) setHomestays([data as Homestay]);
+    }
+  }, [supabase, userProfile]);
+
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
@@ -340,6 +351,7 @@ export function HMSProvider({
         selectedHomestayId,
         setSelectedHomestayId,
         homestays,
+        refreshHomestays,
       }}
     >
       {children}
