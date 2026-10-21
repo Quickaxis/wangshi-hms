@@ -176,7 +176,13 @@ export async function createPartnerWithAuth(data: Partial<Partner> & { password?
       if (authError.message.toLowerCase().includes('already exists') || authError.status === 422) {
         return { success: false, error: "A user with this email already exists." };
       }
-      throw authError;
+      if (authError.status === 401 || authError.message.toLowerCase().includes('invalid api key')) {
+        return {
+          success: false,
+          error: "Authentication service error: Supabase Admin API rejected the credentials (Invalid API key). Please verify that SUPABASE_SERVICE_ROLE_KEY is correctly set for this Supabase project."
+        };
+      }
+      return { success: false, error: `Failed to create authentication account: ${authError.message}` };
     }
 
     const authUserId = authData.user.id;
@@ -195,14 +201,18 @@ export async function createPartnerWithAuth(data: Partial<Partner> & { password?
 
     if (dbError) {
       // Rollback auth user creation if db insert fails
-      await adminClient.auth.admin.deleteUser(authUserId);
-      throw dbError;
+      try {
+        await adminClient.auth.admin.deleteUser(authUserId);
+      } catch (rollbackErr: any) {
+        console.error("Failed to rollback auth user creation:", rollbackErr?.message || rollbackErr);
+      }
+      return { success: false, error: `Failed to create partner profile: ${dbError.message}` };
     }
 
     revalidatePath("/admin/homestays");
     return { success: true };
   } catch (err: any) {
-    console.error("createPartnerWithAuth error:", err);
+    console.error("createPartnerWithAuth error:", err?.message || err);
     return { success: false, error: err?.message || "Failed to create partner with auth" };
   }
 }
@@ -288,10 +298,18 @@ export async function resetPartnerPasswordAction(authUserId: string, newPassword
       password: newPassword
     });
 
-    if (error) throw error;
+    if (error) {
+      if (error.status === 401 || error.message.toLowerCase().includes('invalid api key')) {
+        return {
+          success: false,
+          error: "Authentication service error: Supabase Admin API rejected the credentials (Invalid API key). Please verify that SUPABASE_SERVICE_ROLE_KEY is correctly set for this Supabase project."
+        };
+      }
+      return { success: false, error: `Failed to reset password: ${error.message}` };
+    }
     return { success: true };
   } catch (err: any) {
-    console.error("resetPartnerPasswordAction error:", err);
+    console.error("resetPartnerPasswordAction error:", err?.message || err);
     return { success: false, error: err?.message || "Failed to reset password" };
   }
 }
