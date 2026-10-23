@@ -1,7 +1,8 @@
 "use client";
 
 import { 
-  LayoutDashboard, 
+  LayoutDashboard,
+  Inbox, 
   DoorClosed, 
   Calendar, 
   BookOpen, 
@@ -26,6 +27,7 @@ const navItems = [
   { name: "Rooms", href: "/rooms", icon: DoorClosed },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Bookings", href: "/bookings", icon: BookOpen },
+  { name: "Website Requests", href: "/requests", icon: Inbox },
   { name: "Guests", href: "/guests", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },
   { name: "Partners", href: "/partners", icon: Handshake },

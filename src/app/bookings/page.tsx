@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import {
   Calendar,
+  Inbox,
   Users,
   IndianRupee,
   BedDouble,
@@ -191,6 +194,13 @@ export default function BookingsPage() {
 
         {/* Stats Pills */}
         <div className="flex flex-wrap items-center gap-2 text-[10px] md:text-xs">
+          <Link
+            href="/requests"
+            className="px-3 py-1.5 rounded-full bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.3)] text-[#F59E0B] hover:bg-[rgba(245,158,11,0.25)] transition-colors font-medium flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.1)]"
+          >
+            <Inbox className="w-3.5 h-3.5" />
+            <span>Website Requests</span>
+          </Link>
           <span className="px-3 py-1.5 rounded-full bg-gray-100 md:bg-[rgba(255,255,255,0.03)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] text-gray-600 md:text-[#C7C3BA] font-medium">
             Total: <strong className="text-gray-900 md:text-white">{bookings.length}</strong>
           </span>

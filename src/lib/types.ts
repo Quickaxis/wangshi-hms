@@ -119,3 +119,31 @@ export interface Room {
   imageUrl?: string;
   currentBooking?: CurrentBookingDetails;
 }
+
+export type BookingRequestStatus = "pending" | "approved" | "rejected";
+
+export interface DbBookingRequest {
+  id: string;
+  homestay_id: string;
+  room_id: string | null;
+  booking_id?: string | null;
+  check_in: string; // YYYY-MM-DD
+  check_out: string; // YYYY-MM-DD
+  number_of_guests: number;
+  guest_name: string;
+  guest_phone: string;
+  guest_email: string | null;
+  notes: string | null;
+  estimated_total: number;
+  payment_method?: string;
+  status: BookingRequestStatus;
+  created_at: string;
+  updated_at: string;
+  rooms?: {
+    id: string;
+    room_number?: string;
+    name: string;
+    nightly_rate: number;
+  } | null;
+  homestay?: Homestay;
+}
