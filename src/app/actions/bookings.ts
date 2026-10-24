@@ -94,12 +94,16 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Bo
     // 4. Fetch room from database
     const { data: room, error: roomError } = await supabase
       .from("rooms")
-      .select("id, name, nightly_rate, max_guests")
+      .select("id, name, nightly_rate, max_guests, is_active")
       .eq("id", input.roomId)
       .single();
 
     if (roomError || !room) {
       return { success: false, error: "Room not found." };
+    }
+
+    if (room.is_active === false) {
+      return { success: false, error: "This room is currently inactive and cannot be booked." };
     }
 
     if (guestCount > room.max_guests) {

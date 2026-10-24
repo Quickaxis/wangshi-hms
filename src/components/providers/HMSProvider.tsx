@@ -76,11 +76,16 @@ export function HMSProvider({
             // Fetch homestays for super admin
             const { data: homestaysData } = await supabase.from("homestays").select("*").order("name");
             if (homestaysData) {
-              setHomestays(homestaysData as Homestay[]);
-              // Initialize selectedHomestayId only if not yet set and we have homestays available.
-              // Note: Using a functional state update here is risky if we depend on it immediately in loadData, 
-              // but loadData will run on next render if we add it correctly.
-              setSelectedHomestayId((prev: string | null) => prev ? prev : (homestaysData[0]?.id || null));
+              const allHomestays = homestaysData as Homestay[];
+              setHomestays(allHomestays);
+              const activeHomestays = allHomestays.filter(h => h.is_active);
+              // Initialize selectedHomestayId strictly with an active homestay for operational views
+              setSelectedHomestayId((prev: string | null) => {
+                if (prev && activeHomestays.some(h => h.id === prev)) {
+                  return prev;
+                }
+                return activeHomestays[0]?.id || null;
+              });
             }
           }
         }
@@ -204,6 +209,7 @@ export function HMSProvider({
           breakfastInfo: r.breakfast_details || r.breakfastInfo || "Complimentary breakfast included",
           breakfast_included: r.breakfast_included ?? true,
           breakfast_details: r.breakfast_details || r.breakfastInfo,
+          is_active: r.is_active ?? true,
           status: matchingBooking ? "booked" : "available",
           imageUrl: image,
           currentBooking,
@@ -227,12 +233,33 @@ export function HMSProvider({
   const refreshHomestays = useCallback(async () => {
     if (userProfile?.role === 'super_admin') {
       const { data } = await supabase.from("homestays").select("*").order("name");
-      if (data) setHomestays(data as Homestay[]);
+      if (data) {
+        const allHomestays = data as Homestay[];
+        setHomestays(allHomestays);
+        const activeHomestays = allHomestays.filter(h => h.is_active);
+        setSelectedHomestayId((prev: string | null) => {
+          if (prev && activeHomestays.some(h => h.id === prev)) {
+            return prev;
+          }
+          if (pathname?.startsWith('/admin/homestays/')) {
+            const match = pathname.match(/^\/admin\/homestays\/([^\/]+)/);
+            if (match && match[1] && allHomestays.some(h => h.id === match[1])) {
+              return match[1];
+            }
+          }
+          return activeHomestays[0]?.id || null;
+        });
+      }
     } else if (userProfile?.homestay_id) {
       const { data } = await supabase.from("homestays").select("*").eq("id", userProfile.homestay_id).single();
       if (data) setHomestays([data as Homestay]);
     }
-  }, [supabase, userProfile]);
+  }, [supabase, userProfile, pathname]);
+
+  const refreshHomestaysRef = React.useRef(refreshHomestays);
+  useEffect(() => {
+    refreshHomestaysRef.current = refreshHomestays;
+  }, [refreshHomestays]);
 
   useEffect(() => {
     loadProfile();
@@ -245,15 +272,26 @@ export function HMSProvider({
     }
   }, [selectedDate, selectedHomestayId, userProfile?.id, userProfile?.role]);
 
-  // Auto-sync selected homestay from admin route for super admins
+  // Auto-sync selected homestay from admin route for super admins,
+  // and guarantee operational routes strictly stay on an active homestay.
   useEffect(() => {
     if (userProfile?.role === 'super_admin' && pathname) {
       const match = pathname.match(/^\/admin\/homestays\/([^\/]+)/);
       if (match && match[1] && match[1] !== 'new') {
         setSelectedHomestayId(match[1]);
+      } else if (!pathname.startsWith('/admin/homestays')) {
+        const activeHomestays = homestays.filter(h => h.is_active);
+        if (activeHomestays.length > 0) {
+          setSelectedHomestayId((prev) => {
+            if (prev && activeHomestays.some(h => h.id === prev)) {
+              return prev;
+            }
+            return activeHomestays[0].id;
+          });
+        }
       }
     }
-  }, [pathname, userProfile?.role]);
+  }, [pathname, userProfile?.role, homestays]);
 
   // Setup the global Ticking IST clock (updates once per minute)
   useEffect(() => {
@@ -271,7 +309,7 @@ export function HMSProvider({
     // Only set up realtime subscriptions after the profile is loaded
     if (!userProfile) return;
 
-    // Channel for live booking and room status updates
+    // Channel for live booking, room, and homestay status updates
     const channel = supabase
       .channel("hms-realtime-sync")
       .on(
@@ -292,6 +330,14 @@ export function HMSProvider({
         "postgres_changes",
         { event: "*", schema: "public", table: "rooms" },
         () => {
+          loadDataRef.current();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "homestays" },
+        () => {
+          refreshHomestaysRef.current();
           loadDataRef.current();
         }
       )

@@ -180,10 +180,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         
         <div className="flex flex-col items-center text-center">
           <h1 className="text-[13px] font-bold tracking-[0.15em] text-[#F5F1E8] leading-tight uppercase">
-            {homestays.find(h => h.id === selectedHomestayId)?.name?.split(' ')[0] || "Wangshi"}
+            {(homestays.filter(h => h.is_active).find(h => h.id === selectedHomestayId)?.name || homestays.find(h => h.is_active)?.name || "Wangshi").split(' ')[0]}
           </h1>
           <h2 className="text-[9px] font-medium tracking-[0.2em] text-[#C7C3BA] mt-0.5 uppercase">
-            {homestays.find(h => h.id === selectedHomestayId)?.name?.split(' ').slice(1).join(' ') || "Homestay"}
+            {(homestays.filter(h => h.is_active).find(h => h.id === selectedHomestayId)?.name || homestays.find(h => h.is_active)?.name || "Homestay").split(' ').slice(1).join(' ')}
           </h2>
         </div>
 
@@ -371,7 +371,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         {!isLoading && partner && userProfile?.role === 'super_admin' ? (
           <div className="flex items-center gap-2 glass-panel-secondary px-3 py-1.5 rounded-full">
             <select
-              value={selectedHomestayId || ""}
+              value={
+                homestays.filter(h => h.is_active).some(h => h.id === selectedHomestayId)
+                  ? (selectedHomestayId || "")
+                  : (homestays.filter(h => h.is_active)[0]?.id || "")
+              }
               onChange={(e) => {
                 const newId = e.target.value;
                 setSelectedHomestayId(newId);
@@ -385,7 +389,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               }}
               className="bg-transparent border-none outline-none text-xs font-medium text-[#F5F1E8] tracking-wide focus:ring-0 cursor-pointer"
             >
-              {homestays.map((h) => (
+              {homestays.filter(h => h.is_active).map((h) => (
                 <option key={h.id} value={h.id} className="text-black bg-white">
                   {h.name}
                 </option>

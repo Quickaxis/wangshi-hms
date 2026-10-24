@@ -29,7 +29,8 @@ export function RoomCard({ room }: { room: UI_Room | Room }) {
   };
 
   const uiRoom = room as UI_Room;
-  const isAvailable = room.status === "available";
+  const isInactive = room.is_active === false;
+  const isAvailable = room.status === "available" && !isInactive;
 
   if (isDragging) {
     return (
@@ -43,14 +44,19 @@ export function RoomCard({ room }: { room: UI_Room | Room }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="relative z-10 group opacity-100 md:cursor-grab hover:md:-translate-y-1 transition-transform duration-300"
+      className={cn(
+        "relative z-10 group opacity-100 md:cursor-grab hover:md:-translate-y-1 transition-transform duration-300",
+        isInactive && "opacity-60"
+      )}
       {...attributes}
       {...mainCardListeners}
     >
       <div
         className={cn(
           "absolute -inset-[1px] rounded-[24px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none",
-          isAvailable
+          isInactive
+            ? "bg-transparent"
+            : isAvailable
             ? "bg-gradient-to-b from-[#4FE77B]/20 to-transparent"
             : "bg-gradient-to-b from-[#FF6978]/20 to-transparent"
         )}
@@ -86,11 +92,14 @@ export function RoomCard({ room }: { room: UI_Room | Room }) {
             <span
               className={cn(
                 "w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]",
-                isAvailable ? "bg-[#4FE77B] text-[#4FE77B]" : "bg-[#FF6978] text-[#FF6978]"
+                isInactive ? "bg-[#96928A] text-[#96928A]" : isAvailable ? "bg-[#4FE77B] text-[#4FE77B]" : "bg-[#FF6978] text-[#FF6978]"
               )}
             />
-            <span className="text-[10px] font-bold tracking-widest text-white uppercase">
-              {isAvailable ? "Available" : "Booked"}
+            <span className={cn(
+              "text-[10px] font-bold tracking-widest uppercase",
+              isInactive ? "text-[#C7C3BA]" : "text-white"
+            )}>
+              {isInactive ? "Inactive" : isAvailable ? "Available" : "Booked"}
             </span>
           </div>
 

@@ -3,18 +3,22 @@
 import { useState } from "react";
 import { Homestay } from "@/lib/types";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { Plus, Edit2, Building2, Phone, MapPin, Mail, Ban, CheckCircle2 } from "lucide-react";
+import { Plus, Edit2, Building2, Phone, MapPin, Mail, Ban, CheckCircle2, Trash2 } from "lucide-react";
 import { addHomestayAction, updateHomestayAction } from "@/app/actions/admin";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useHMSContext } from "@/components/providers/HMSProvider";
+import { DeleteHomestayModal } from "@/components/modals/DeleteHomestayModal";
 
 export function HomestaysClient({ initialHomestays }: { initialHomestays: Homestay[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingHomestay, setDeletingHomestay] = useState<Homestay | null>(null);
   const [formData, setFormData] = useState<Partial<Homestay>>({ is_active: true });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { refreshHomestays } = useHMSContext();
 
   const handleOpenModal = (homestay?: Homestay) => {
     if (homestay) {
@@ -42,6 +46,7 @@ export function HomestaysClient({ initialHomestays }: { initialHomestays: Homest
 
     if (result.success) {
       setIsModalOpen(false);
+      await refreshHomestays();
       router.refresh();
     } else {
       setError(result.error || "An error occurred.");
@@ -52,6 +57,7 @@ export function HomestaysClient({ initialHomestays }: { initialHomestays: Homest
   const handleToggleActive = async (homestay: Homestay) => {
     const result = await updateHomestayAction(homestay.id, { is_active: !homestay.is_active });
     if (result.success) {
+      await refreshHomestays();
       router.refresh();
     } else {
       alert(result.error || "An error occurred.");
@@ -107,6 +113,13 @@ export function HomestaysClient({ initialHomestays }: { initialHomestays: Homest
                       title={homestay.is_active ? "Deactivate" : "Reactivate"}
                     >
                       {homestay.is_active ? <Ban className="w-4 h-4 text-red-400" /> : <CheckCircle2 className="w-4 h-4 text-green-400" />}
+                    </button>
+                    <button
+                      onClick={() => setDeletingHomestay(homestay)}
+                      className="p-1.5 rounded-lg hover:bg-red-500/15 text-[#96928A] hover:text-red-400 transition-colors"
+                      title="Permanently Delete Property"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-400" />
                     </button>
                   </div>
                 </div>
@@ -213,6 +226,16 @@ export function HomestaysClient({ initialHomestays }: { initialHomestays: Homest
           </GlassPanel>
         </div>
       )}
+
+      <DeleteHomestayModal
+        isOpen={!!deletingHomestay}
+        onClose={() => setDeletingHomestay(null)}
+        homestay={deletingHomestay}
+        onDeleted={async () => {
+          await refreshHomestays();
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

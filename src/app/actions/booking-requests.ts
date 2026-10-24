@@ -239,12 +239,16 @@ export async function approveBookingRequestAction(
     // Verify room belongs to this homestay
     const { data: room, error: roomError } = await supabase
       .from("rooms")
-      .select("id, homestay_id, name, max_guests")
+      .select("id, homestay_id, name, max_guests, is_active")
       .eq("id", targetRoomId)
       .single();
 
     if (roomError || !room) {
       return { success: false, error: "Target room not found in this homestay." };
+    }
+
+    if (room.is_active === false) {
+      return { success: false, error: `Cannot approve request: room "${room.name}" is inactive.` };
     }
 
     if (room.homestay_id !== request.homestay_id) {
