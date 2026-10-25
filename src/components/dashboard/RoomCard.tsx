@@ -11,26 +11,29 @@ import { formatISTDateTime, formatISTCompactDate, combineDateAndTime } from "@/l
 
 export function RoomCard({ room }: { room: UI_Room | Room }) {
   const [imgError, setImgError] = useState(false);
+  const uiRoom = room as UI_Room;
+  const isInactive = room.is_active === false;
+  const isAvailable = room.status === "available" && !isInactive;
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: room.id,
     data: { room },
+    disabled: isInactive,
   });
 
   const style = {
     transform: CSS.Translate.toString(transform),
   };
 
-  const mainCardListeners = {
-    ...listeners,
-    onPointerDown: (e: React.PointerEvent) => {
-      if (e.pointerType === "touch") return;
-      listeners?.onPointerDown?.(e);
-    },
-  };
-
-  const uiRoom = room as UI_Room;
-  const isInactive = room.is_active === false;
-  const isAvailable = room.status === "available" && !isInactive;
+  const mainCardListeners = isInactive
+    ? {}
+    : {
+        ...listeners,
+        onPointerDown: (e: React.PointerEvent) => {
+          if (e.pointerType === "touch") return;
+          listeners?.onPointerDown?.(e);
+        },
+      };
 
   if (isDragging) {
     return (
@@ -103,12 +106,14 @@ export function RoomCard({ room }: { room: UI_Room | Room }) {
             </span>
           </div>
 
-          <div 
-            className="absolute top-2.5 left-2.5 p-1.5 rounded-full glass-panel-strong border-none text-white/70 hover:text-white transition-colors cursor-grab backdrop-blur-xl bg-black/20 block touch-none"
-            {...listeners}
-          >
-            <GripVertical className="w-4 h-4 pointer-events-none" />
-          </div>
+          {!isInactive && (
+            <div 
+              className="absolute top-2.5 left-2.5 p-1.5 rounded-full glass-panel-strong border-none text-white/70 hover:text-white transition-colors cursor-grab backdrop-blur-xl bg-black/20 block touch-none"
+              {...listeners}
+            >
+              <GripVertical className="w-4 h-4 pointer-events-none" />
+            </div>
+          )}
         </div>
 
         {/* Content Section */}
@@ -151,7 +156,7 @@ export function RoomCard({ room }: { room: UI_Room | Room }) {
             <div className="mt-2.5 pt-2.5 border-t border-[rgba(255,255,255,0.06)] space-y-1.5">
               {/* Primary Guest Name & Count */}
               <div className="flex justify-between items-start">
-                <div className="flex flex-col">
+                <div className="flex flex-col min-w-0 flex-1 pr-2">
                   <div className="flex items-center gap-1.5 text-[#F5F1E8] font-bold text-[13px] tracking-wide truncate">
                     <User className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
                     <span className="truncate">

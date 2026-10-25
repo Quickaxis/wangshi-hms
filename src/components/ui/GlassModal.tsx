@@ -53,10 +53,11 @@ export function GlassModal({ isOpen, onClose, title, children, footer, className
       >
         {/* Header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-6 py-4 sm:py-5 bg-[#100D0B] relative z-10">
-          <h2 className="text-lg font-semibold tracking-wide text-[#F5F1E8]">{title}</h2>
+          <h2 className="text-base sm:text-lg font-semibold tracking-wide text-[#F5F1E8] truncate mr-2 flex-1 min-w-0" title={title}>{title}</h2>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-[rgba(255,255,255,0.1)] text-[#96928A] hover:text-[#F5F1E8] transition-colors"
+            className="p-1.5 rounded-full hover:bg-[rgba(255,255,255,0.1)] text-[#96928A] hover:text-[#F5F1E8] transition-colors flex-shrink-0"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -74,7 +75,7 @@ export function GlassModal({ isOpen, onClose, title, children, footer, className
 
         {/* Footer */}
         {footer && (
-          <div className="flex-shrink-0 relative z-10 flex items-center justify-end gap-3 border-t border-[rgba(255,255,255,0.08)] bg-[#100D0B] pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 px-6">
+          <div className="flex-shrink-0 relative z-10 flex items-center justify-end gap-3 border-t border-[rgba(255,255,255,0.08)] bg-[#100D0B] pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 px-6 overflow-x-hidden">
             {footer}
           </div>
         )}

@@ -338,9 +338,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                                </span>
                              </div>
                              <div className="text-xs mt-0.5 flex items-center gap-1.5">
-                               <span className={room.status === "available" ? "text-[#4FE77B]" : "text-[#FF6978]"}>
-                                 {room.status === "available" ? "Available" : "Booked"}
-                               </span>
+                               <span
+                                className={
+                                  room.is_active === false
+                                    ? "text-[#96928A]"
+                                    : room.status === "available"
+                                    ? "text-[#4FE77B]"
+                                    : "text-[#FF6978]"
+                                }
+                              >
+                                {room.is_active === false ? "Inactive" : room.status === "available" ? "Available" : "Booked"}
+                              </span>
                                {room.currentBooking && (
                                  <>
                                    <span className="text-[10px] text-[#96928A]">•</span>

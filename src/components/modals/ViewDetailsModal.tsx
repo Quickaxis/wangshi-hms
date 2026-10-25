@@ -79,8 +79,8 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
       onClose={onClose}
       title={isAvailable ? `Room Details: ${activeRoom.name}` : `Booking Details: ${activeRoom.name}`}
       footer={
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+          <div className="flex flex-wrap items-center gap-2">
             {!isAvailable && booking && (
               <>
                 {booking.status === "confirmed" && (
@@ -117,7 +117,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
               </>
             )}
           </div>
-          <GlassButton variant="ghost" onClick={onClose} className="px-6 text-xs">
+          <GlassButton variant="ghost" onClick={onClose} className="px-6 text-xs w-full sm:w-auto">
             Close
           </GlassButton>
         </div>
@@ -251,57 +251,55 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
 
             {/* Phone & Booking Info */}
             <div className="space-y-4 pt-1">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Stay Dates */}
-                <div className="col-span-1 md:col-span-2 space-y-3">
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked On</span>
-                      <span className="font-medium text-[#F5F1E8] mt-0.5">
-                        {booking.createdAt ? formatISTDateTime(booking.createdAt) : 'Unknown'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-in</span>
-                      <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkIn)}</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
-                      <span className="font-medium text-[#F5F1E8] mt-0.5">12:00 PM</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-out</span>
-                      <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkOut)}</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
-                      <span className="font-medium text-[#F5F1E8] mt-0.5">11:00 AM</span>
-                    </div>
+              {/* Stay Dates */}
+              <div className="space-y-3">
+                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked On</span>
+                    <span className="font-medium text-[#F5F1E8] mt-0.5">
+                      {booking.createdAt ? formatISTDateTime(booking.createdAt) : 'Unknown'}
+                    </span>
                   </div>
                 </div>
 
-                <div className="grid grid-rows-2 gap-4">
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
-                    <Phone className="w-4 h-4 text-[#96928A]" />
-                    <div>
-                      <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Phone</p>
-                      <p className="text-sm font-medium text-[#F5F1E8]">{booking.guestPhone || "N/A"}</p>
-                    </div>
+                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-in</span>
+                    <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkIn)}</span>
                   </div>
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
-                    <IndianRupee className="w-4 h-4 text-[#96928A]" />
-                    <div>
-                      <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Amount</p>
-                      <p className="text-sm font-medium text-[#F5F1E8]">
-                        ₹{booking.bookingAmount.toLocaleString("en-IN")}
-                      </p>
-                    </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
+                    <span className="font-medium text-[#F5F1E8] mt-0.5">12:00 PM</span>
+                  </div>
+                </div>
+
+                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-out</span>
+                    <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkOut)}</span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
+                    <span className="font-medium text-[#F5F1E8] mt-0.5">11:00 AM</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
+                  <Phone className="w-4 h-4 text-[#96928A] shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Phone</p>
+                    <p className="text-sm font-medium text-[#F5F1E8] truncate">{booking.guestPhone || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
+                  <IndianRupee className="w-4 h-4 text-[#96928A] shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Amount</p>
+                    <p className="text-sm font-medium text-[#F5F1E8]">
+                      ₹{booking.bookingAmount.toLocaleString("en-IN")}
+                    </p>
                   </div>
                 </div>
               </div>

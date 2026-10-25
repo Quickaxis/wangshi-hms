@@ -133,19 +133,19 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
       onClose={onClose}
       title={`Book ${room.name}`}
       footer={
-        <>
-          <GlassButton variant="ghost" onClick={onClose} className="px-6" disabled={isSubmitting}>
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 w-full">
+          <GlassButton variant="ghost" onClick={onClose} className="px-6 w-full sm:w-auto" disabled={isSubmitting}>
             Cancel
           </GlassButton>
           <GlassButton
             variant="primary"
             onClick={handleSubmit}
-            className="px-8"
+            className="px-8 w-full sm:w-auto"
             disabled={guests.length === 0 || isSubmitting}
           >
             {isSubmitting ? "Confirming..." : "Confirm Booking"}
           </GlassButton>
-        </>
+        </div>
       }
     >
       <form id="booking-form" onSubmit={handleSubmit} className="space-y-4">
@@ -271,7 +271,7 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <GlassInput
               label="Check-in Date"
               type="date"

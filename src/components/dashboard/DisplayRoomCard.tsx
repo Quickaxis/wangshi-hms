@@ -12,13 +12,18 @@ import { formatISTDateTime, formatISTCompactDate, combineDateAndTime } from "@/l
 export function DisplayRoomCard({ room }: { room: UI_Room | Room }) {
   const [imgError, setImgError] = useState(false);
   const uiRoom = room as UI_Room;
-  const isAvailable = room.status === "available";
+  const isInactive = room.is_active === false;
+  const isAvailable = room.status === "available" && !isInactive;
 
   return (
-    <div className="relative z-10 opacity-100 group">
+    <div className={cn("relative z-10 opacity-100 group", isInactive && "opacity-60")}>
       <div className={cn(
         "absolute -inset-[1px] rounded-[24px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none",
-        isAvailable ? "bg-gradient-to-b from-[#4FE77B]/20 to-transparent" : "bg-gradient-to-b from-[#FF6978]/20 to-transparent"
+        isInactive
+          ? "bg-transparent"
+          : isAvailable
+          ? "bg-gradient-to-b from-[#4FE77B]/20 to-transparent"
+          : "bg-gradient-to-b from-[#FF6978]/20 to-transparent"
       )} />
       
       {/* 
@@ -47,14 +52,21 @@ export function DisplayRoomCard({ room }: { room: UI_Room | Room }) {
           
           {/* Status Badge */}
           <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 bg-[rgba(255,255,255,0.08)] backdrop-blur-md px-2.5 py-1 rounded-full shadow-[0_20px_80px_rgba(0,0,0,0.5)]">
-            <span className={cn("w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]", isAvailable ? "bg-[#4FE77B] text-[#4FE77B]" : "bg-[#FF6978] text-[#FF6978]")} />
-            <span className="text-[10px] font-bold tracking-widest text-white uppercase">
-              {isAvailable ? "Available" : "Booked"}
+            <span
+              className={cn(
+                "w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]",
+                isInactive ? "bg-[#96928A] text-[#96928A]" : isAvailable ? "bg-[#4FE77B] text-[#4FE77B]" : "bg-[#FF6978] text-[#FF6978]"
+              )}
+            />
+            <span className={cn(
+              "text-[10px] font-bold tracking-widest uppercase",
+              isInactive ? "text-[#C7C3BA]" : "text-white"
+            )}>
+              {isInactive ? "Inactive" : isAvailable ? "Available" : "Booked"}
             </span>
           </div>
         </div>
 
-        {/* Content Section */}
         {/* Content Section */}
         <div className="p-3 md:p-3 md:pb-2 flex-1 flex flex-col">
           <div className="flex justify-between items-start mb-1.5 md:mb-2">
@@ -79,14 +91,14 @@ export function DisplayRoomCard({ room }: { room: UI_Room | Room }) {
           
           <div className="flex items-start gap-1.5 text-[11px] font-medium mt-auto border-t border-[rgba(255,255,255,0.06)] pt-2 md:pt-3">
             <NotebookPen className="w-3.5 h-3.5 md:w-3 md:h-3 text-[#96928A] mt-0.5 shrink-0" />
-            <span className="leading-tight text-[#96928A]">{room.breakfastInfo}</span>
+            <span className="leading-tight text-[#96928A] truncate">{room.breakfastInfo}</span>
           </div>
 
           {!isAvailable && room.currentBooking && (
             <div className="mt-4 md:mt-3 pt-4 md:pt-3 border-t border-[rgba(255,255,255,0.06)]">
               {/* Primary Guest Name & Count */}
               <div className="flex justify-between items-start">
-                <div className="flex flex-col">
+                <div className="flex flex-col min-w-0 flex-1 pr-2">
                   <div className="flex items-center gap-1.5 text-[#F5F1E8] font-bold text-sm md:text-[13px] tracking-wide truncate">
                     <span className="truncate">
                       {room.currentBooking.guests?.[0]?.name || "Guest"}

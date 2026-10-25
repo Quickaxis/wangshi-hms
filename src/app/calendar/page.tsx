@@ -138,6 +138,9 @@ export default function CalendarPage() {
       };
       setViewingRoom(roomWithDetails);
     } else {
+      // Do not allow booking an inactive room
+      if (room.is_active === false) return;
+
       // Open Booking Modal preselected for this room & date
       setSelectedBookingDate(format(date, "yyyy-MM-dd"));
       setBookingRoom(room);
@@ -230,9 +233,9 @@ export default function CalendarPage() {
                         {format(date, "EEE")}
                       </div>
                       <div
-                        className={`text-sm font-medium mt-0.5 ${
+                        className={`text-sm font-medium mt-0.5 h-6 flex items-center justify-center mx-auto ${
                           isToday
-                            ? "text-[#F59E0B] font-bold bg-[rgba(245,158,11,0.15)] rounded-full w-6 h-6 flex items-center justify-center mx-auto"
+                            ? "text-[#F59E0B] font-bold bg-[rgba(245,158,11,0.15)] rounded-full w-6"
                             : "text-[#F5F1E8]"
                         }`}
                       >
@@ -253,6 +256,12 @@ export default function CalendarPage() {
                     </div>
                   </td>
                 </tr>
+              ) : rooms.length === 0 ? (
+                <tr>
+                  <td colSpan={15} className="px-6 py-16 text-center text-[#96928A]">
+                    No rooms configured for this property.
+                  </td>
+                </tr>
               ) : (
                 rooms.map((room, roomIdx) => (
                   <tr
@@ -261,8 +270,15 @@ export default function CalendarPage() {
                       roomIdx !== rooms.length - 1 ? "border-b border-[rgba(255,255,255,0.03)]" : ""
                     }`}
                   >
-                    <td className="px-6 py-4 sticky left-0 bg-[rgba(20,18,17,0.95)] z-10 backdrop-blur-xl">
-                      <div className="font-medium text-[#F5F1E8]">{room.name}</div>
+                    <td className={`px-6 py-4 sticky left-0 bg-[rgba(20,18,17,0.95)] z-10 backdrop-blur-xl ${room.is_active === false ? "opacity-75" : ""}`}>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-medium text-[#F5F1E8]">{room.name}</span>
+                        {room.is_active === false && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-[rgba(255,255,255,0.06)] text-[#96928A] border border-[rgba(255,255,255,0.08)]">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[10px] text-[#96928A]">
                         ₹{room.pricePerNight.toLocaleString("en-IN")}/night
                       </div>
@@ -271,32 +287,46 @@ export default function CalendarPage() {
                       const booking = getBookingForRoomOnDate(room.id, date);
                       const isBooked = !!booking;
                       const guestName = booking?.guests?.[0]?.name;
+                      const isInactive = room.is_active === false;
+
+                      if (isBooked) {
+                        return (
+                          <td key={idx} className="p-1 text-center">
+                            <button
+                              onClick={() => handleCellClick(room, date)}
+                              title={`Booked: ${guestName || "Guest"} (${booking?.check_in} to ${booking?.check_out})`}
+                              className="w-full h-11 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer p-1 bg-[rgba(255,105,120,0.12)] border border-[rgba(255,105,120,0.25)] hover:bg-[rgba(255,105,120,0.2)]"
+                            >
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#FF6978] shadow-[0_0_8px_#FF6978] mb-0.5" />
+                              <span className="text-[9px] text-[#FF6978] font-medium truncate max-w-[48px]">
+                                {guestName || "Booked"}
+                              </span>
+                            </button>
+                          </td>
+                        );
+                      }
+
+                      if (isInactive) {
+                        return (
+                          <td key={idx} className="p-1 text-center">
+                            <div
+                              title={`${room.name} is inactive and unavailable for booking`}
+                              className="w-full h-11 rounded-xl flex flex-col items-center justify-center p-1 bg-[rgba(255,255,255,0.015)] border border-[rgba(255,255,255,0.04)] cursor-not-allowed opacity-40"
+                            >
+                              <div className="w-1 h-1 rounded-full bg-[#96928A]" />
+                            </div>
+                          </td>
+                        );
+                      }
 
                       return (
                         <td key={idx} className="p-1 text-center">
                           <button
                             onClick={() => handleCellClick(room, date)}
-                            title={
-                              isBooked
-                                ? `Booked: ${guestName || "Guest"} (${booking?.check_in} to ${booking?.check_out})`
-                                : `Available: Click to book ${room.name} on ${format(date, "d MMM")}`
-                            }
-                            className={`w-full h-11 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer p-1 ${
-                              isBooked
-                                ? "bg-[rgba(255,105,120,0.12)] border border-[rgba(255,105,120,0.25)] hover:bg-[rgba(255,105,120,0.2)]"
-                                : "bg-[rgba(79,231,123,0.04)] border border-[rgba(79,231,123,0.1)] hover:bg-[rgba(79,231,123,0.12)]"
-                            }`}
+                            title={`Available: Click to book ${room.name} on ${format(date, "d MMM")}`}
+                            className="w-full h-11 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer p-1 bg-[rgba(79,231,123,0.04)] border border-[rgba(79,231,123,0.1)] hover:bg-[rgba(79,231,123,0.12)]"
                           >
-                            {isBooked ? (
-                              <>
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#FF6978] shadow-[0_0_8px_#FF6978] mb-0.5" />
-                                <span className="text-[9px] text-[#FF6978] font-medium truncate max-w-[48px]">
-                                  {guestName || "Booked"}
-                                </span>
-                              </>
-                            ) : (
-                              <div className="w-1.5 h-1.5 rounded-full bg-[#4FE77B]/40" />
-                            )}
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#4FE77B]/40" />
                           </button>
                         </td>
                       );

@@ -139,6 +139,19 @@ export default function BookingsPage() {
     }
   };
 
+  // Dynamic room options extracted from bookings
+  const availableRoomOptions = useMemo(() => {
+    const roomMap = new Map<string, string>();
+    bookings.forEach((b) => {
+      const rId = b.room_id;
+      const rName = b.rooms?.name || (b.rooms?.room_number ? `Room ${b.rooms.room_number}` : `Room ${rId}`);
+      if (rId && !roomMap.has(rId)) {
+        roomMap.set(rId, rName);
+      }
+    });
+    return Array.from(roomMap.entries()).map(([id, name]) => ({ id, name }));
+  }, [bookings]);
+
   // Filtered bookings
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
@@ -149,8 +162,8 @@ export default function BookingsPage() {
 
       // Room filter
       if (roomFilter !== "all") {
-        const rNum = b.rooms?.room_number;
-        if (rNum !== roomFilter && b.room_id !== roomFilter) return false;
+        const matches = b.room_id === roomFilter || b.rooms?.room_number === roomFilter || b.rooms?.id === roomFilter;
+        if (!matches) return false;
       }
 
       // Date filter
@@ -186,8 +199,8 @@ export default function BookingsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 md:text-[#F5F1E8]">Booking Management</h2>
-          <p className="text-gray-500 md:text-[#96928A] mt-1 text-xs md:text-sm tracking-wide">
+          <h2 className="text-xl md:text-2xl font-bold text-[#F5F1E8]">Booking Management</h2>
+          <p className="text-[#96928A] mt-1 text-xs md:text-sm tracking-wide">
             View, search, and manage all reservations.
           </p>
         </div>
@@ -201,14 +214,14 @@ export default function BookingsPage() {
             <Inbox className="w-3.5 h-3.5" />
             <span>Website Requests</span>
           </Link>
-          <span className="px-3 py-1.5 rounded-full bg-gray-100 md:bg-[rgba(255,255,255,0.03)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] text-gray-600 md:text-[#C7C3BA] font-medium">
-            Total: <strong className="text-gray-900 md:text-white">{bookings.length}</strong>
+          <span className="px-3 py-1.5 rounded-full glass-panel-secondary border border-[rgba(255,255,255,0.08)] text-[#C7C3BA] font-medium">
+            Total: <strong className="text-white">{bookings.length}</strong>
           </span>
-          <span className="px-3 py-1.5 rounded-full bg-emerald-50 md:bg-[rgba(79,231,123,0.1)] border border-emerald-100 md:border-[rgba(79,231,123,0.2)] text-emerald-600 md:text-[#4FE77B] font-medium">
+          <span className="px-3 py-1.5 rounded-full bg-[rgba(79,231,123,0.1)] border border-[rgba(79,231,123,0.2)] text-[#4FE77B] font-medium">
             Confirmed:{" "}
             <strong>{bookings.filter((b) => b.status === "confirmed").length}</strong>
           </span>
-          <span className="px-3 py-1.5 rounded-full bg-amber-50 md:bg-[rgba(245,158,11,0.1)] border border-amber-100 md:border-[rgba(245,158,11,0.2)] text-amber-600 md:text-[#F59E0B] font-medium">
+          <span className="px-3 py-1.5 rounded-full bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.2)] text-[#F59E0B] font-medium">
             Checked In:{" "}
             <strong>{bookings.filter((b) => b.status === "checked_in").length}</strong>
           </span>
@@ -216,64 +229,65 @@ export default function BookingsPage() {
       </div>
 
       {/* Filter Bar */}
-      <GlassPanel className="p-3 md:p-4 rounded-[20px] md:rounded-2xl bg-white md:glass-panel-secondary border border-gray-100 md:border-[rgba(255,255,255,0.05)] shadow-[0_2px_10px_rgba(0,0,0,0.03)] md:shadow-none flex flex-wrap items-center gap-2.5 md:gap-3">
+      <GlassPanel className="p-3 md:p-4 rounded-[20px] md:rounded-2xl glass-panel-secondary border border-[rgba(255,255,255,0.05)] flex flex-wrap items-center gap-2.5 md:gap-3">
         {/* Search */}
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="w-4 h-4 text-gray-400 md:text-[#96928A] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#96928A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search bookings..."
-            className="w-full bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl pl-9 pr-4 py-2 md:py-2.5 text-xs font-medium text-gray-900 md:text-[#F5F1E8] placeholder-gray-400 md:placeholder-[#96928A] outline-none focus:border-gray-300 md:focus:border-[rgba(255,255,255,0.2)] transition-colors"
+            className="w-full bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl pl-9 pr-4 py-2 md:py-2.5 text-xs font-medium text-[#F5F1E8] placeholder-[#96928A] outline-none focus:border-[rgba(255,255,255,0.2)] transition-colors"
           />
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-1 bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1.5 md:py-1">
-          <Filter className="w-3.5 h-3.5 text-gray-400 md:text-[#96928A] ml-1" />
+        <div className="flex items-center gap-1 bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1.5 md:py-1">
+          <Filter className="w-3.5 h-3.5 text-[#96928A] ml-1" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-transparent text-[11px] md:text-xs font-medium text-gray-700 md:text-[#F5F1E8] outline-none cursor-pointer py-0.5 pr-1 md:pr-2"
+            className="bg-transparent text-[11px] md:text-xs font-medium text-[#F5F1E8] outline-none cursor-pointer py-0.5 pr-1 md:pr-2"
           >
-            <option value="all">All Statuses</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="checked_in">Checked In</option>
-            <option value="checked_out">Checked Out</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="all" className="bg-[#141211] text-[#F5F1E8]">All Statuses</option>
+            <option value="confirmed" className="bg-[#141211] text-[#F5F1E8]">Confirmed</option>
+            <option value="checked_in" className="bg-[#141211] text-[#F5F1E8]">Checked In</option>
+            <option value="checked_out" className="bg-[#141211] text-[#F5F1E8]">Checked Out</option>
+            <option value="cancelled" className="bg-[#141211] text-[#F5F1E8]">Cancelled</option>
           </select>
         </div>
 
         {/* Room Filter */}
-        <div className="flex items-center gap-1 bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1.5 md:py-1">
-          <BedDouble className="w-3.5 h-3.5 text-gray-400 md:text-[#96928A] ml-1" />
+        <div className="flex items-center gap-1 bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1.5 md:py-1">
+          <BedDouble className="w-3.5 h-3.5 text-[#96928A] ml-1" />
           <select
             value={roomFilter}
             onChange={(e) => setRoomFilter(e.target.value)}
-            className="bg-transparent text-[11px] md:text-xs font-medium text-gray-700 md:text-[#F5F1E8] outline-none cursor-pointer py-0.5 pr-1 md:pr-2"
+            className="bg-transparent text-[11px] md:text-xs font-medium text-[#F5F1E8] outline-none cursor-pointer py-0.5 pr-1 md:pr-2"
           >
-            <option value="all">All Rooms</option>
-            <option value="1">Room 1</option>
-            <option value="2">Room 2</option>
-            <option value="3">Room 3</option>
-            <option value="4">Room 4</option>
+            <option value="all" className="bg-[#141211] text-[#F5F1E8]">All Rooms</option>
+            {availableRoomOptions.map((r) => (
+              <option key={r.id} value={r.id} className="bg-[#141211] text-[#F5F1E8]">
+                {r.name}
+              </option>
+            ))}
           </select>
         </div>
 
         {/* Date Filter */}
-        <div className="flex items-center gap-1.5 bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-1.5 md:py-1">
-          <CalendarIcon className="w-3.5 h-3.5 text-gray-400 md:text-[#96928A]" />
+        <div className="flex items-center gap-1.5 bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-1.5 md:py-1">
+          <CalendarIcon className="w-3.5 h-3.5 text-[#96928A]" />
           <input
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="bg-transparent text-[11px] md:text-xs font-medium text-gray-700 md:text-[#F5F1E8] outline-none cursor-pointer py-0.5"
+            className="bg-transparent text-[11px] md:text-xs font-medium text-[#F5F1E8] outline-none cursor-pointer py-0.5"
           />
           {dateFilter && (
             <button
               onClick={() => setDateFilter("")}
-              className="text-[10px] text-gray-400 hover:text-gray-600 md:text-[#96928A] md:hover:text-white ml-1 font-bold"
+              className="text-[10px] text-[#96928A] hover:text-white ml-1 font-bold"
             >
               Clear
             </button>
@@ -289,31 +303,31 @@ export default function BookingsPage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
               <Loader2 className="w-6 h-6 text-[#F59E0B] animate-spin" />
-              <span className="text-gray-500 text-xs">Loading bookings...</span>
+              <span className="text-[#96928A] text-xs">Loading bookings...</span>
             </div>
           ) : filteredBookings.length === 0 ? (
-            <div className="bg-white border border-gray-100 shadow-sm rounded-[20px] p-8 flex flex-col items-center justify-center gap-2 text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-1">
-                <Search className="w-5 h-5 text-gray-400" />
+            <div className="glass-panel-secondary border border-[rgba(255,255,255,0.05)] rounded-[20px] p-8 flex flex-col items-center justify-center gap-2 text-center">
+              <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.03)] flex items-center justify-center mb-1">
+                <Search className="w-5 h-5 text-[#96928A]" />
               </div>
-              <div className="text-gray-700 font-bold text-sm">No bookings found</div>
-              <div className="text-xs text-gray-400 font-medium">Try adjusting your filters or search criteria.</div>
+              <div className="text-[#F5F1E8] font-bold text-sm">No bookings found</div>
+              <div className="text-xs text-[#96928A] font-medium">Try adjusting your filters or search criteria.</div>
             </div>
           ) : (
             filteredBookings.map((booking) => {
               const primaryGuest = booking.guests?.find((g) => g.is_primary) || booking.guests?.[0];
               return (
-                <div key={booking.id} className="bg-white border border-gray-100 shadow-sm rounded-[20px] p-4 flex flex-col gap-3">
+                <div key={booking.id} className="glass-panel-secondary border border-[rgba(255,255,255,0.08)] rounded-[20px] p-4 flex flex-col gap-3">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-700 text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center font-bold text-[#F5F1E8] text-xs shrink-0">
                         {primaryGuest?.name?.substring(0, 1) || "G"}
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-900 text-sm truncate max-w-[140px]">
+                        <h4 className="font-bold text-[#F5F1E8] text-sm truncate max-w-[140px]">
                           {primaryGuest?.name || "Guest"}
                         </h4>
-                        <div className="text-[10px] text-gray-500 font-medium">
+                        <div className="text-[10px] text-[#96928A] font-medium">
                           {booking.rooms?.name || `Room ${booking.room_id}`}
                         </div>
                       </div>
@@ -321,34 +335,34 @@ export default function BookingsPage() {
                     <span
                       className={cn(
                         "inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest uppercase border",
-                        booking.status === "confirmed" && "bg-amber-50 border-amber-200 text-amber-600",
-                        booking.status === "checked_in" && "bg-emerald-50 border-emerald-200 text-emerald-600",
-                        booking.status === "checked_out" && "bg-gray-50 border-gray-200 text-gray-500",
-                        booking.status === "cancelled" && "bg-rose-50 border-rose-200 text-rose-600"
+                        booking.status === "confirmed" && "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]",
+                        booking.status === "checked_in" && "bg-[rgba(79,231,123,0.15)] border-[rgba(79,231,123,0.3)] text-[#4FE77B]",
+                        booking.status === "checked_out" && "bg-[rgba(255,255,255,0.05)] border-[rgba(255,255,255,0.1)] text-[#96928A]",
+                        booking.status === "cancelled" && "bg-[rgba(255,105,120,0.15)] border-[rgba(255,105,120,0.3)] text-[#FF6978]"
                       )}
                     >
                       {booking.status.replace("_", " ")}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 bg-gray-50 rounded-xl p-2.5 mt-1 border border-gray-100">
+                  <div className="grid grid-cols-2 gap-2 bg-[rgba(255,255,255,0.02)] rounded-xl p-2.5 mt-1 border border-[rgba(255,255,255,0.05)]">
                     <div>
-                      <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Stay Dates</div>
-                      <div className="text-[11px] font-medium text-gray-700">
+                      <div className="text-[9px] text-[#96928A] font-bold uppercase tracking-wider mb-0.5">Stay Dates</div>
+                      <div className="text-[11px] font-medium text-[#C7C3BA]">
                         {formatISTCompactDate(booking.check_in)} • 12:00 PM
                         <br />
                         {formatISTCompactDate(booking.check_out)} • 11:00 AM
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Amount</div>
-                      <div className="text-sm font-bold text-gray-900">₹{booking.total_amount.toLocaleString("en-IN")}</div>
+                      <div className="text-[9px] text-[#96928A] font-bold uppercase tracking-wider mb-0.5">Amount</div>
+                      <div className="text-sm font-bold text-[#F5F1E8]">₹{booking.total_amount.toLocaleString("en-IN")}</div>
                     </div>
                   </div>
 
                   <button
                     onClick={() => setSelectedBooking(booking)}
-                    className="w-full py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 active:scale-[0.98] transition-transform"
+                    className="w-full py-2 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] rounded-xl text-xs font-bold text-[#C7C3BA] hover:text-[#F5F1E8] active:scale-[0.98] transition-all cursor-pointer"
                   >
                     VIEW DETAILS
                   </button>
@@ -537,8 +551,8 @@ export default function BookingsPage() {
           onClose={() => setSelectedBooking(null)}
           title={`Booking Details: ${selectedBooking.rooms?.name || "Room"}`}
           footer={
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+              <div className="flex flex-wrap items-center gap-2">
                 {selectedBooking.status === "confirmed" && (
                   <GlassButton
                     variant="primary"
@@ -590,7 +604,7 @@ export default function BookingsPage() {
             </div>
 
             {/* Stay Dates */}
-            <div className="col-span-1 md:col-span-2 space-y-3">
+            <div className="space-y-3">
               <div className="glass-panel-secondary p-3 rounded-xl flex justify-between items-center">
                 <div className="flex flex-col">
                   <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked On</span>
@@ -671,8 +685,8 @@ export default function BookingsPage() {
             <div className="space-y-3">
               <div className="glass-panel-secondary p-3 rounded-xl">
                 <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked By</p>
-                <p className="text-xs font-medium text-[#F5F1E8] mt-0.5">
-                  {selectedBooking.partners?.name || "Partner"} ({selectedBooking.partners?.email})
+                <p className="text-xs font-medium text-[#F5F1E8] mt-0.5 break-words">
+                  {selectedBooking.partners?.name || "Partner"} {selectedBooking.partners?.email && <span className="text-[#96928A]">({selectedBooking.partners.email})</span>}
                 </p>
               </div>
 

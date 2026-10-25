@@ -63,8 +63,10 @@ export function RoomBoard() {
     })
   );
 
-  const availableRooms = useMemo(() => rooms.filter((r) => r.status === "available"), [rooms]);
+  const activeRooms = useMemo(() => rooms.filter((r) => r.is_active !== false), [rooms]);
+  const availableRooms = useMemo(() => rooms.filter((r) => r.is_active !== false && r.status === "available"), [rooms]);
   const bookedRooms = useMemo(() => rooms.filter((r) => r.status === "booked"), [rooms]);
+  const inactiveRooms = useMemo(() => rooms.filter((r) => r.is_active === false && r.status !== "booked"), [rooms]);
 
   const totalGuests = useMemo(
     () => bookedRooms.reduce((sum, r) => sum + (r.currentBooking?.guests?.length || 0), 0),
@@ -75,7 +77,7 @@ export function RoomBoard() {
     [rooms]
   );
   const totalBookings = bookedRooms.length;
-  const occupancy = rooms.length > 0 ? Math.round((totalBookings / rooms.length) * 100) : 0;
+  const occupancy = activeRooms.length > 0 ? Math.round((totalBookings / activeRooms.length) * 100) : 0;
 
   // Time-based greeting
   const greeting = useMemo(() => {
@@ -257,12 +259,32 @@ export function RoomBoard() {
         </DndContext>
       )}
 
+      {/* Inactive / Maintenance Rooms Section */}
+      {inactiveRooms.length > 0 && (
+        <div className="mt-4 p-4 rounded-2xl glass-panel-secondary border border-[rgba(255,255,255,0.06)]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#96928A]" />
+              <h3 className="text-xs font-bold text-[#96928A] tracking-widest uppercase">
+                Inactive / Maintenance Rooms ({inactiveRooms.length})
+              </h3>
+            </div>
+            <span className="text-[10px] text-[#96928A]">Not available for new bookings</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {inactiveRooms.map((room) => (
+              <DisplayRoomCard key={room.id} room={room} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Bottom Summary Bar */}
       <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] mt-4 md:mt-6 shrink-0 mb-8 md:mb-0 pb-4 md:pb-0">
         <div className="text-[#96928A] text-[10px] md:text-xs font-bold tracking-widest uppercase mb-3">
           Daily Overview
         </div>
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3 w-full">
+        <div className="grid grid-cols-3 gap-2 md:gap-3 w-full">
           <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center glass-panel-secondary border border-[rgba(255,255,255,0.08)] md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
             <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-[#C7C3BA] mb-0.5 md:mb-0">Revenue</span>
             <span className="text-sm font-bold text-[#F2EEE3]">
@@ -271,7 +293,7 @@ export function RoomBoard() {
           </GlassPanel>
           <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center glass-panel-secondary border border-[rgba(255,255,255,0.08)] md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
             <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-[#C7C3BA] mb-0.5 md:mb-0">Booked</span>
-            <span className="text-sm font-bold text-[#F2EEE3]">{totalBookings}/{rooms.length}</span>
+            <span className="text-sm font-bold text-[#F2EEE3]">{totalBookings}/{activeRooms.length || rooms.length}</span>
           </GlassPanel>
           <GlassPanel className="p-2.5 md:p-3 rounded-xl flex flex-col justify-center glass-panel-secondary border border-[rgba(255,255,255,0.08)] md:shadow-lg md:flex-row md:items-center md:justify-between text-center md:text-left">
             <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-[#C7C3BA] mb-0.5 md:mb-0">Occupancy</span>
