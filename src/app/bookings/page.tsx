@@ -20,16 +20,21 @@ import {
   CalendarIcon,
   Phone,
   User,
+  Receipt,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { BookingStatus, DbBooking } from "@/lib/types";
+import { BookingStatus, DbBooking, DbInvoice } from "@/lib/types";
 import { updateBookingStatusAction, cancelBookingAction } from "@/app/actions/bookings";
+import { getInvoiceByBookingIdAction } from "@/app/actions/invoices";
 import { GlassModal } from "@/components/ui/GlassModal";
 import { GlassButton } from "@/components/ui/GlassButton";
+import { InvoiceEditorModal } from "@/components/modals/InvoiceEditorModal";
+import { useHMSContext } from "@/components/providers/HMSProvider";
 import { cn } from "@/lib/utils";
 import { formatISTDateTime, formatISTCompactDate, combineDateAndTime } from "@/lib/dateUtils";
 
 export default function BookingsPage() {
+  const { selectedHomestayId } = useHMSContext();
   const [bookings, setBookings] = useState<DbBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,16 +44,22 @@ export default function BookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<DbBooking | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // Billing Modal State
+  const [billingBooking, setBillingBooking] = useState<DbBooking | null>(null);
+  const [billingInvoice, setBillingInvoice] = useState<DbInvoice | null>(null);
+  const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
+
   const supabase = useMemo(() => createClient(), []);
 
   const fetchBookings = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("bookings")
         .select(`
           id,
           room_id,
           partner_id,
+          homestay_id,
           check_in,
           check_out,
           status,
@@ -61,8 +72,13 @@ export default function BookingsPage() {
           rooms ( id, room_number, name, nightly_rate ),
           partners ( id, name, email ),
           guests ( id, name, phone, email, is_primary )
-        `)
-        .order("created_at", { ascending: false });
+        `);
+
+      if (selectedHomestayId) {
+        query = query.eq("homestay_id", selectedHomestayId);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching bookings:", {
@@ -79,13 +95,13 @@ export default function BookingsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, [supabase, selectedHomestayId]);
 
   useEffect(() => {
     fetchBookings();
 
     const channel = supabase
-      .channel("bookings-page-sync")
+      .channel(`bookings-page-sync-${selectedHomestayId || "all"}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "bookings" },
@@ -98,7 +114,7 @@ export default function BookingsPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, fetchBookings]);
+  }, [supabase, fetchBookings, selectedHomestayId]);
 
   const handleStatusChange = async (bookingId: string, newStatus: BookingStatus) => {
     setActionLoading(bookingId);
@@ -134,6 +150,28 @@ export default function BookingsPage() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCreateOrViewBill = async (booking: DbBooking) => {
+    setActionLoading(booking.id);
+    try {
+      const res = await getInvoiceByBookingIdAction(booking.id);
+      if (res.success && res.invoice) {
+        setBillingInvoice(res.invoice);
+        setBillingBooking(booking);
+      } else {
+        setBillingInvoice(null);
+        setBillingBooking(booking);
+      }
+      setIsBillingModalOpen(true);
+    } catch (e) {
+      console.error("Error checking invoice for booking:", e);
+      setBillingInvoice(null);
+      setBillingBooking(booking);
+      setIsBillingModalOpen(true);
     } finally {
       setActionLoading(null);
     }
@@ -316,25 +354,42 @@ export default function BookingsPage() {
           ) : (
             filteredBookings.map((booking) => {
               const primaryGuest = booking.guests?.find((g) => g.is_primary) || booking.guests?.[0];
+              const isCancelled = booking.status === "cancelled";
               return (
-                <div key={booking.id} className="glass-panel-secondary border border-[rgba(255,255,255,0.08)] rounded-[20px] p-4 flex flex-col gap-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center font-bold text-[#F5F1E8] text-xs shrink-0">
-                        {primaryGuest?.name?.substring(0, 1) || "G"}
+                <div 
+                  key={booking.id} 
+                  className={cn(
+                    "glass-panel-secondary rounded-[20px] p-4 flex flex-col gap-3 transition-all",
+                    isCancelled 
+                      ? "opacity-70 bg-[rgba(255,105,120,0.03)] border border-[rgba(255,105,120,0.2)]" 
+                      : "border border-[rgba(255,255,255,0.08)]"
+                  )}
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className={cn(
+                        "w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border",
+                        isCancelled 
+                          ? "bg-[rgba(255,105,120,0.1)] border-[rgba(255,105,120,0.25)] text-[#FF6978]"
+                          : "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]"
+                      )}>
+                        {primaryGuest?.name?.substring(0, 1).toUpperCase() || "G"}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-[#F5F1E8] text-sm truncate max-w-[140px]">
+                      <div className="min-w-0 flex-1">
+                        <h4 className={cn(
+                          "font-bold text-sm truncate",
+                          isCancelled ? "text-[#C7C3BA] line-through" : "text-[#F5F1E8]"
+                        )}>
                           {primaryGuest?.name || "Guest"}
                         </h4>
-                        <div className="text-[10px] text-[#96928A] font-medium">
+                        <div className="text-[11px] text-[#96928A] font-medium mt-0.5 truncate">
                           {booking.rooms?.name || `Room ${booking.room_id}`}
                         </div>
                       </div>
                     </div>
                     <span
                       className={cn(
-                        "inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest uppercase border",
+                        "inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase border shrink-0",
                         booking.status === "confirmed" && "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]",
                         booking.status === "checked_in" && "bg-[rgba(79,231,123,0.15)] border-[rgba(79,231,123,0.3)] text-[#4FE77B]",
                         booking.status === "checked_out" && "bg-[rgba(255,255,255,0.05)] border-[rgba(255,255,255,0.1)] text-[#96928A]",
@@ -345,27 +400,36 @@ export default function BookingsPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 bg-[rgba(255,255,255,0.02)] rounded-xl p-2.5 mt-1 border border-[rgba(255,255,255,0.05)]">
+                  <div className="grid grid-cols-2 gap-2 bg-[rgba(255,255,255,0.02)] rounded-xl p-3 border border-[rgba(255,255,255,0.05)]">
                     <div>
-                      <div className="text-[9px] text-[#96928A] font-bold uppercase tracking-wider mb-0.5">Stay Dates</div>
-                      <div className="text-[11px] font-medium text-[#C7C3BA]">
-                        {formatISTCompactDate(booking.check_in)} • 12:00 PM
-                        <br />
-                        {formatISTCompactDate(booking.check_out)} • 11:00 AM
+                      <div className="text-[9px] text-[#96928A] font-bold uppercase tracking-wider mb-1">Stay Dates</div>
+                      <div className="text-xs font-medium text-[#C7C3BA] leading-relaxed">
+                        {formatISTCompactDate(booking.check_in)}
+                        <span className="text-[#96928A] mx-1">→</span>
+                        {formatISTCompactDate(booking.check_out)}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[9px] text-[#96928A] font-bold uppercase tracking-wider mb-0.5">Amount</div>
-                      <div className="text-sm font-bold text-[#F5F1E8]">₹{booking.total_amount.toLocaleString("en-IN")}</div>
+                      <div className="text-[9px] text-[#96928A] font-bold uppercase tracking-wider mb-1">Total Amount</div>
+                      <div className="text-sm font-bold text-[#F59E0B]">₹{booking.total_amount.toLocaleString("en-IN")}</div>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setSelectedBooking(booking)}
-                    className="w-full py-2 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] rounded-xl text-xs font-bold text-[#C7C3BA] hover:text-[#F5F1E8] active:scale-[0.98] transition-all cursor-pointer"
-                  >
-                    VIEW DETAILS
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedBooking(booking)}
+                      className="flex-1 py-2.5 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] rounded-xl text-xs font-bold text-[#C7C3BA] hover:text-[#F5F1E8] active:scale-[0.98] transition-all cursor-pointer"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => handleCreateOrViewBill(booking)}
+                      className="px-4 py-2.5 bg-[rgba(245,158,11,0.1)] hover:bg-[rgba(245,158,11,0.2)] border border-[rgba(245,158,11,0.25)] rounded-xl text-xs font-bold text-[#F59E0B] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Receipt className="w-3.5 h-3.5" />
+                      <span>Bill</span>
+                    </button>
+                  </div>
                 </div>
               );
             })
@@ -494,6 +558,14 @@ export default function BookingsPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
+                            onClick={() => handleCreateOrViewBill(booking)}
+                            title="Create Bill / Manage Folio"
+                            className="p-1.5 rounded-lg bg-[rgba(245,158,11,0.1)] hover:bg-[rgba(245,158,11,0.2)] border border-[rgba(245,158,11,0.25)] text-[#F59E0B] transition-colors cursor-pointer"
+                          >
+                            <Receipt className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
                             onClick={() => setSelectedBooking(booking)}
                             title="View Full Details"
                             className="p-1.5 rounded-lg bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.05)] text-[#C7C3BA] hover:text-white transition-colors cursor-pointer"
@@ -553,6 +625,14 @@ export default function BookingsPage() {
           footer={
             <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
               <div className="flex flex-wrap items-center gap-2">
+                <GlassButton
+                  variant="primary"
+                  onClick={() => handleCreateOrViewBill(selectedBooking)}
+                  className="px-4 text-xs bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border border-[rgba(245,158,11,0.3)] flex items-center gap-1.5"
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>Create / View Bill</span>
+                </GlassButton>
                 {selectedBooking.status === "confirmed" && (
                   <GlassButton
                     variant="primary"
@@ -699,6 +779,25 @@ export default function BookingsPage() {
             </div>
           </div>
         </GlassModal>
+      )}
+
+      {/* Invoice Editor Modal */}
+      {isBillingModalOpen && (
+        <InvoiceEditorModal
+          isOpen={isBillingModalOpen}
+          onClose={() => setIsBillingModalOpen(false)}
+          booking={billingBooking}
+          existingInvoice={billingInvoice}
+          onSaved={(_id, updatedInv, shouldClose = true) => {
+            if (shouldClose) {
+              setIsBillingModalOpen(false);
+            }
+            if (updatedInv) {
+              setBillingInvoice(updatedInv);
+            }
+            fetchBookings();
+          }}
+        />
       )}
     </div>
   );

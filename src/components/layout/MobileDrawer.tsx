@@ -13,7 +13,8 @@ import {
   Mountain,
   X,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  Receipt
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -27,6 +28,7 @@ const navItems = [
   { name: "Rooms", href: "/rooms", icon: DoorClosed },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Bookings", href: "/bookings", icon: BookOpen },
+  { name: "Billings", href: "/billings", icon: Receipt },
   { name: "Website Requests", href: "/requests", icon: Inbox },
   { name: "Guests", href: "/guests", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },

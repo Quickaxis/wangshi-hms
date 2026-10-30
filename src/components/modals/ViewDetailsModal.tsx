@@ -2,10 +2,12 @@
 
 import { formatISTDateTime, formatISTCompactDate } from "@/lib/dateUtils";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GlassModal } from "../ui/GlassModal";
 import { GlassButton } from "../ui/GlassButton";
-import { Room } from "@/lib/types";
+import { Room, BookingFinancialSummary } from "@/lib/types";
+import { getBookingPaymentsAction } from "@/app/actions/payments";
+import { RecordPaymentModal } from "./RecordPaymentModal";
 import {
   User,
   Phone,
@@ -18,9 +20,18 @@ import {
   LogOut,
   XCircle,
   AlertCircle,
+  CreditCard,
+  ArrowDownLeft,
+  ArrowUpRight,
+  RotateCcw,
+  Clock,
+  Receipt,
 } from "lucide-react";
 import { useHMSContext } from "../providers/HMSProvider";
 import { cn } from "@/lib/utils";
+import { DbInvoice, DbBooking } from "@/lib/types";
+import { getInvoiceByBookingIdAction } from "@/app/actions/invoices";
+import { InvoiceEditorModal } from "./InvoiceEditorModal";
 
 interface ViewDetailsModalProps {
   room: Room | null;
@@ -29,9 +40,19 @@ interface ViewDetailsModalProps {
 }
 
 export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProps) {
-  const { rooms, updateBookingStatus, cancelBooking } = useHMSContext();
+  const { rooms, updateBookingStatus, cancelBooking, selectedHomestayId } = useHMSContext();
   const [isUpdating, setIsUpdating] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Financial Ledger State
+  const [financialSummary, setFinancialSummary] = useState<BookingFinancialSummary | null>(null);
+  const [isLoadingFinancials, setIsLoadingFinancials] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
+
+  // Invoicing State
+  const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
+  const [billingInvoice, setBillingInvoice] = useState<DbInvoice | null>(null);
 
   if (!room) return null;
 
@@ -39,6 +60,20 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
   const activeRoom = rooms.find((r) => r.id === room.id) || room;
   const booking = activeRoom.currentBooking;
   const isAvailable = activeRoom.status === "available";
+
+  useEffect(() => {
+    if (isOpen && booking?.id) {
+      setIsLoadingFinancials(true);
+      getBookingPaymentsAction(booking.id).then((res) => {
+        setIsLoadingFinancials(false);
+        if (res.success && res.summary) {
+          setFinancialSummary(res.summary);
+        }
+      });
+    } else {
+      setFinancialSummary(null);
+    }
+  }, [isOpen, booking?.id]);
 
   const handleStatusUpdate = async (status: "confirmed" | "checked_in" | "checked_out") => {
     if (!booking) return;
@@ -70,6 +105,23 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
       setTimeout(() => onClose(), 800);
     } else {
       setFeedbackMsg({ type: "error", text: result.error || "Failed to cancel booking." });
+    }
+  };
+
+  const handleOpenBilling = async () => {
+    if (!booking) return;
+    try {
+      const res = await getInvoiceByBookingIdAction(booking.id);
+      if (res.success && res.invoice) {
+        setBillingInvoice(res.invoice);
+      } else {
+        setBillingInvoice(null);
+      }
+      setIsBillingModalOpen(true);
+    } catch (err) {
+      console.error("Failed to load invoice for room booking:", err);
+      setBillingInvoice(null);
+      setIsBillingModalOpen(true);
     }
   };
 
@@ -113,6 +165,24 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   Cancel Stay
+                </GlassButton>
+                <GlassButton
+                  variant="ghost"
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  disabled={isUpdating}
+                  className="px-3 text-xs flex items-center gap-1.5 bg-[rgba(245,158,11,0.12)] hover:bg-[rgba(245,158,11,0.22)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Record Payment
+                </GlassButton>
+                <GlassButton
+                  variant="primary"
+                  onClick={handleOpenBilling}
+                  disabled={isUpdating}
+                  className="px-3 text-xs flex items-center gap-1.5 bg-[#6B1724]/30 hover:bg-[#6B1724]/50 border border-[#6B1724]/50 text-[#FFB3B3]"
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  Bill / Invoice
                 </GlassButton>
               </>
             )}
@@ -285,7 +355,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
                   <Phone className="w-4 h-4 text-[#96928A] shrink-0" />
                   <div className="min-w-0 flex-1">
@@ -293,14 +363,124 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     <p className="text-sm font-medium text-[#F5F1E8] truncate">{booking.guestPhone || "N/A"}</p>
                   </div>
                 </div>
-                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
-                  <IndianRupee className="w-4 h-4 text-[#96928A] shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Amount</p>
-                    <p className="text-sm font-medium text-[#F5F1E8]">
-                      ₹{booking.bookingAmount.toLocaleString("en-IN")}
-                    </p>
+              </div>
+
+              {/* Financial Ledger & Payment Status Overview */}
+              <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <IndianRupee className="w-4 h-4 text-[#F59E0B]" />
+                    <span className="text-xs font-semibold tracking-wider uppercase text-[#F5F1E8]">
+                      Payment & Balance Overview
+                    </span>
                   </div>
+                  {financialSummary && (
+                    <span
+                      className={cn(
+                        "px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase border",
+                        financialSummary.paymentStatus === "paid" && "bg-[rgba(79,231,123,0.15)] border-[rgba(79,231,123,0.3)] text-[#4FE77B]",
+                        financialSummary.paymentStatus === "partially_paid" && "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]",
+                        financialSummary.paymentStatus === "unpaid" && "bg-[rgba(255,105,120,0.15)] border-[rgba(255,105,120,0.3)] text-[#FF6978]",
+                        financialSummary.paymentStatus === "refunded" && "bg-[rgba(168,85,247,0.15)] border-[rgba(168,85,247,0.3)] text-[#C084FC]",
+                        financialSummary.paymentStatus === "overpaid" && "bg-[rgba(59,130,246,0.15)] border-[rgba(59,130,246,0.3)] text-[#60A5FA]"
+                      )}
+                    >
+                      {financialSummary.paymentStatus.replace("_", " ")}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] p-2.5 rounded-lg">
+                    <span className="text-[9px] text-[#96928A] uppercase tracking-wider block">Total Stay</span>
+                    <span className="text-xs sm:text-sm font-semibold text-[#F5F1E8]">
+                      {financialSummary ? financialSummary.formatted.totalContracted : `₹${booking.bookingAmount.toLocaleString("en-IN")}.00`}
+                    </span>
+                  </div>
+
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] p-2.5 rounded-lg">
+                    <span className="text-[9px] text-[#96928A] uppercase tracking-wider block">Net Paid</span>
+                    <span className={cn(
+                      "text-xs sm:text-sm font-semibold",
+                      financialSummary && parseFloat(financialSummary.netPaid) > 0 ? "text-[#4FE77B]" : "text-[#96928A]"
+                    )}>
+                      {financialSummary ? financialSummary.formatted.netPaid : "₹0.00"}
+                    </span>
+                  </div>
+
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] p-2.5 rounded-lg">
+                    <span className="text-[9px] text-[#96928A] uppercase tracking-wider block">Balance Due</span>
+                    <span className={cn(
+                      "text-xs sm:text-sm font-semibold",
+                      financialSummary && parseFloat(financialSummary.balanceDue) <= 0 ? "text-[#4FE77B]" : "text-[#FF6978]"
+                    )}>
+                      {financialSummary ? financialSummary.formatted.balanceDue : `₹${booking.bookingAmount.toLocaleString("en-IN")}.00`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Transaction History Accordion */}
+                <div className="pt-2 border-t border-[rgba(255,255,255,0.06)]">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] text-[#96928A] uppercase tracking-wider font-medium">
+                      Transaction Ledger ({financialSummary?.payments.length || 0})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsPaymentModalOpen(true)}
+                      className="text-[11px] text-[#F59E0B] hover:underline flex items-center gap-1"
+                    >
+                      + Record Entry
+                    </button>
+                  </div>
+
+                  {isLoadingFinancials ? (
+                    <p className="text-xs text-[#96928A] italic">Loading transactions...</p>
+                  ) : !financialSummary || financialSummary.payments.length === 0 ? (
+                    <p className="text-xs text-[#96928A] italic">No payment transactions recorded yet.</p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto hide-scrollbar pr-1">
+                      {financialSummary.payments.map((p) => (
+                        <div
+                          key={p.id}
+                          className="flex items-center justify-between p-2 rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] text-xs"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            {p.payment_type === 'payment' && (
+                              <ArrowDownLeft className="w-3.5 h-3.5 text-[#4FE77B] shrink-0" />
+                            )}
+                            {p.payment_type === 'refund' && (
+                              <ArrowUpRight className="w-3.5 h-3.5 text-[#FF6978] shrink-0" />
+                            )}
+                            {p.payment_type === 'reversal' && (
+                              <RotateCcw className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
+                            )}
+                            <div className="min-w-0">
+                              <p className="font-medium text-[#F5F1E8] truncate">
+                                {p.payment_type === 'payment' && `Payment via ${p.payment_method.toUpperCase()}`}
+                                {p.payment_type === 'refund' && `Guest Refund (${p.payment_method.toUpperCase()})`}
+                                {p.payment_type === 'reversal' && `Reversal / Void Entry`}
+                              </p>
+                              <p className="text-[10px] text-[#96928A] truncate">
+                                {formatISTDateTime(p.created_at)}
+                                {p.notes ? ` • ${p.notes}` : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <span
+                            className={cn(
+                              "font-semibold whitespace-nowrap ml-2",
+                              p.payment_type === 'payment' && "text-[#4FE77B]",
+                              p.payment_type === 'refund' && "text-[#FF6978]",
+                              p.payment_type === 'reversal' && "text-[#96928A] line-through"
+                            )}
+                          >
+                            {p.payment_type === 'payment' ? '+' : p.payment_type === 'refund' ? '-' : '↺'} ₹{Number(p.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -328,6 +508,70 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
           </>
         ) : null}
       </div>
+
+      {/* Record Payment / Refund / Reversal Sub-Modal */}
+      {booking && isPaymentModalOpen && (
+        <RecordPaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          bookingId={booking.id}
+          financialSummary={financialSummary}
+          onPaymentRecorded={(newSummary) => {
+            setFinancialSummary(newSummary);
+            setFeedbackMsg({ type: "success", text: "Transaction recorded in ledger." });
+          }}
+        />
+      )}
+
+      {/* Invoice Editor Modal */}
+      {booking && isBillingModalOpen && (
+        <InvoiceEditorModal
+          isOpen={isBillingModalOpen}
+          onClose={() => setIsBillingModalOpen(false)}
+          existingInvoice={billingInvoice}
+          booking={{
+            id: booking.id,
+            room_id: activeRoom.id,
+            partner_id: booking.partnerId || '',
+            homestay_id: activeRoom.homestay_id || selectedHomestayId || '',
+            check_in: booking.checkIn,
+            check_out: booking.checkOut,
+            status: booking.status,
+            number_of_guests: booking.guests?.length || 1,
+            nightly_rate: activeRoom.nightly_rate || activeRoom.pricePerNight,
+            total_amount: booking.bookingAmount,
+            notes: booking.notes || null,
+            created_at: booking.createdAt || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            rooms: {
+              id: activeRoom.id,
+              room_number: activeRoom.room_number || '',
+              name: activeRoom.name,
+              nightly_rate: activeRoom.nightly_rate || activeRoom.pricePerNight,
+            } as any,
+            guests: (booking.guests || []).map((g, idx) => ({
+              id: g.id || `guest-${idx}`,
+              booking_id: booking.id,
+              name: g.name,
+              phone: g.phone || null,
+              email: g.email || null,
+              is_primary: g.isPrimary,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })),
+          }}
+          onSaved={(_id, _inv, shouldClose = true) => {
+            if (shouldClose) {
+              setIsBillingModalOpen(false);
+            }
+            if (booking?.id) {
+              getBookingPaymentsAction(booking.id).then((res) => {
+                if (res.success && res.summary) setFinancialSummary(res.summary);
+              });
+            }
+          }}
+        />
+      )}
     </GlassModal>
   );
 }

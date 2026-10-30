@@ -71,3 +71,105 @@ body {
     scrollbar-width: none;
   }
 }
+
+/* ==========================================================================
+   HMS ENTERPRISE A4 INVOICE PRINT SPECIFICATION
+   ========================================================================== */
+
+/* Screen mode: hide dedicated print portal completely */
+@media screen {
+  #hms-invoice-print-root,
+  .hms-print-only {
+    display: none !important;
+  }
+}
+
+/* Dedicated Print Layout */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  /* Reset document root to clean, unconstrained paged flow */
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #1c1917 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* When printing an invoice via portal: hide all screen-only UI elements */
+  body:has(#hms-invoice-print-root) > *:not(#hms-invoice-print-root),
+  body.hms-printing-invoice > *:not(#hms-invoice-print-root) {
+    display: none !important;
+  }
+
+  /* When #hms-invoice-print-root is printed, make it the single top-left document */
+  #hms-invoice-print-root,
+  .hms-print-only {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    height: auto !important;
+    transform: none !important;
+  }
+
+  /* Universal reset for invoice containers in print mode */
+  .invoice-print-container {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    transform: none !important;
+    overflow: visible !important;
+    background: white !important;
+    color: #1c1917 !important;
+  }
+
+  /* Fallback in case print is triggered directly inside the modal */
+  #printable-invoice,
+  #printable-live-invoice {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    transform: none !important;
+    overflow: visible !important;
+    height: auto !important;
+    background: white !important;
+  }
+
+  /* Remove all transforms, fixed positioning and scroll traps on any ancestor */
+  body.hms-printing-invoice * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

@@ -1,0 +1,93 @@
+"use client";
+
+import React, { useRef } from "react";
+import { GlassModal } from "@/components/ui/GlassModal";
+import { GlassButton } from "@/components/ui/GlassButton";
+import { DbInvoice, Homestay } from "@/lib/types";
+import { InvoicePDFView } from "@/components/invoicing/InvoicePDFView";
+import { InvoicePrintPortal, triggerBrowserPrint } from "@/components/invoicing/InvoicePrintPortal";
+import { Printer, CheckCircle2, Clock } from "lucide-react";
+
+interface InvoicePreviewModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  invoice: DbInvoice | null;
+  homestay?: Homestay | null;
+}
+
+export function InvoicePreviewModal({
+  isOpen,
+  onClose,
+  invoice,
+  homestay
+}: InvoicePreviewModalProps) {
+  const printRef = useRef<HTMLDivElement>(null);
+
+  if (!invoice) return null;
+
+  const handlePrint = async () => {
+    await triggerBrowserPrint({
+      targetContainerId: "hms-invoice-print-root",
+      invoiceNumber: invoice.invoice_number
+    });
+  };
+
+  const isPaid = Number(invoice.balance_due) <= 0;
+
+  return (
+    <>
+      {/* Mount Dedicated Unconstrained Print Document directly to document.body */}
+      {isOpen && (
+        <InvoicePrintPortal invoice={invoice} homestay={homestay} />
+      )}
+
+      <GlassModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={`Guest Folio: ${invoice.invoice_number}`}
+        className="sm:max-w-4xl lg:max-w-5xl max-h-[94vh] flex flex-col"
+        footer={
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                isPaid 
+                  ? "bg-[rgba(79,231,123,0.15)] text-[#4FE77B] border-[rgba(79,231,123,0.3)]" 
+                  : "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[rgba(245,158,11,0.3)]"
+              }`}>
+                {isPaid ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                <span>{isPaid ? "Paid in Full" : `Balance Due: ₹${Number(invoice.balance_due).toLocaleString("en-IN")}`}</span>
+              </span>
+              <span className="text-[11px] text-[#96928A] hidden md:inline">
+                Standard A4 Boutique Folio • {invoice.guest_name}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <GlassButton
+                variant="secondary"
+                onClick={onClose}
+                className="px-4 text-xs"
+              >
+                Close Preview
+              </GlassButton>
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="px-5 py-2 rounded-full text-xs font-semibold flex items-center justify-center gap-2 bg-[#5B131E] hover:bg-[#781B29] text-[#F5F1E8] shadow-lg border border-[rgba(212,175,55,0.3)] transition-all cursor-pointer active:scale-95"
+              >
+                <Printer className="w-4 h-4 text-[#D4AF37]" />
+                <span>Print / Save as PDF</span>
+              </button>
+            </div>
+          </div>
+        }
+      >
+        <div className="overflow-y-auto max-h-[74vh] p-2 sm:p-6 bg-[rgba(0,0,0,0.55)] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-inner">
+          <div id="printable-invoice" ref={printRef}>
+            <InvoicePDFView invoice={invoice} homestay={homestay} />
+          </div>
+        </div>
+      </GlassModal>
+    </>
+  );
+}
