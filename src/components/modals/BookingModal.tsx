@@ -173,12 +173,12 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
         )}
 
         {/* Room & Price Info Summary */}
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2]">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm text-[#24213A]">{room.name}</span>
-            <span className="text-xs font-medium text-[#77758F]">({room.bathroomInfo})</span>
+        <div className="flex items-center justify-between p-3 sm:p-3.5 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2] gap-2 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+            <span className="font-semibold text-sm text-[#24213A] truncate">{room.name}</span>
+            <span className="text-xs font-medium text-[#77758F] shrink-0">({room.bathroomInfo})</span>
           </div>
-          <div className="flex items-baseline gap-1">
+          <div className="flex items-baseline gap-1 shrink-0">
             <span className="font-bold text-sm text-[#24213A] font-mono tabular-nums">
               ₹{room.pricePerNight.toLocaleString("en-IN")}
             </span>
@@ -187,25 +187,25 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
         </div>
 
         {/* Guests Section */}
-        <div className="bg-[#F6F5FC] border border-[#E8E6F2] rounded-2xl p-4 space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-xs font-semibold tracking-wider text-[#77758F] uppercase flex items-center gap-2">
-              <Users className="w-3.5 h-3.5 text-[#5146D8]" />
-              <span>Guests ({guests.length}/{room.maxCapacity})</span>
+        <div className="bg-[#F6F5FC] border border-[#E8E6F2] rounded-2xl p-3 sm:p-4 space-y-3">
+          <div className="flex justify-between items-center gap-2">
+            <label className="text-xs font-semibold tracking-wider text-[#77758F] uppercase flex items-center gap-1.5 sm:gap-2 truncate">
+              <Users className="w-3.5 h-3.5 text-[#5146D8] shrink-0" />
+              <span className="truncate">Guests ({guests.length}/{room.maxCapacity})</span>
             </label>
             {isAtCapacity ? (
-              <span className="text-[10px] text-[#DC2626] font-semibold uppercase tracking-wider bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
-                Max Capacity Reached
+              <span className="text-[10px] text-[#DC2626] font-semibold uppercase tracking-wider bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 shrink-0">
+                Max Capacity
               </span>
             ) : (
-              <span className="text-[11px] text-[#77758F] font-medium">
+              <span className="text-[11px] text-[#77758F] font-medium shrink-0">
                 Max {room.maxCapacity} {room.maxCapacity === 1 ? "guest" : "guests"}
               </span>
             )}
           </div>
 
           <div className="flex gap-2">
-            <div className="flex-1 relative">
+            <div className="flex-1 relative min-w-0">
               <input
                 type="text"
                 value={guestInput}
@@ -218,14 +218,14 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
                 }}
                 disabled={isAtCapacity || isSubmitting}
                 placeholder={isAtCapacity ? "Room capacity reached" : "Enter guest full name..."}
-                className="w-full h-10 bg-[#FFFFFF] border border-[#E8E6F2] hover:border-[#5146D8]/40 rounded-xl px-4 text-sm text-[#24213A] placeholder:text-[#77758F]/60 outline-none transition-all focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 shadow-sm disabled:bg-[#F6F5FC] disabled:text-[#77758F] disabled:cursor-not-allowed"
+                className="w-full h-10 bg-[#FFFFFF] border border-[#E8E6F2] hover:border-[#5146D8]/40 rounded-xl px-3.5 sm:px-4 text-sm text-[#24213A] placeholder:text-[#77758F]/60 outline-none transition-all focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 shadow-sm disabled:bg-[#F6F5FC] disabled:text-[#77758F] disabled:cursor-not-allowed min-w-0"
               />
             </div>
             <button
               type="button"
               onClick={handleAddGuest}
               disabled={!guestInput.trim() || isAtCapacity || isSubmitting}
-              className="h-10 px-5 rounded-xl bg-[#5146D8] hover:bg-[#4338CA] text-white text-sm font-semibold transition-all flex items-center gap-1.5 shadow-sm shadow-[#5146D8]/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-[#E8E6F2] disabled:text-[#77758F] disabled:shadow-none cursor-pointer shrink-0 active:scale-95"
+              className="h-10 px-4 sm:px-5 rounded-xl bg-[#5146D8] hover:bg-[#4338CA] text-white text-sm font-semibold transition-all flex items-center gap-1.5 shadow-sm shadow-[#5146D8]/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-[#E8E6F2] disabled:text-[#77758F] disabled:shadow-none cursor-pointer shrink-0 active:scale-95"
             >
               <Plus className="w-4 h-4" />
               <span>Add</span>
@@ -293,18 +293,18 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 w-full">
-            <label className="text-xs font-semibold uppercase tracking-wider text-[#77758F] ml-1">
+          <div className="flex flex-col gap-1.5 w-full min-w-0">
+            <label className="text-xs font-semibold uppercase tracking-wider text-[#77758F] ml-1 truncate">
               Calculated Total ({nights} {nights === 1 ? "night" : "nights"})
             </label>
-            <div className="flex items-center justify-between h-10 px-4 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] shadow-sm">
-              <div className="flex items-center gap-1.5">
-                <IndianRupee className="w-4 h-4 text-[#5146D8]" />
-                <span className="font-bold text-sm text-[#24213A] font-mono tabular-nums">
+            <div className="flex items-center justify-between h-10 px-3.5 sm:px-4 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] shadow-sm min-w-0 gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <IndianRupee className="w-4 h-4 text-[#5146D8] shrink-0" />
+                <span className="font-bold text-sm text-[#24213A] font-mono tabular-nums truncate">
                   ₹{estimatedTotal.toLocaleString("en-IN")}
                 </span>
               </div>
-              <span className="text-xs font-mono tabular-nums text-[#77758F]">
+              <span className="text-xs font-mono tabular-nums text-[#77758F] shrink-0 whitespace-nowrap">
                 ₹{room.pricePerNight.toLocaleString("en-IN")} × {nights} {nights === 1 ? "nt" : "nts"}
               </span>
             </div>

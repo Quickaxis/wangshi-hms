@@ -227,22 +227,22 @@ export default function CalendarPage() {
       </div>
 
       {/* 5. Single Merged Compact Legend */}
-      <div className="flex items-center justify-between px-3.5 sm:px-4 py-2.5 rounded-2xl bg-[#FFFFFF] border border-[#E8E7F2] text-xs text-[#77758F] flex-wrap gap-2 shadow-sm">
-        <div className="flex items-center gap-3.5 sm:gap-6 flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2 rounded-2xl bg-[#FFFFFF] border border-[#E8E7F2] text-xs text-[#77758F] shadow-sm overflow-hidden w-full max-w-full">
+        <div className="flex items-center gap-x-3.5 sm:gap-x-6 gap-y-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-[#10B981] shrink-0" />
             <span className="text-[#24213A] font-medium text-xs">Available</span>
-            <span className="text-[#77758F] text-[11px]">— Click to book</span>
+            <span className="text-[#77758F] text-[10px] sm:text-[11px] hidden min-[440px]:inline">— Click to book</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#EF4444]" />
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-[#EF4444] shrink-0" />
             <span className="text-[#24213A] font-medium text-xs">Booked</span>
-            <span className="text-[#77758F] text-[11px]">— Click to view</span>
+            <span className="text-[#77758F] text-[10px] sm:text-[11px] hidden min-[440px]:inline">— Click to view</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#77758F]" />
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-[#77758F] shrink-0" />
             <span className="text-[#24213A] font-medium text-xs">Inactive</span>
-            <span className="text-[#77758F] text-[11px]">— Not bookable</span>
+            <span className="text-[#77758F] text-[10px] sm:text-[11px] hidden min-[440px]:inline">— Not bookable</span>
           </div>
         </div>
       </div>
@@ -260,23 +260,26 @@ export default function CalendarPage() {
       )}
 
       {/* 3 & 4. Calendar Matrix Container */}
-      <div className="p-1.5 sm:p-2 rounded-[24px] bg-[#FFFFFF] border border-[#E8E7F2] w-full max-w-full min-w-0 shadow-[0_4px_24px_rgba(36,33,58,0.03)] overflow-hidden">
+      <div className="p-1 sm:p-2 rounded-[20px] sm:rounded-[24px] bg-[#FFFFFF] border border-[#E8E7F2] w-full max-w-full min-w-0 shadow-[0_4px_24px_rgba(36,33,58,0.03)] overflow-hidden">
         {/* Horizontal scroll strictly within calendar container */}
-        <div className="w-full max-w-full overflow-x-auto overflow-y-hidden touch-pan-x hide-scrollbar">
-          <table className="w-full text-left border-collapse table-fixed min-w-[944px] sm:min-w-[1058px] md:min-w-[1108px]">
+        <div 
+          className="w-full max-w-full overflow-x-auto overscroll-x-contain hms-editor-scrollbar"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <table className="w-full text-left border-collapse table-fixed min-w-[858px] sm:min-w-[1020px] md:min-w-[1080px]">
             <colgroup>
-              <col className="w-[160px] min-w-[160px] max-w-[160px] sm:w-[190px] sm:min-w-[190px] sm:max-w-[190px] md:w-[240px] md:min-w-[240px] md:max-w-[240px]" />
+              <col className="w-[130px] sm:w-[180px] md:w-[220px]" />
               {dates.map((_, i) => (
                 <col
                   key={i}
-                  className="w-[56px] min-w-[56px] max-w-[56px] sm:w-[62px] sm:min-w-[62px] sm:max-w-[62px]"
+                  className="w-[52px] sm:w-[60px]"
                 />
               ))}
             </colgroup>
             <thead>
               <tr className="border-b border-[#E8E7F2] bg-[#F7F7FC]/70">
                 {/* 3. Sticky Room Column Header */}
-                <th className="px-3.5 sm:px-4 py-3.5 font-bold text-[10px] sm:text-[11px] uppercase tracking-wider text-[#77758F] sticky left-0 bg-[#FFFFFF] z-20 border-r border-[#E8E7F2]">
+                <th className="w-[130px] min-w-[130px] max-w-[130px] sm:w-[180px] sm:min-w-[180px] sm:max-w-[180px] md:w-[220px] md:min-w-[220px] md:max-w-[220px] px-2.5 sm:px-4 py-3 sm:py-3.5 font-bold text-[10px] sm:text-[11px] uppercase tracking-wider text-[#77758F] sticky left-0 bg-[#FFFFFF] z-20 border-r border-[#E8E7F2] shadow-[2px_0_5px_rgba(36,33,58,0.03)]">
                   ROOM ({rooms.length})
                 </th>
                 {dates.map((date, idx) => {
@@ -284,7 +287,7 @@ export default function CalendarPage() {
                   return (
                     <th
                       key={idx}
-                      className="px-1 py-2 text-center"
+                      className="w-[52px] min-w-[52px] sm:w-[60px] sm:min-w-[60px] px-0.5 sm:px-1 py-2 text-center"
                     >
                       <div
                         className={cn(
@@ -337,21 +340,18 @@ export default function CalendarPage() {
                   >
                     {/* 3 & 4. Sticky Room Info Column */}
                     <td
-                      className={cn(
-                        "px-3.5 sm:px-4 py-3 sticky left-0 bg-[#FFFFFF] z-10 border-r border-[#E8E7F2]",
-                        room.is_active === false && "opacity-70"
-                      )}
+                      className="w-[130px] min-w-[130px] max-w-[130px] sm:w-[180px] sm:min-w-[180px] sm:max-w-[180px] md:w-[220px] md:min-w-[220px] md:max-w-[220px] px-2.5 sm:px-4 py-2.5 sm:py-3 sticky left-0 bg-[#FFFFFF] z-10 border-r border-[#E8E7F2] shadow-[2px_0_5px_rgba(36,33,58,0.03)]"
                     >
-                      <div className="flex flex-col min-w-0">
-                        <div className="font-bold text-xs sm:text-sm text-[#24213A] leading-snug break-words">
+                      <div className={cn("flex flex-col min-w-0", room.is_active === false && "opacity-60")}>
+                        <div className="font-bold text-xs sm:text-sm text-[#24213A] leading-snug line-clamp-2">
                           {room.name}
                         </div>
-                        <div className="text-[11px] text-[#5146D8] font-semibold mt-0.5">
-                          ₹{room.pricePerNight.toLocaleString("en-IN")}<span className="text-[#77758F] font-normal text-[10px]">/night</span>
+                        <div className="text-[11px] text-[#5146D8] font-semibold mt-0.5 truncate">
+                          ₹{room.pricePerNight.toLocaleString("en-IN")}<span className="text-[#77758F] font-normal text-[10px]">/nt</span>
                         </div>
                         <div className="flex items-center gap-1 text-[10px] text-[#77758F] mt-0.5">
                           <Users className="w-3 h-3 text-[#77758F] shrink-0" />
-                          <span>Max {room.maxCapacity} Guests</span>
+                          <span>Max {room.maxCapacity}</span>
                         </div>
                       </div>
                     </td>
@@ -366,13 +366,13 @@ export default function CalendarPage() {
                         return (
                           <td
                             key={idx}
-                            className="p-1 text-center"
+                            className="w-[52px] min-w-[52px] sm:w-[60px] sm:min-w-[60px] p-1 text-center"
                           >
                             <button
                               type="button"
                               onClick={() => handleCellClick(room, date)}
                               title={`Booked: ${booking.guests?.[0]?.name || "Guest"} (${booking.check_in} → ${booking.check_out})`}
-                              className="w-full h-12 sm:h-13 rounded-2xl flex items-center justify-center transition-all cursor-pointer p-1 bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2]"
+                              className="w-full h-11 sm:h-13 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all cursor-pointer p-1 bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2]"
                             >
                               <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
                             </button>
@@ -384,11 +384,11 @@ export default function CalendarPage() {
                         return (
                           <td
                             key={idx}
-                            className="p-1 text-center"
+                            className="w-[52px] min-w-[52px] sm:w-[60px] sm:min-w-[60px] p-1 text-center"
                           >
                             <div
                               title={`${room.name} is inactive and non-bookable`}
-                              className="w-full h-12 sm:h-13 rounded-2xl flex items-center justify-center p-1 bg-[#F7F7FC] border border-[#E8E7F2] cursor-not-allowed opacity-50"
+                              className="w-full h-11 sm:h-13 rounded-xl sm:rounded-2xl flex items-center justify-center p-1 bg-[#F7F7FC] border border-[#E8E7F2] cursor-not-allowed opacity-50"
                             >
                               <span className="text-[#77758F] text-xs font-bold leading-none">—</span>
                             </div>
@@ -399,13 +399,13 @@ export default function CalendarPage() {
                       return (
                         <td
                           key={idx}
-                          className="p-1 text-center"
+                          className="w-[52px] min-w-[52px] sm:w-[60px] sm:min-w-[60px] p-1 text-center"
                         >
                           <button
                             type="button"
                             onClick={() => handleCellClick(room, date)}
                             title={`Available: Click to book ${room.name} on ${format(date, "d MMM")}`}
-                            className="w-full h-12 sm:h-13 rounded-2xl flex items-center justify-center transition-all cursor-pointer p-1 bg-[#ECFDF5] border border-[#A7F3D0] hover:bg-[#D1FAE5]"
+                            className="w-full h-11 sm:h-13 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all cursor-pointer p-1 bg-[#ECFDF5] border border-[#A7F3D0] hover:bg-[#D1FAE5]"
                           >
                             <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
                           </button>

@@ -62,18 +62,18 @@ export function InvoicePreviewModal({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <GlassButton
                 variant="secondary"
                 onClick={onClose}
-                className="px-4 text-xs"
+                className="px-4 py-2 text-xs w-full sm:w-auto justify-center"
               >
                 Close Preview
               </GlassButton>
               <button
                 type="button"
                 onClick={handlePrint}
-                className="px-5 py-2 rounded-full text-xs font-semibold flex items-center justify-center gap-2 bg-[#5146D8] hover:bg-[#4338CA] text-white shadow-md shadow-[#5146D8]/20 transition-all cursor-pointer active:scale-95"
+                className="px-5 py-2 rounded-full text-xs font-semibold flex items-center justify-center gap-2 bg-[#5146D8] hover:bg-[#4338CA] text-white shadow-md shadow-[#5146D8]/20 transition-all cursor-pointer active:scale-95 w-full sm:w-auto"
               >
                 <Printer className="w-4 h-4 text-white" />
                 <span>Print / Save as PDF</span>

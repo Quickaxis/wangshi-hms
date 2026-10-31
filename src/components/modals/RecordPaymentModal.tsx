@@ -323,13 +323,13 @@ export function RecordPaymentModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-2 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2 w-full">
           <GlassButton
             type="button"
             variant="ghost"
             onClick={onClose}
             disabled={isSubmitting}
-            className="text-xs px-4"
+            className="text-xs px-4 w-full sm:w-auto"
           >
             Cancel
           </GlassButton>
@@ -337,7 +337,7 @@ export function RecordPaymentModal({
             type="submit"
             variant="primary"
             disabled={isSubmitting}
-            className="text-xs px-5 flex items-center gap-1.5"
+            className="text-xs px-5 flex items-center justify-center gap-1.5 w-full sm:w-auto"
           >
             {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             {activeType === 'payment' ? 'Save Payment' : activeType === 'refund' ? 'Issue Refund' : 'Confirm Reversal'}

@@ -190,11 +190,11 @@ export default function BillingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto pb-12 w-full min-w-0 overflow-x-hidden">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-wide text-[#24213A]">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-black tracking-wide text-[#24213A]">
             Billings & Invoices
           </h1>
           <p className="text-xs text-[#77758F] mt-1">
@@ -203,7 +203,7 @@ export default function BillingsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <GlassButton
             variant="secondary"
             onClick={fetchInvoices}
@@ -216,7 +216,7 @@ export default function BillingsPage() {
 
           <button
             onClick={handleCreateNewFolio}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#5146D8] text-white hover:bg-[#4338CA] shadow-md shadow-[#5146D8]/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#5146D8] text-white hover:bg-[#4338CA] shadow-md shadow-[#5146D8]/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>New Folio</span>
@@ -225,16 +225,16 @@ export default function BillingsPage() {
       </div>
 
       {/* Financial Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full min-w-0">
         {/* Total Invoiced */}
-        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#8B83F6] transition-all shadow-sm">
+        <GlassPanel className="p-3.5 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#8B83F6] transition-all shadow-sm min-w-0">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#F0EEFF] rounded-full blur-xl pointer-events-none" />
-          <div>
+          <div className="min-w-0 flex-1 mr-2">
             <div className="text-[10px] text-[#77758F] font-bold uppercase tracking-widest">Total Invoiced</div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#24213A] mt-1">
+            <div className="text-lg sm:text-2xl font-bold font-mono text-[#24213A] mt-1 truncate">
               ₹{metrics.totalInvoiced.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[11px] text-[#77758F] mt-0.5">
+            <div className="text-[11px] text-[#77758F] mt-0.5 truncate">
               Across <strong className="text-[#24213A]">{metrics.count}</strong> guest folios
             </div>
           </div>
@@ -244,14 +244,14 @@ export default function BillingsPage() {
         </GlassPanel>
 
         {/* Amount Collected */}
-        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#A7F3D0] transition-all shadow-sm">
+        <GlassPanel className="p-3.5 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#A7F3D0] transition-all shadow-sm min-w-0">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#ECFDF5] rounded-full blur-xl pointer-events-none" />
-          <div>
+          <div className="min-w-0 flex-1 mr-2">
             <div className="text-[10px] text-[#77758F] font-bold uppercase tracking-widest">Amount Collected</div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#059669] mt-1">
+            <div className="text-lg sm:text-2xl font-bold font-mono text-[#059669] mt-1 truncate">
               ₹{metrics.totalCollected.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[11px] text-[#77758F] mt-0.5">
+            <div className="text-[11px] text-[#77758F] mt-0.5 truncate">
               <strong className="text-[#059669]">{metrics.paidCount}</strong> fully settled folios
             </div>
           </div>
@@ -261,14 +261,14 @@ export default function BillingsPage() {
         </GlassPanel>
 
         {/* Balance Due */}
-        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#FECACA] transition-all shadow-sm">
+        <GlassPanel className="p-3.5 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#FECACA] transition-all shadow-sm min-w-0">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#FEF2F2] rounded-full blur-xl pointer-events-none" />
-          <div>
+          <div className="min-w-0 flex-1 mr-2">
             <div className="text-[10px] text-[#77758F] font-bold uppercase tracking-widest">Balance Due</div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#DC2626] mt-1">
+            <div className="text-lg sm:text-2xl font-bold font-mono text-[#DC2626] mt-1 truncate">
               ₹{metrics.totalDue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[11px] text-[#77758F] mt-0.5">
+            <div className="text-[11px] text-[#77758F] mt-0.5 truncate">
               Pending front-desk collection
             </div>
           </div>
@@ -278,13 +278,13 @@ export default function BillingsPage() {
         </GlassPanel>
 
         {/* Settlement Efficiency */}
-        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#8B83F6] transition-all shadow-sm">
-          <div>
+        <GlassPanel className="p-3.5 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#8B83F6] transition-all shadow-sm min-w-0">
+          <div className="min-w-0 flex-1 mr-2">
             <div className="text-[10px] text-[#77758F] font-bold uppercase tracking-widest">Settlement Rate</div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#24213A] mt-1">
+            <div className="text-lg sm:text-2xl font-bold font-mono text-[#24213A] mt-1">
               {metrics.efficiency}%
             </div>
-            <div className="w-32 h-1.5 bg-[#E8E7F2] rounded-full mt-1.5 overflow-hidden">
+            <div className="w-28 sm:w-32 h-1.5 bg-[#E8E7F2] rounded-full mt-1.5 overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-[#8B83F6] to-[#5146D8] rounded-full" 
                 style={{ width: `${metrics.efficiency}%` }}
@@ -298,79 +298,84 @@ export default function BillingsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <GlassPanel className="p-4 rounded-2xl border border-[#E8E7F2] shadow-sm">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-[#77758F] absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by invoice #, guest name, contact phone, or room..."
-              className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl pl-9 pr-8 py-2 text-xs text-[#24213A] placeholder-[#8F8CA4] focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 outline-none transition-all shadow-sm"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77758F] hover:text-[#24213A]"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+      <GlassPanel className="p-3 sm:p-4 rounded-2xl border border-[#E8E7F2] shadow-sm w-full max-w-full min-w-0 overflow-hidden">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 w-full min-w-0">
+          {/* Search + Sort Controls */}
+          <div className="flex items-center gap-2 w-full min-w-0 flex-1">
+            {/* Search */}
+            <div className="relative flex-1 min-w-0">
+              <Search className="w-4 h-4 text-[#77758F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search invoice #, guest, room..."
+                className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl pl-9 pr-8 py-2 text-xs text-[#24213A] placeholder-[#8F8CA4] focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 outline-none transition-all shadow-sm min-w-0"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77758F] hover:text-[#24213A] p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
 
-          {/* Sort Selector */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[10px] text-[#77758F] font-bold uppercase tracking-wider hidden sm:inline">Sort:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl px-2.5 py-2 text-xs text-[#24213A] focus:border-[#5146D8] outline-none cursor-pointer shadow-sm"
-            >
-              <option value="date_desc">Latest Date</option>
-              <option value="amount_desc">Amount (High to Low)</option>
-              <option value="due_desc">Balance Due</option>
-            </select>
+            {/* Sort Selector */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] text-[#77758F] font-bold uppercase tracking-wider hidden sm:inline">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl px-2.5 py-2 text-xs text-[#24213A] focus:border-[#5146D8] outline-none cursor-pointer shadow-sm"
+              >
+                <option value="date_desc">Latest Date</option>
+                <option value="amount_desc">Amount (High to Low)</option>
+                <option value="due_desc">Balance Due</option>
+              </select>
+            </div>
           </div>
 
           {/* Status Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
-            {[
-              { id: "all", label: "All" },
-              { id: "paid", label: "Paid" },
-              { id: "partially_paid", label: "Partial" },
-              { id: "unpaid", label: "Unpaid" },
-              { id: "draft", label: "Draft" },
-              { id: "cancelled", label: "Cancelled" },
-            ].map((st) => (
-              <button
-                key={st.id}
-                onClick={() => setStatusFilter(st.id)}
-                className={cn(
-                  "px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer",
-                  statusFilter === st.id
-                    ? "bg-[#5146D8] text-white font-black shadow-md shadow-[#5146D8]/20"
-                    : "bg-[#F0EEFF] text-[#77758F] hover:text-[#5146D8] hover:bg-[#E5E3FA]"
-                )}
-              >
-                <span>{st.label}</span>
-                <span className={cn(
-                  "px-1.5 py-0.2 rounded-full text-[9px]",
-                  statusFilter === st.id ? "bg-white/20 text-white" : "bg-white text-[#77758F]"
-                )}>
-                  {tabCounts[st.id] || 0}
-                </span>
-              </button>
-            ))}
+          <div className="w-full lg:w-auto max-w-full min-w-0 overflow-x-auto overscroll-x-contain pb-1 lg:pb-0 hms-editor-scrollbar">
+            <div className="flex items-center gap-1.5 min-w-max">
+              {[
+                { id: "all", label: "All" },
+                { id: "paid", label: "Paid" },
+                { id: "partially_paid", label: "Partial" },
+                { id: "unpaid", label: "Unpaid" },
+                { id: "draft", label: "Draft" },
+                { id: "cancelled", label: "Cancelled" },
+              ].map((st) => (
+                <button
+                  key={st.id}
+                  onClick={() => setStatusFilter(st.id)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer shrink-0",
+                    statusFilter === st.id
+                      ? "bg-[#5146D8] text-white font-black shadow-md shadow-[#5146D8]/20"
+                      : "bg-[#F0EEFF] text-[#77758F] hover:text-[#5146D8] hover:bg-[#E5E3FA]"
+                  )}
+                >
+                  <span>{st.label}</span>
+                  <span className={cn(
+                    "px-1.5 py-0.2 rounded-full text-[9px]",
+                    statusFilter === st.id ? "bg-white/20 text-white" : "bg-white text-[#77758F]"
+                  )}>
+                    {tabCounts[st.id] || 0}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </GlassPanel>
 
       {/* Invoices List / Table */}
-      <GlassPanel className="p-0 rounded-2xl overflow-hidden border border-[#E8E7F2] shadow-sm">
+      <GlassPanel className="p-0 rounded-2xl overflow-hidden border border-[#E8E7F2] shadow-sm w-full min-w-0">
         {/* Mobile View (Cards) */}
-        <div className="block md:hidden divide-y divide-[#E8E7F2]">
+        <div className="block md:hidden divide-y divide-[#E8E7F2] w-full min-w-0">
           {isLoading ? (
             <div className="p-10 text-center text-xs text-[#77758F]">
               <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#5146D8]" />
@@ -391,20 +396,20 @@ export default function BillingsPage() {
             </div>
           ) : (
             filteredInvoices.map((inv) => (
-              <div key={inv.id} className="p-4 space-y-3 hover:bg-[#F7F7FC]/60 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-mono text-xs font-bold text-[#5146D8]">
+              <div key={inv.id} className="p-3.5 sm:p-4 space-y-2.5 sm:space-y-3 hover:bg-[#F7F7FC]/60 transition-colors w-full min-w-0">
+                <div className="flex items-start justify-between gap-2 min-w-0">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-mono text-xs font-bold text-[#5146D8] truncate">
                       {inv.invoice_number}
                     </div>
-                    <div className="text-[11px] text-[#77758F] mt-0.5">
-                      {formatISTCompactDate(inv.invoice_date)} • {inv.guest_name}
+                    <div className="text-[11px] text-[#77758F] mt-0.5 truncate">
+                      {formatISTCompactDate(inv.invoice_date)} • <span className="font-medium text-[#24213A]">{inv.guest_name}</span>
                     </div>
                   </div>
 
                   <span
                     className={cn(
-                      "px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border",
+                      "px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border shrink-0",
                       inv.status === "paid" && "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]",
                       inv.status === "partially_paid" && "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]",
                       inv.status === "unpaid" && "bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]",
@@ -415,42 +420,42 @@ export default function BillingsPage() {
                   </span>
                 </div>
 
-                <div className="text-xs text-[#24213A] flex items-center justify-between">
-                  <span className="font-medium">{inv.room_name || "Room"}</span>
-                  <span className="text-[11px] text-[#77758F]">
+                <div className="text-xs text-[#24213A] flex items-center justify-between gap-2 min-w-0">
+                  <span className="font-medium truncate min-w-0">{inv.room_name || "Room"}</span>
+                  <span className="text-[11px] text-[#77758F] shrink-0 whitespace-nowrap">
                     {formatISTCompactDate(inv.check_in)} → {formatISTCompactDate(inv.check_out)}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 bg-[#F7F7FC] p-2.5 rounded-xl border border-[#E8E7F2] text-xs">
-                  <div>
-                    <div className="text-[9px] text-[#77758F] uppercase font-bold">Total</div>
-                    <div className="font-mono font-bold text-[#24213A]">₹{Number(inv.grand_total).toLocaleString("en-IN")}</div>
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-[#F7F7FC] p-2 sm:p-2.5 rounded-xl border border-[#E8E7F2] text-xs">
+                  <div className="min-w-0">
+                    <div className="text-[9px] text-[#77758F] uppercase font-bold tracking-wider">Total</div>
+                    <div className="font-mono font-bold text-[#24213A] text-xs truncate">₹{Number(inv.grand_total).toLocaleString("en-IN")}</div>
                   </div>
-                  <div>
-                    <div className="text-[9px] text-[#77758F] uppercase font-bold">Paid</div>
-                    <div className="font-mono font-bold text-[#059669]">₹{Number(inv.amount_paid).toLocaleString("en-IN")}</div>
+                  <div className="min-w-0">
+                    <div className="text-[9px] text-[#77758F] uppercase font-bold tracking-wider">Paid</div>
+                    <div className="font-mono font-bold text-[#059669] text-xs truncate">₹{Number(inv.amount_paid).toLocaleString("en-IN")}</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-[9px] text-[#77758F] uppercase font-bold">Due</div>
-                    <div className="font-mono font-bold text-[#DC2626]">₹{Number(inv.balance_due).toLocaleString("en-IN")}</div>
+                  <div className="text-right min-w-0">
+                    <div className="text-[9px] text-[#77758F] uppercase font-bold tracking-wider">Due</div>
+                    <div className="font-mono font-bold text-[#DC2626] text-xs truncate">₹{Number(inv.balance_due).toLocaleString("en-IN")}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-0.5">
                   <button
                     onClick={() => handleOpenPreview(inv)}
-                    className="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] text-[#5146D8] border border-[#E0DEF8] transition-colors cursor-pointer font-medium"
+                    className="flex-1 py-2 sm:py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] text-[#5146D8] border border-[#E0DEF8] transition-colors cursor-pointer font-medium active:scale-95"
                   >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Print PDF</span>
+                    <Printer className="w-3.5 h-3.5 shrink-0" />
+                    <span className="whitespace-nowrap">Print PDF</span>
                   </button>
                   <button
                     onClick={() => handleOpenEdit(inv)}
-                    className="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 bg-[#FFFFFF] hover:bg-[#F7F7FC] border border-[#E8E7F2] text-[#24213A] transition-colors cursor-pointer font-medium"
+                    className="flex-1 py-2 sm:py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 bg-[#FFFFFF] hover:bg-[#F7F7FC] border border-[#E8E7F2] text-[#24213A] transition-colors cursor-pointer font-medium active:scale-95 shadow-sm"
                   >
-                    <Edit className="w-3.5 h-3.5" />
-                    <span>Edit Folio</span>
+                    <Edit className="w-3.5 h-3.5 shrink-0" />
+                    <span className="whitespace-nowrap">Edit Folio</span>
                   </button>
                 </div>
               </div>

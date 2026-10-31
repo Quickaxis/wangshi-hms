@@ -52,11 +52,11 @@ export function GlassModal({ isOpen, onClose, title, children, footer, className
         )}
       >
         {/* Header */}
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-[#E8E6F2] px-6 py-4 sm:py-5 bg-[#FFFFFF] relative z-10">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-[#E8E6F2] px-4 sm:px-6 py-3.5 sm:py-5 bg-[#FFFFFF] relative z-10">
           <h2 className="text-base sm:text-lg font-semibold tracking-wide text-[#24213A] truncate mr-2 flex-1 min-w-0" title={title}>{title}</h2>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-[#F0EEFF] text-[#77758F] hover:text-[#24213A] transition-colors flex-shrink-0"
+            className="p-1.5 rounded-full hover:bg-[#F0EEFF] text-[#77758F] hover:text-[#24213A] transition-colors flex-shrink-0 cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -68,14 +68,14 @@ export function GlassModal({ isOpen, onClose, title, children, footer, className
           className="flex-1 min-h-0 overflow-y-auto bg-[#FFFFFF] overscroll-contain hide-scrollbar" 
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {children}
           </div>
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex-shrink-0 relative z-10 flex items-center justify-end gap-3 border-t border-[#E8E6F2] bg-[#F6F5FC] pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 px-6 overflow-x-hidden">
+          <div className="flex-shrink-0 relative z-10 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-[#E8E6F2] bg-[#F6F5FC] pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:pt-4 px-4 sm:px-6 overflow-x-hidden">
             {footer}
           </div>
         )}

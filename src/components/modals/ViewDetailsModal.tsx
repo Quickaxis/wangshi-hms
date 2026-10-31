@@ -131,8 +131,8 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
       onClose={onClose}
       title={isAvailable ? `Room Details: ${activeRoom.name}` : `Booking Details: ${activeRoom.name}`}
       footer={
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 w-full">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
             {!isAvailable && booking && (
               <>
                 {booking.status === "confirmed" && (
@@ -140,7 +140,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     variant="primary"
                     onClick={() => handleStatusUpdate("checked_in")}
                     disabled={isUpdating}
-                    className="px-4 text-xs flex items-center gap-1.5 bg-[#ECFDF5] hover:bg-[#D1FAE5] border-[#A7F3D0] text-[#059669]"
+                    className="px-3 py-1.5 text-xs flex items-center justify-center gap-1.5 bg-[#ECFDF5] hover:bg-[#D1FAE5] border-[#A7F3D0] text-[#059669]"
                   >
                     <CheckCircle className="w-3.5 h-3.5" />
                     Check In
@@ -151,7 +151,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     variant="primary"
                     onClick={() => handleStatusUpdate("checked_out")}
                     disabled={isUpdating}
-                    className="px-4 text-xs flex items-center gap-1.5 bg-[#FFFBEB] hover:bg-[#FEF3C7] border-[#FDE68A] text-[#D97706]"
+                    className="px-3 py-1.5 text-xs flex items-center justify-center gap-1.5 bg-[#FFFBEB] hover:bg-[#FEF3C7] border-[#FDE68A] text-[#D97706]"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     Check Out
@@ -161,7 +161,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   variant="ghost"
                   onClick={handleCancelBooking}
                   disabled={isUpdating}
-                  className="px-3 text-xs flex items-center gap-1 text-[#DC2626] hover:bg-[#FEF2F2]"
+                  className="px-2.5 py-1.5 text-xs flex items-center justify-center gap-1 text-[#DC2626] hover:bg-[#FEF2F2]"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   Cancel Stay
@@ -170,7 +170,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   variant="ghost"
                   onClick={() => setIsPaymentModalOpen(true)}
                   disabled={isUpdating}
-                  className="px-3 text-xs flex items-center gap-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] border-[#E0DEF8] text-[#5146D8]"
+                  className="px-2.5 py-1.5 text-xs flex items-center justify-center gap-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] border-[#E0DEF8] text-[#5146D8]"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   Record Payment
@@ -179,7 +179,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   variant="primary"
                   onClick={handleOpenBilling}
                   disabled={isUpdating}
-                  className="px-3 text-xs flex items-center gap-1.5 bg-[#5146D8] hover:bg-[#4338CA] text-white border-transparent"
+                  className="px-2.5 py-1.5 text-xs flex items-center justify-center gap-1.5 bg-[#5146D8] hover:bg-[#4338CA] text-white border-transparent"
                 >
                   <Receipt className="w-3.5 h-3.5" />
                   Bill / Invoice
@@ -187,7 +187,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
               </>
             )}
           </div>
-          <GlassButton variant="ghost" onClick={onClose} className="px-6 text-xs w-full sm:w-auto">
+          <GlassButton variant="ghost" onClick={onClose} className="px-5 py-1.5 text-xs w-full sm:w-auto shrink-0">
             Close
           </GlassButton>
         </div>
