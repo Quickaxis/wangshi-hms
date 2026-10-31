@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { GlassModal } from "../ui/GlassModal";
-import { GlassButton } from "../ui/GlassButton";
-import { GlassInput } from "../ui/GlassInput";
 import { Room, BookingGuest } from "@/lib/types";
 import { CreateBookingInput } from "@/app/actions/bookings";
 import { User, Phone, Calendar as CalendarIcon, Users, IndianRupee, NotebookPen, Plus, X, AlertCircle } from "lucide-react";
@@ -132,57 +130,81 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
       isOpen={isOpen}
       onClose={onClose}
       title={`Book ${room.name}`}
+      className="sm:max-w-xl max-h-[94dvh] sm:max-h-[90vh]"
       footer={
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 w-full">
-          <GlassButton variant="ghost" onClick={onClose} className="px-6 w-full sm:w-auto" disabled={isSubmitting}>
-            Cancel
-          </GlassButton>
-          <GlassButton
-            variant="primary"
-            onClick={handleSubmit}
-            className="px-8 w-full sm:w-auto"
-            disabled={guests.length === 0 || isSubmitting}
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 w-full">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#FFFFFF] hover:bg-[#F0EEFF] border border-[#E8E6F2] hover:border-[#8B83F6] text-[#77758F] hover:text-[#5146D8] shadow-sm transition-all cursor-pointer disabled:opacity-50 w-full sm:w-auto"
           >
-            {isSubmitting ? "Confirming..." : "Confirm Booking"}
-          </GlassButton>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="booking-form"
+            disabled={guests.length === 0 || isSubmitting}
+            className={cn(
+              "px-6 py-2.5 rounded-full text-xs font-semibold flex items-center justify-center gap-2 transition-all w-full sm:w-auto shadow-sm",
+              guests.length === 0 || isSubmitting
+                ? "bg-[#E8E6F2] text-[#77758F] cursor-not-allowed border border-[#E8E6F2] shadow-none"
+                : "bg-[#5146D8] hover:bg-[#4338CA] text-white shadow-md shadow-[#5146D8]/20 cursor-pointer active:scale-95"
+            )}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Confirming...</span>
+              </>
+            ) : (
+              <span>Confirm Booking</span>
+            )}
+          </button>
         </div>
       }
     >
       <form id="booking-form" onSubmit={handleSubmit} className="space-y-4">
         {errorMessage && (
-          <div className="p-3 rounded-xl bg-[rgba(255,105,120,0.15)] border border-[rgba(255,105,120,0.3)] flex items-center gap-2.5 text-xs text-[#FF6978]">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-center gap-2.5 text-xs text-rose-700 font-medium">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* Room & Price Info Summary */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] text-xs text-[#C7C3BA]">
-          <div>
-            <span className="font-semibold text-[#F5F1E8]">{room.name}</span>
-            <span className="ml-2 text-[11px] text-[#96928A]">({room.bathroomInfo})</span>
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2]">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm text-[#24213A]">{room.name}</span>
+            <span className="text-xs font-medium text-[#77758F]">({room.bathroomInfo})</span>
           </div>
-          <div className="flex items-center gap-1 font-semibold text-[#F5F1E8]">
-            <span>₹{room.pricePerNight.toLocaleString("en-IN")}</span>
-            <span className="text-[10px] text-[#96928A]">/ night</span>
+          <div className="flex items-baseline gap-1">
+            <span className="font-bold text-sm text-[#24213A] font-mono tabular-nums">
+              ₹{room.pricePerNight.toLocaleString("en-IN")}
+            </span>
+            <span className="text-xs font-normal text-[#77758F]">/ night</span>
           </div>
         </div>
 
         {/* Guests Section */}
-        <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[16px] p-4">
-          <div className="flex justify-between items-center mb-3">
-            <label className="text-xs font-semibold tracking-widest text-[#96928A] uppercase flex items-center gap-2">
-              <Users className="w-3.5 h-3.5" />
-              Guests ({guests.length}/{room.maxCapacity})
+        <div className="bg-[#F6F5FC] border border-[#E8E6F2] rounded-2xl p-4 space-y-3">
+          <div className="flex justify-between items-center">
+            <label className="text-xs font-semibold tracking-wider text-[#77758F] uppercase flex items-center gap-2">
+              <Users className="w-3.5 h-3.5 text-[#5146D8]" />
+              <span>Guests ({guests.length}/{room.maxCapacity})</span>
             </label>
-            {isAtCapacity && (
-              <span className="text-[10px] text-[#FF6978] tracking-wider uppercase font-semibold">
-                Max Capacity
+            {isAtCapacity ? (
+              <span className="text-[10px] text-[#DC2626] font-semibold uppercase tracking-wider bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+                Max Capacity Reached
+              </span>
+            ) : (
+              <span className="text-[11px] text-[#77758F] font-medium">
+                Max {room.maxCapacity} {room.maxCapacity === 1 ? "guest" : "guests"}
               </span>
             )}
           </div>
 
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-2">
             <div className="flex-1 relative">
               <input
                 type="text"
@@ -195,39 +217,42 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
                   }
                 }}
                 disabled={isAtCapacity || isSubmitting}
-                placeholder={isAtCapacity ? "Capacity reached" : "Enter guest name..."}
-                className="w-full bg-[rgba(0,0,0,0.2)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-2 text-sm text-[#F5F1E8] placeholder-[#96928A] outline-none focus:border-[rgba(255,255,255,0.2)] transition-colors disabled:opacity-50"
+                placeholder={isAtCapacity ? "Room capacity reached" : "Enter guest full name..."}
+                className="w-full h-10 bg-[#FFFFFF] border border-[#E8E6F2] hover:border-[#5146D8]/40 rounded-xl px-4 text-sm text-[#24213A] placeholder:text-[#77758F]/60 outline-none transition-all focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 shadow-sm disabled:bg-[#F6F5FC] disabled:text-[#77758F] disabled:cursor-not-allowed"
               />
             </div>
             <button
               type="button"
               onClick={handleAddGuest}
               disabled={!guestInput.trim() || isAtCapacity || isSubmitting}
-              className="px-4 py-2 rounded-xl bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] text-white text-sm transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-10 px-5 rounded-xl bg-[#5146D8] hover:bg-[#4338CA] text-white text-sm font-semibold transition-all flex items-center gap-1.5 shadow-sm shadow-[#5146D8]/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-[#E8E6F2] disabled:text-[#77758F] disabled:shadow-none cursor-pointer shrink-0 active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              Add
+              <span>Add</span>
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          {/* Guest chips or empty state */}
+          <div className="flex flex-wrap gap-2 pt-1">
             {guests.length === 0 ? (
-              <span className="text-xs text-[#96928A] italic">No guests added yet.</span>
+              <div className="w-full py-2.5 px-3.5 rounded-xl border border-dashed border-[#E8E6F2] bg-[#FFFFFF] text-center">
+                <span className="text-xs font-medium text-[#77758F]">No guests added yet. Add at least 1 guest.</span>
+              </div>
             ) : (
               guests.map((guest, idx) => (
                 <div
                   key={idx}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors",
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors shadow-sm",
                     guest.isPrimary
-                      ? "bg-[rgba(245,158,11,0.1)] border-[rgba(245,158,11,0.2)] text-[#F59E0B]"
-                      : "bg-[rgba(255,255,255,0.03)] border-[rgba(255,255,255,0.08)] text-[#E5E5E5]"
+                      ? "bg-[#F0EEFF] border-[#E8E6F2] text-[#5146D8]"
+                      : "bg-[#FFFFFF] border-[#E8E6F2] text-[#24213A]"
                   )}
                 >
-                  <User className="w-3 h-3 text-[#C7C3BA]" />
-                  <span>{guest.name}</span>
+                  <User className="w-3 h-3 text-[#5146D8]" />
+                  <span className="font-medium">{guest.name}</span>
                   {guest.isPrimary && (
-                    <span className="text-[#96928A] text-[10px] uppercase ml-1 tracking-wider">
+                    <span className="text-[#5146D8] text-[10px] font-semibold uppercase ml-0.5 tracking-wider">
                       (Primary)
                     </span>
                   )}
@@ -235,7 +260,8 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
                     type="button"
                     onClick={() => handleRemoveGuest(idx)}
                     disabled={isSubmitting}
-                    className="ml-1 p-0.5 rounded-full hover:bg-[rgba(255,255,255,0.1)] text-[#96928A] hover:text-white transition-colors"
+                    className="ml-1 p-0.5 rounded-full hover:bg-rose-50 text-[#77758F] hover:text-[#DC2626] transition-colors cursor-pointer"
+                    title="Remove guest"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -245,66 +271,110 @@ export function BookingModal({ room, isOpen, onClose, onConfirm, defaultDate }: 
           </div>
         </div>
 
+        {/* Contact Phone & Calculated Total */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <GlassInput
-            label="Primary Phone Number"
-            placeholder="Enter 10-digit phone number"
-            icon={<Phone className="w-4 h-4" />}
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            required
-            disabled={isSubmitting}
-          />
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold tracking-widest text-[#96928A] uppercase">
-              Calculated Total ({nights} night{nights > 1 ? "s" : ""})
+          <div className="flex flex-col gap-1.5 w-full">
+            <label className="text-xs font-semibold uppercase tracking-wider text-[#77758F] ml-1">
+              Primary Phone Number <span className="text-rose-500">*</span>
             </label>
-            <div className="flex items-center gap-2 h-[42px] px-4 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] text-[#F5F1E8] font-semibold text-sm">
-              <IndianRupee className="w-4 h-4 text-[#F59E0B]" />
-              <span>₹{estimatedTotal.toLocaleString("en-IN")}</span>
-              <span className="text-[10px] text-[#96928A] font-normal ml-auto">
-                ₹{room.pricePerNight} × {nights}
+            <div className="relative flex items-center w-full">
+              <div className="absolute left-3.5 text-[#77758F] pointer-events-none">
+                <Phone className="w-4 h-4" />
+              </div>
+              <input
+                type="tel"
+                placeholder="Enter 10-digit phone number"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                required
+                disabled={isSubmitting}
+                className="w-full h-10 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] hover:border-[#5146D8]/40 pl-10 pr-3.5 text-sm text-[#24213A] placeholder:text-[#77758F]/60 font-mono transition-all focus:outline-none focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 shadow-sm disabled:opacity-50"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5 w-full">
+            <label className="text-xs font-semibold uppercase tracking-wider text-[#77758F] ml-1">
+              Calculated Total ({nights} {nights === 1 ? "night" : "nights"})
+            </label>
+            <div className="flex items-center justify-between h-10 px-4 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] shadow-sm">
+              <div className="flex items-center gap-1.5">
+                <IndianRupee className="w-4 h-4 text-[#5146D8]" />
+                <span className="font-bold text-sm text-[#24213A] font-mono tabular-nums">
+                  ₹{estimatedTotal.toLocaleString("en-IN")}
+                </span>
+              </div>
+              <span className="text-xs font-mono tabular-nums text-[#77758F]">
+                ₹{room.pricePerNight.toLocaleString("en-IN")} × {nights} {nights === 1 ? "nt" : "nts"}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
+        {/* Dates & Schedule */}
+        <div className="flex flex-col gap-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <GlassInput
-              label="Check-in Date"
-              type="date"
-              icon={<CalendarIcon className="w-4 h-4" />}
-              value={formData.checkIn}
-              onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
-              required
-              disabled={isSubmitting}
-            />
-            <GlassInput
-              label="Check-out Date"
-              type="date"
-              icon={<CalendarIcon className="w-4 h-4" />}
-              value={formData.checkOut}
-              onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
-              required
-              disabled={isSubmitting}
-            />
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-xs font-semibold uppercase tracking-wider text-[#77758F] ml-1">
+                Check-in Date <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative flex items-center w-full">
+                <div className="absolute left-3.5 text-[#77758F] pointer-events-none">
+                  <CalendarIcon className="w-4 h-4" />
+                </div>
+                <input
+                  type="date"
+                  value={formData.checkIn}
+                  onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
+                  required
+                  disabled={isSubmitting}
+                  style={{ colorScheme: "light" }}
+                  className="w-full h-10 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] hover:border-[#5146D8]/40 pl-10 pr-3.5 text-sm text-[#24213A] transition-all focus:outline-none focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 shadow-sm cursor-pointer disabled:opacity-50"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-xs font-semibold uppercase tracking-wider text-[#77758F] ml-1">
+                Check-out Date <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative flex items-center w-full">
+                <div className="absolute left-3.5 text-[#77758F] pointer-events-none">
+                  <CalendarIcon className="w-4 h-4" />
+                </div>
+                <input
+                  type="date"
+                  value={formData.checkOut}
+                  onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
+                  required
+                  disabled={isSubmitting}
+                  style={{ colorScheme: "light" }}
+                  className="w-full h-10 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] hover:border-[#5146D8]/40 pl-10 pr-3.5 text-sm text-[#24213A] transition-all focus:outline-none focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 shadow-sm cursor-pointer disabled:opacity-50"
+                />
+              </div>
+            </div>
           </div>
           
-          <div className="flex items-center justify-center p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] text-[11px] font-medium text-[#C7C3BA]">
+          <div className="flex items-center justify-center p-2.5 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2] text-xs font-medium text-[#77758F]">
             Standard check-in: 12:00 PM &nbsp;&bull;&nbsp; Standard check-out: 11:00 AM
           </div>
         </div>
 
-        <GlassInput
-          label="Special Notes"
-          placeholder="Any special requests or arrival notes..."
-          icon={<NotebookPen className="w-4 h-4" />}
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          disabled={isSubmitting}
-        />
+        {/* Special Notes */}
+        <div className="flex flex-col gap-1.5 w-full">
+          <label className="text-xs font-semibold uppercase tracking-wider text-[#77758F] ml-1 flex items-center gap-1.5">
+            <NotebookPen className="w-3.5 h-3.5 text-[#5146D8]" />
+            <span>Special Notes</span>
+          </label>
+          <textarea
+            rows={3}
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            disabled={isSubmitting}
+            placeholder="Any special requests, arrival time, or dietary notes..."
+            className="w-full bg-[#FFFFFF] border border-[#E8E6F2] hover:border-[#5146D8]/40 rounded-xl p-3 text-sm text-[#24213A] placeholder:text-[#77758F]/60 focus:outline-none focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 shadow-sm resize-none transition-all disabled:opacity-50 disabled:bg-[#F6F5FC]"
+          />
+        </div>
       </form>
     </GlassModal>
   );

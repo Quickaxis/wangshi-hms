@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { requireSuperAdmin } from "@/lib/auth/admin";
 import { Homestay, Partner, DbRoom } from "@/lib/types";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, getAdminEnvDiagnostic, AdminEnvDiagnostic } from "@/lib/supabase/admin";
 
 export interface AdminActionResult<T = any> {
   success: boolean;
@@ -686,3 +686,16 @@ export async function resetPartnerPasswordAction(authUserId: string, newPassword
     return { success: false, error: err?.message || "Failed to reset password" };
   }
 }
+
+export async function getAdminEnvDiagnosticAction(): Promise<AdminActionResult<AdminEnvDiagnostic>> {
+  try {
+    const { authorized } = await requireSuperAdmin();
+    if (!authorized) return { success: false, error: "Unauthorized: Super Admin access required." };
+
+    const diagnostic = getAdminEnvDiagnostic();
+    return { success: true, data: diagnostic };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Failed to inspect environment" };
+  }
+}
+

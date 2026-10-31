@@ -140,7 +140,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     variant="primary"
                     onClick={() => handleStatusUpdate("checked_in")}
                     disabled={isUpdating}
-                    className="px-4 text-xs flex items-center gap-1.5 bg-[rgba(79,231,123,0.15)] hover:bg-[rgba(79,231,123,0.25)] border-[rgba(79,231,123,0.3)] text-[#4FE77B]"
+                    className="px-4 text-xs flex items-center gap-1.5 bg-[#ECFDF5] hover:bg-[#D1FAE5] border-[#A7F3D0] text-[#059669]"
                   >
                     <CheckCircle className="w-3.5 h-3.5" />
                     Check In
@@ -151,7 +151,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     variant="primary"
                     onClick={() => handleStatusUpdate("checked_out")}
                     disabled={isUpdating}
-                    className="px-4 text-xs flex items-center gap-1.5 bg-[rgba(245,158,11,0.15)] hover:bg-[rgba(245,158,11,0.25)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]"
+                    className="px-4 text-xs flex items-center gap-1.5 bg-[#FFFBEB] hover:bg-[#FEF3C7] border-[#FDE68A] text-[#D97706]"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     Check Out
@@ -161,7 +161,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   variant="ghost"
                   onClick={handleCancelBooking}
                   disabled={isUpdating}
-                  className="px-3 text-xs flex items-center gap-1 text-[#FF6978] hover:bg-[rgba(255,105,120,0.1)]"
+                  className="px-3 text-xs flex items-center gap-1 text-[#DC2626] hover:bg-[#FEF2F2]"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   Cancel Stay
@@ -170,7 +170,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   variant="ghost"
                   onClick={() => setIsPaymentModalOpen(true)}
                   disabled={isUpdating}
-                  className="px-3 text-xs flex items-center gap-1.5 bg-[rgba(245,158,11,0.12)] hover:bg-[rgba(245,158,11,0.22)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]"
+                  className="px-3 text-xs flex items-center gap-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] border-[#E0DEF8] text-[#5146D8]"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   Record Payment
@@ -179,7 +179,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   variant="primary"
                   onClick={handleOpenBilling}
                   disabled={isUpdating}
-                  className="px-3 text-xs flex items-center gap-1.5 bg-[#6B1724]/30 hover:bg-[#6B1724]/50 border border-[#6B1724]/50 text-[#FFB3B3]"
+                  className="px-3 text-xs flex items-center gap-1.5 bg-[#5146D8] hover:bg-[#4338CA] text-white border-transparent"
                 >
                   <Receipt className="w-3.5 h-3.5" />
                   Bill / Invoice
@@ -199,8 +199,8 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
             className={cn(
               "p-3 rounded-xl flex items-center gap-2.5 text-xs border",
               feedbackMsg.type === "success"
-                ? "bg-[rgba(79,231,123,0.1)] border-[rgba(79,231,123,0.25)] text-[#4FE77B]"
-                : "bg-[rgba(255,105,120,0.1)] border-[rgba(255,105,120,0.25)] text-[#FF6978]"
+                ? "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]"
+                : "bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]"
             )}
           >
             {feedbackMsg.type === "success" ? (
@@ -214,23 +214,23 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
 
         {isAvailable ? (
           <div className="space-y-4">
-            <h3 className="text-xs font-semibold tracking-widest text-[#96928A] uppercase">
+            <h3 className="text-xs font-semibold tracking-widest text-[#77758F] uppercase">
               Room Information
             </h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
-                <Users className="w-4 h-4 text-[#96928A]" />
+              <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex items-center gap-3 shadow-[0_2px_8px_rgba(36,33,58,0.02)]">
+                <Users className="w-4 h-4 text-[#5146D8]" />
                 <div>
-                  <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Capacity</p>
-                  <p className="text-sm font-medium text-[#F5F1E8]">Max {activeRoom.maxCapacity} Guests</p>
+                  <p className="text-[10px] text-[#77758F] tracking-wider uppercase">Capacity</p>
+                  <p className="text-sm font-medium text-[#24213A]">Max {activeRoom.maxCapacity} Guests</p>
                 </div>
               </div>
 
-              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
-                <IndianRupee className="w-4 h-4 text-[#96928A]" />
+              <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex items-center gap-3 shadow-[0_2px_8px_rgba(36,33,58,0.02)]">
+                <IndianRupee className="w-4 h-4 text-[#5146D8]" />
                 <div>
-                  <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Price</p>
-                  <p className="text-sm font-medium text-[#F5F1E8]">
+                  <p className="text-[10px] text-[#77758F] tracking-wider uppercase">Price</p>
+                  <p className="text-sm font-medium text-[#24213A]">
                     ₹{activeRoom.pricePerNight.toLocaleString("en-IN")}/night
                   </p>
                 </div>
@@ -238,19 +238,19 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
-                <NotebookPen className="w-4 h-4 text-[#96928A]" />
+              <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex items-center gap-3 shadow-[0_2px_8px_rgba(36,33,58,0.02)]">
+                <NotebookPen className="w-4 h-4 text-[#5146D8]" />
                 <div>
-                  <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Bathroom</p>
-                  <p className="text-sm font-medium text-[#F5F1E8]">{activeRoom.bathroomInfo}</p>
+                  <p className="text-[10px] text-[#77758F] tracking-wider uppercase">Bathroom</p>
+                  <p className="text-sm font-medium text-[#24213A]">{activeRoom.bathroomInfo}</p>
                 </div>
               </div>
 
-              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
-                <NotebookPen className="w-4 h-4 text-[#96928A]" />
+              <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex items-center gap-3 shadow-[0_2px_8px_rgba(36,33,58,0.02)]">
+                <NotebookPen className="w-4 h-4 text-[#5146D8]" />
                 <div>
-                  <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Breakfast</p>
-                  <p className="text-sm font-medium text-[#F5F1E8]">{activeRoom.breakfastInfo}</p>
+                  <p className="text-[10px] text-[#77758F] tracking-wider uppercase">Breakfast</p>
+                  <p className="text-sm font-medium text-[#24213A]">{activeRoom.breakfastInfo}</p>
                 </div>
               </div>
             </div>
@@ -259,17 +259,17 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
           <>
             {/* Status Badge */}
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold tracking-widest text-[#96928A] uppercase">
+              <span className="text-xs font-semibold tracking-widest text-[#77758F] uppercase">
                 Booking Status
               </span>
               <span
                 className={cn(
                   "px-3 py-1 rounded-full text-[10px] font-semibold tracking-widest uppercase border",
                   booking.status === "checked_in"
-                    ? "bg-[rgba(79,231,123,0.15)] border-[rgba(79,231,123,0.3)] text-[#4FE77B]"
+                    ? "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]"
                     : booking.status === "confirmed"
-                    ? "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]"
-                    : "bg-[rgba(255,255,255,0.05)] border-[rgba(255,255,255,0.1)] text-[#96928A]"
+                    ? "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]"
+                    : "bg-[#F7F7FC] border-[#E8E7F2] text-[#77758F]"
                 )}
               >
                 {booking.status.replace("_", " ")}
@@ -279,35 +279,35 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
             {/* Guest List Section */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <h3 className="text-xs font-semibold tracking-widest text-[#96928A] uppercase">
+                <h3 className="text-xs font-semibold tracking-widest text-[#77758F] uppercase">
                   Guests ({booking.guests.length}/{activeRoom.maxCapacity})
                 </h3>
               </div>
 
-              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-4 rounded-xl space-y-2">
+              <div className="bg-[#F7F7FC] border border-[#E8E7F2] p-4 rounded-xl space-y-2">
                 {booking.guests.length === 0 ? (
-                  <p className="text-xs text-[#96928A] italic">No guests currently attached.</p>
+                  <p className="text-xs text-[#77758F] italic">No guests currently attached.</p>
                 ) : (
                   booking.guests.map((guest, idx) => (
                     <div
                       key={idx}
-                      className="flex justify-between items-center p-2 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)]"
+                      className="flex justify-between items-center p-2 rounded-lg bg-[#FFFFFF] border border-[#E8E7F2]"
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className={cn(
                             "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
                             guest.isPrimary
-                              ? "bg-[#F59E0B]/20 text-[#F59E0B]"
-                              : "bg-[rgba(255,255,255,0.1)] text-[#96928A]"
+                              ? "bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8]"
+                              : "bg-[#F7F7FC] text-[#77758F] border border-[#E8E7F2]"
                           )}
                         >
                           {idx + 1}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-[#F5F1E8]">{guest.name}</p>
+                          <p className="text-sm font-medium text-[#24213A]">{guest.name}</p>
                           {guest.isPrimary && (
-                            <p className="text-[10px] text-[#F59E0B] tracking-wider uppercase">
+                            <p className="text-[10px] text-[#5146D8] font-semibold tracking-wider uppercase">
                               Primary Guest
                             </p>
                           )}
@@ -323,54 +323,54 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
             <div className="space-y-4 pt-1">
               {/* Stay Dates */}
               <div className="space-y-3">
-                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex justify-between items-center">
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked On</span>
-                    <span className="font-medium text-[#F5F1E8] mt-0.5">
+                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Booked On</span>
+                    <span className="font-medium text-[#24213A] mt-0.5">
                       {booking.createdAt ? formatISTDateTime(booking.createdAt) : 'Unknown'}
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex justify-between items-center">
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-in</span>
-                    <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkIn)}</span>
+                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Check-in</span>
+                    <span className="font-medium text-[#24213A] mt-0.5">{formatISTCompactDate(booking.checkIn)}</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
-                    <span className="font-medium text-[#F5F1E8] mt-0.5">12:00 PM</span>
+                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Time</span>
+                    <span className="font-medium text-[#24213A] mt-0.5">12:00 PM</span>
                   </div>
                 </div>
 
-                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex justify-between items-center">
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex justify-between items-center">
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Check-out</span>
-                    <span className="font-medium text-[#F5F1E8] mt-0.5">{formatISTCompactDate(booking.checkOut)}</span>
+                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Check-out</span>
+                    <span className="font-medium text-[#24213A] mt-0.5">{formatISTCompactDate(booking.checkOut)}</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-[#96928A] tracking-wider uppercase">Time</span>
-                    <span className="font-medium text-[#F5F1E8] mt-0.5">11:00 AM</span>
+                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Time</span>
+                    <span className="font-medium text-[#24213A] mt-0.5">11:00 AM</span>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
-                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-[#96928A] shrink-0" />
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex items-center gap-3">
+                  <Phone className="w-4 h-4 text-[#77758F] shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Phone</p>
-                    <p className="text-sm font-medium text-[#F5F1E8] truncate">{booking.guestPhone || "N/A"}</p>
+                    <p className="text-[10px] text-[#77758F] tracking-wider uppercase">Phone</p>
+                    <p className="text-sm font-medium text-[#24213A] truncate">{booking.guestPhone || "N/A"}</p>
                   </div>
                 </div>
               </div>
 
               {/* Financial Ledger & Payment Status Overview */}
-              <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 space-y-3">
+              <div className="bg-[#F7F7FC] border border-[#E8E7F2] rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <IndianRupee className="w-4 h-4 text-[#F59E0B]" />
-                    <span className="text-xs font-semibold tracking-wider uppercase text-[#F5F1E8]">
+                    <IndianRupee className="w-4 h-4 text-[#5146D8]" />
+                    <span className="text-xs font-semibold tracking-wider uppercase text-[#24213A]">
                       Payment & Balance Overview
                     </span>
                   </div>
@@ -378,11 +378,11 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     <span
                       className={cn(
                         "px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase border",
-                        financialSummary.paymentStatus === "paid" && "bg-[rgba(79,231,123,0.15)] border-[rgba(79,231,123,0.3)] text-[#4FE77B]",
-                        financialSummary.paymentStatus === "partially_paid" && "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]",
-                        financialSummary.paymentStatus === "unpaid" && "bg-[rgba(255,105,120,0.15)] border-[rgba(255,105,120,0.3)] text-[#FF6978]",
-                        financialSummary.paymentStatus === "refunded" && "bg-[rgba(168,85,247,0.15)] border-[rgba(168,85,247,0.3)] text-[#C084FC]",
-                        financialSummary.paymentStatus === "overpaid" && "bg-[rgba(59,130,246,0.15)] border-[rgba(59,130,246,0.3)] text-[#60A5FA]"
+                        financialSummary.paymentStatus === "paid" && "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]",
+                        financialSummary.paymentStatus === "partially_paid" && "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]",
+                        financialSummary.paymentStatus === "unpaid" && "bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]",
+                        financialSummary.paymentStatus === "refunded" && "bg-[#F5F3FF] border-[#DDD6FE] text-[#7C3AED]",
+                        financialSummary.paymentStatus === "overpaid" && "bg-[#EFF6FF] border-[#BFDBFE] text-[#2563EB]"
                       )}
                     >
                       {financialSummary.paymentStatus.replace("_", " ")}
@@ -391,28 +391,28 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 pt-1">
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] p-2.5 rounded-lg">
-                    <span className="text-[9px] text-[#96928A] uppercase tracking-wider block">Total Stay</span>
-                    <span className="text-xs sm:text-sm font-semibold text-[#F5F1E8]">
+                  <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-2.5 rounded-lg">
+                    <span className="text-[9px] text-[#77758F] uppercase tracking-wider block">Total Stay</span>
+                    <span className="text-xs sm:text-sm font-semibold text-[#24213A]">
                       {financialSummary ? financialSummary.formatted.totalContracted : `₹${booking.bookingAmount.toLocaleString("en-IN")}.00`}
                     </span>
                   </div>
 
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] p-2.5 rounded-lg">
-                    <span className="text-[9px] text-[#96928A] uppercase tracking-wider block">Net Paid</span>
+                  <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-2.5 rounded-lg">
+                    <span className="text-[9px] text-[#77758F] uppercase tracking-wider block">Net Paid</span>
                     <span className={cn(
                       "text-xs sm:text-sm font-semibold",
-                      financialSummary && parseFloat(financialSummary.netPaid) > 0 ? "text-[#4FE77B]" : "text-[#96928A]"
+                      financialSummary && parseFloat(financialSummary.netPaid) > 0 ? "text-[#059669]" : "text-[#77758F]"
                     )}>
                       {financialSummary ? financialSummary.formatted.netPaid : "₹0.00"}
                     </span>
                   </div>
 
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] p-2.5 rounded-lg">
-                    <span className="text-[9px] text-[#96928A] uppercase tracking-wider block">Balance Due</span>
+                  <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-2.5 rounded-lg">
+                    <span className="text-[9px] text-[#77758F] uppercase tracking-wider block">Balance Due</span>
                     <span className={cn(
                       "text-xs sm:text-sm font-semibold",
-                      financialSummary && parseFloat(financialSummary.balanceDue) <= 0 ? "text-[#4FE77B]" : "text-[#FF6978]"
+                      financialSummary && parseFloat(financialSummary.balanceDue) <= 0 ? "text-[#059669]" : "text-[#DC2626]"
                     )}>
                       {financialSummary ? financialSummary.formatted.balanceDue : `₹${booking.bookingAmount.toLocaleString("en-IN")}.00`}
                     </span>
@@ -420,48 +420,48 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 </div>
 
                 {/* Transaction History Accordion */}
-                <div className="pt-2 border-t border-[rgba(255,255,255,0.06)]">
+                <div className="pt-2 border-t border-[#E8E7F2]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] text-[#96928A] uppercase tracking-wider font-medium">
+                    <span className="text-[10px] text-[#77758F] uppercase tracking-wider font-medium">
                       Transaction Ledger ({financialSummary?.payments.length || 0})
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsPaymentModalOpen(true)}
-                      className="text-[11px] text-[#F59E0B] hover:underline flex items-center gap-1"
+                      className="text-[11px] text-[#5146D8] font-medium hover:underline flex items-center gap-1"
                     >
                       + Record Entry
                     </button>
                   </div>
 
                   {isLoadingFinancials ? (
-                    <p className="text-xs text-[#96928A] italic">Loading transactions...</p>
+                    <p className="text-xs text-[#77758F] italic">Loading transactions...</p>
                   ) : !financialSummary || financialSummary.payments.length === 0 ? (
-                    <p className="text-xs text-[#96928A] italic">No payment transactions recorded yet.</p>
+                    <p className="text-xs text-[#77758F] italic">No payment transactions recorded yet.</p>
                   ) : (
                     <div className="space-y-1.5 max-h-40 overflow-y-auto hide-scrollbar pr-1">
                       {financialSummary.payments.map((p) => (
                         <div
                           key={p.id}
-                          className="flex items-center justify-between p-2 rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] text-xs"
+                          className="flex items-center justify-between p-2 rounded-lg bg-[#FFFFFF] border border-[#E8E7F2] text-xs"
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             {p.payment_type === 'payment' && (
-                              <ArrowDownLeft className="w-3.5 h-3.5 text-[#4FE77B] shrink-0" />
+                              <ArrowDownLeft className="w-3.5 h-3.5 text-[#059669] shrink-0" />
                             )}
                             {p.payment_type === 'refund' && (
-                              <ArrowUpRight className="w-3.5 h-3.5 text-[#FF6978] shrink-0" />
+                              <ArrowUpRight className="w-3.5 h-3.5 text-[#DC2626] shrink-0" />
                             )}
                             {p.payment_type === 'reversal' && (
-                              <RotateCcw className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
+                              <RotateCcw className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
                             )}
                             <div className="min-w-0">
-                              <p className="font-medium text-[#F5F1E8] truncate">
+                              <p className="font-medium text-[#24213A] truncate">
                                 {p.payment_type === 'payment' && `Payment via ${p.payment_method.toUpperCase()}`}
                                 {p.payment_type === 'refund' && `Guest Refund (${p.payment_method.toUpperCase()})`}
                                 {p.payment_type === 'reversal' && `Reversal / Void Entry`}
                               </p>
-                              <p className="text-[10px] text-[#96928A] truncate">
+                              <p className="text-[10px] text-[#77758F] truncate">
                                 {formatISTDateTime(p.created_at)}
                                 {p.notes ? ` • ${p.notes}` : ""}
                               </p>
@@ -470,9 +470,9 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                           <span
                             className={cn(
                               "font-semibold whitespace-nowrap ml-2",
-                              p.payment_type === 'payment' && "text-[#4FE77B]",
-                              p.payment_type === 'refund' && "text-[#FF6978]",
-                              p.payment_type === 'reversal' && "text-[#96928A] line-through"
+                              p.payment_type === 'payment' && "text-[#059669]",
+                              p.payment_type === 'refund' && "text-[#DC2626]",
+                              p.payment_type === 'reversal' && "text-[#77758F] line-through"
                             )}
                           >
                             {p.payment_type === 'payment' ? '+' : p.payment_type === 'refund' ? '-' : '↺'} ₹{Number(p.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -488,19 +488,19 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
             {/* Partner & Notes */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-start gap-3 col-span-1 md:col-span-2">
-                  <NotebookPen className="w-4 h-4 text-[#96928A] mt-0.5" />
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex items-start gap-3 col-span-1 md:col-span-2">
+                  <NotebookPen className="w-4 h-4 text-[#77758F] mt-0.5" />
                   <div>
-                    <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Special Notes</p>
-                    <p className="text-[13px] text-[#C7C3BA] mt-1">{booking.notes || "None"}</p>
+                    <p className="text-[10px] text-[#77758F] tracking-wider uppercase">Special Notes</p>
+                    <p className="text-[13px] text-[#24213A] mt-1">{booking.notes || "None"}</p>
                   </div>
                 </div>
 
-                <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] p-3 rounded-xl flex items-center gap-3 col-span-1 md:col-span-2">
-                  <Briefcase className="w-4 h-4 text-[#96928A]" />
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex items-center gap-3 col-span-1 md:col-span-2">
+                  <Briefcase className="w-4 h-4 text-[#77758F]" />
                   <div>
-                    <p className="text-[10px] text-[#96928A] tracking-wider uppercase">Booked By Partner</p>
-                    <p className="text-[13px] font-medium text-[#F5F1E8]">{booking.bookedBy}</p>
+                    <p className="text-[10px] text-[#77758F] tracking-wider uppercase">Booked By Partner</p>
+                    <p className="text-[13px] font-medium text-[#24213A]">{booking.bookedBy}</p>
                   </div>
                 </div>
               </div>

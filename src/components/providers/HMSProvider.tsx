@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
-import { prototypeRooms, UI_Room, roomImageMap, defaultRoomImage } from "@/data/rooms";
+import { UI_Room, roomImageMap, defaultRoomImage } from "@/data/rooms";
 import { BookingStatus, BookingGuest, CurrentBookingDetails, Partner, Homestay } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import {

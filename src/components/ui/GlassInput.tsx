@@ -11,23 +11,23 @@ const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
     return (
       <div className="flex flex-col gap-1.5 w-full">
         {label && (
-          <label className="text-sm font-medium text-[#24213A] ml-2">
+          <label className="text-xs font-semibold uppercase tracking-wider text-[#77758F] ml-1">
             {label}
           </label>
         )}
         <div className="relative flex items-center w-full">
           {icon && (
-            <div className="absolute left-4 text-[#77758F] pointer-events-none">
+            <div className="absolute left-3.5 text-[#77758F] pointer-events-none">
               {icon}
             </div>
           )}
           <input
             ref={ref}
             className={cn(
-              "w-full rounded-[14px] bg-[#FFFFFF] border border-[#E8E7F2]",
-              "px-4 py-2.5 text-sm text-[#24213A] placeholder:text-[#8F8CA4]",
+              "w-full h-10 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2]",
+              "px-3.5 py-2 text-sm text-[#24213A] placeholder:text-[#77758F]/60",
               "transition-all focus:outline-none focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 shadow-sm",
-              icon && "pl-11",
+              icon && "pl-10",
               className
             )}
             {...props}

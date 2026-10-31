@@ -6,13 +6,13 @@ export interface UI_Room extends Room {
 }
 
 export const roomImageMap: Record<string, string> = {
-  "1": "https://images.unsplash.com/photo-1598928506311-c55dd1b1cb6a?q=80&w=1200&auto=format&fit=crop",
+  "1": "https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1200&auto=format&fit=crop",
   "2": "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?q=80&w=1200&auto=format&fit=crop",
   "3": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?q=80&w=1200&auto=format&fit=crop",
   "4": "https://images.unsplash.com/photo-1582719478250-c89404bb8a0e?q=80&w=1200&auto=format&fit=crop",
 };
 
-export const defaultRoomImage = "https://images.unsplash.com/photo-1598928506311-c55dd1b1cb6a?q=80&w=1200&auto=format&fit=crop";
+export const defaultRoomImage = "https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1200&auto=format&fit=crop";
 
 export const prototypeRooms: UI_Room[] = [
   {

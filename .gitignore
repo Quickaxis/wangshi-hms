@@ -23,6 +23,10 @@
 # misc
 .DS_Store
 *.pem
+/backups/
+/scratch/
+*.sql.bak
+/supabase/.temp/
 
 # debug
 npm-debug.log*

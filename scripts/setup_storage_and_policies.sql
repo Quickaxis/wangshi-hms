@@ -7,9 +7,9 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('homestay-logos', 'homestay-logos', true) 
 ON CONFLICT (id) DO NOTHING;
 
--- 2. Allow public access to view logos
-DROP POLICY IF EXISTS "Public Access" ON storage.objects;
-CREATE POLICY "Public Access" 
+-- 2. Allow public read access to homestay logos using a unique, bucket-scoped policy
+DROP POLICY IF EXISTS "Public read homestay logos" ON storage.objects;
+CREATE POLICY "Public read homestay logos" 
 ON storage.objects FOR SELECT 
 USING (bucket_id = 'homestay-logos');
 

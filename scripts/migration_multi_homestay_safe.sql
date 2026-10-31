@@ -54,6 +54,7 @@ CREATE OR REPLACE FUNCTION get_user_homestay_id() RETURNS UUID
 LANGUAGE sql
 SECURITY DEFINER
 STABLE
+SET search_path = public
 AS $$
   SELECT homestay_id FROM partners WHERE auth_user_id = auth.uid() AND is_active = true;
 $$;
@@ -62,6 +63,7 @@ CREATE OR REPLACE FUNCTION is_super_admin() RETURNS BOOLEAN
 LANGUAGE sql
 SECURITY DEFINER
 STABLE
+SET search_path = public
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM partners
@@ -75,6 +77,7 @@ CREATE OR REPLACE FUNCTION is_active_partner() RETURNS BOOLEAN
 LANGUAGE sql
 SECURITY DEFINER
 STABLE
+SET search_path = public
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM partners
@@ -185,6 +188,14 @@ USING (
 );
 
 -- 8. Fix create_booking_atomic to strictly enforce tenant authorization
+-- NOTE ON RPC LIFECYCLE:
+-- 1. The legacy 8-argument function (UUID, UUID, DATE, TIME, DATE, TIME, INTEGER, TEXT)
+--    from schema.sql is intentionally PRESERVED and not dropped here.
+-- 2. This 6-argument signature is an INTERMEDIATE migration function. The web application
+--    (src/app/actions/bookings.ts) passes 7 arguments including p_guests (JSONB).
+--    DO NOT test booking creation from the application until Step 4
+--    (scripts/update_booking_rpc_with_guests.sql) is executed to install the canonical
+--    7-argument version and drop this 6-argument overload.
 CREATE OR REPLACE FUNCTION create_booking_atomic(
     p_room_id UUID,
     p_partner_id UUID,
@@ -196,6 +207,7 @@ CREATE OR REPLACE FUNCTION create_booking_atomic(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
     v_room rooms%ROWTYPE;

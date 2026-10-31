@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 export async function uploadLogoAction(formData: FormData) {
@@ -52,11 +53,7 @@ export async function uploadLogoAction(formData: FormData) {
     const filePath = `${targetHomestayId}/${fileName}`;
 
     // Use Service Role to ensure upload & DB update works regardless of RLS setup
-    const secretKey = (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
-    const serviceRoleClient = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
-      secretKey
-    );
+    const serviceRoleClient = createAdminClient();
 
     // Get current logo URL before uploading
     const { data: currentHomestay } = await serviceRoleClient
@@ -150,10 +147,7 @@ export async function removeLogoAction(homestayId: string) {
       return { success: false, error: "No homestay associated with this account." };
     }
 
-    const serviceRoleClient = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const serviceRoleClient = createAdminClient();
 
     // Get current logo URL before deleting
     const { data: currentHomestay } = await serviceRoleClient
