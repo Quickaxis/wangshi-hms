@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { 
   DbInvoice, 
   DbBooking, 
@@ -800,30 +801,51 @@ export function InvoiceEditorModal({
     }
   };
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
+
+  // ─── Reusable light-theme input class helpers ───────────────────────────────
+  const inputBase = "w-full h-9 rounded-lg px-3 text-xs text-[#24213A] placeholder:text-[#77758F]/60 focus:outline-none transition-colors";
+  const inputActive = "bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8]/20";
+  const inputLocked = "bg-[#F6F5FC] border border-[#E8E6F2] text-[#77758F] cursor-not-allowed select-none opacity-80";
+
+  return createPortal(
     <>
-      {/* Global Theme Scrollbar and Print Stylesheet */}
+      {/* Global Light Theme Scrollbar */}
       <style jsx global>{`
-        /* Refined Enterprise Dark Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
+        .hms-editor-scrollbar::-webkit-scrollbar {
+          width: 5px;
+          height: 5px;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
+        .hms-editor-scrollbar::-webkit-scrollbar-track {
           background: transparent;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.14);
+        .hms-editor-scrollbar::-webkit-scrollbar-thumb {
+          background: #E8E6F2;
           border-radius: 9999px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.28);
+        .hms-editor-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #D1CDE8;
         }
-        .custom-scrollbar {
+        .hms-editor-scrollbar {
           scrollbar-width: thin;
-          scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+          scrollbar-color: #E8E6F2 transparent;
         }
 
         @media print {
@@ -888,41 +910,41 @@ export function InvoiceEditorModal({
         <InvoicePrintPortal invoice={liveInvoice} homestay={currentHomestay} />
       )}
 
-      {/* Main Full-Viewport Split-Screen Invoice Builder Workspace */}
-      <div className="fixed inset-0 z-50 bg-[#0C0A09] text-stone-100 flex flex-col overflow-hidden animate-in fade-in duration-150">
+      {/* Main Full-Viewport Split-Screen Invoice Builder Workspace — Light Theme */}
+      <div className="fixed inset-0 z-[100050] bg-[#F6F5FC] text-[#24213A] flex flex-col overflow-hidden animate-in fade-in duration-150">
         
-        {/* TOP TOOLBAR: Enterprise Header (Stripe/Linear style) */}
-        <header className="h-14 border-b border-stone-800/80 bg-[#141210] px-4 sm:px-6 flex items-center justify-between shrink-0 z-20">
+        {/* TOP TOOLBAR */}
+        <header className="h-14 border-b border-[#E8E6F2] bg-white px-4 sm:px-6 flex items-center justify-between shrink-0 z-20 shadow-sm">
           {/* Left: Back button + Breadcrumb & Title */}
           <div className="flex items-center gap-3 min-w-0">
             <button 
               type="button" 
               onClick={handleRequestClose}
-              className="px-2.5 py-1.5 rounded-md hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg hover:bg-[#F0EEFF] text-[#77758F] hover:text-[#5146D8] transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
               title="Back"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Back</span>
             </button>
 
-            <div className="h-4 w-px bg-stone-800 hidden sm:block" />
+            <div className="h-4 w-px bg-[#E8E6F2] hidden sm:block" />
 
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xs text-stone-400">Invoices</span>
-              <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-              <span className="text-xs font-medium text-stone-200 truncate">
+              <span className="text-xs text-[#77758F]">Invoices</span>
+              <ChevronRight className="w-3.5 h-3.5 text-[#77758F]" />
+              <span className="text-xs font-semibold text-[#24213A] truncate">
                 {existingInvoice ? (existingInvoice.invoice_number || "Edit Folio") : "New Invoice"}
               </span>
 
               {/* Status Indicator Badge */}
               {existingInvoice && (
                 <span className={cn(
-                  "ml-1.5 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider",
+                  "ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border",
                   calculations.balanceDue <= 0
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    ? "bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]"
                     : calculations.amountPaid > 0
-                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                    : "bg-stone-800 text-stone-400 border border-stone-700"
+                    ? "bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]"
+                    : "bg-[#F6F5FC] text-[#77758F] border-[#E8E6F2]"
                 )}>
                   {calculations.balanceDue <= 0 ? "Paid" : calculations.amountPaid > 0 ? "Partially Paid" : "Unpaid"}
                 </span>
@@ -937,10 +959,10 @@ export function InvoiceEditorModal({
               type="button"
               onClick={() => setShowPreview(prev => !prev)}
               className={cn(
-                "px-3 py-1.5 rounded-md text-xs font-medium border transition-colors flex items-center gap-2 cursor-pointer",
+                "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center gap-2 cursor-pointer",
                 showPreview
-                  ? "bg-stone-800 text-stone-200 border-stone-700"
-                  : "bg-stone-900/60 text-stone-400 border-stone-800 hover:text-stone-300"
+                  ? "bg-[#F0EEFF] text-[#5146D8] border-[#E8E6F2]"
+                  : "bg-white text-[#77758F] border-[#E8E6F2] hover:text-[#24213A] hover:border-[#5146D8]/40"
               )}
               title="Toggle Live Document Preview"
             >
@@ -948,10 +970,10 @@ export function InvoiceEditorModal({
               <span className="hidden sm:inline">Preview</span>
               <div className={cn(
                 "w-7 h-4 rounded-full transition-colors p-0.5 relative flex items-center",
-                showPreview ? "bg-amber-500" : "bg-stone-700"
+                showPreview ? "bg-[#5146D8]" : "bg-[#E8E6F2]"
               )}>
                 <div className={cn(
-                  "w-3 h-3 rounded-full bg-stone-950 transition-transform duration-150",
+                  "w-3 h-3 rounded-full bg-white transition-transform duration-150 shadow-sm",
                   showPreview ? "translate-x-3" : "translate-x-0"
                 )} />
               </div>
@@ -961,10 +983,10 @@ export function InvoiceEditorModal({
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3 py-1.5 rounded-md text-xs font-medium bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-stone-100 border border-stone-800 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-[#F6F5FC] text-[#77758F] hover:text-[#24213A] border border-[#E8E6F2] hover:border-[#5146D8]/40 flex items-center gap-1.5 transition-colors cursor-pointer"
               title="Print Document"
             >
-              <Printer className="w-3.5 h-3.5 text-stone-400" />
+              <Printer className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Print / PDF</span>
             </button>
 
@@ -972,7 +994,7 @@ export function InvoiceEditorModal({
             <button
               type="button"
               onClick={handleRequestClose}
-              className="px-3 py-1.5 text-xs font-medium text-stone-400 hover:text-stone-200 transition-colors hidden sm:inline"
+              className="px-3 py-1.5 text-xs font-medium text-[#77758F] hover:text-[#24213A] transition-colors hidden sm:inline"
             >
               Cancel
             </button>
@@ -982,11 +1004,11 @@ export function InvoiceEditorModal({
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="px-4 py-1.5 rounded-md text-xs font-medium bg-amber-500 hover:bg-amber-400 text-stone-950 transition-colors flex items-center gap-1.5 shadow-sm active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#5146D8] hover:bg-[#4338CA] text-white transition-colors flex items-center gap-1.5 shadow-sm shadow-[#5146D8]/20 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-3 h-3 border-2 border-stone-950 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Saving...</span>
                 </>
               ) : (
@@ -996,65 +1018,65 @@ export function InvoiceEditorModal({
           </div>
         </header>
 
-        {/* MAIN BODY: Split-Screen Layout (Left: Form Editor, Right: Live Document Preview) */}
+        {/* MAIN BODY: Split-Screen Layout */}
         <div className="flex-1 flex overflow-hidden min-h-0">
           
-          {/* LEFT PANEL: Form Editor (Expands gracefully up to ~1160px when preview is OFF) */}
+          {/* LEFT PANEL: Form Editor */}
           <div className={cn(
-            "h-full overflow-y-auto custom-scrollbar transition-all duration-200",
+            "h-full overflow-y-auto hms-editor-scrollbar transition-all duration-200 bg-[#F6F5FC]",
             showPreview 
-              ? "w-full lg:w-1/2 xl:w-7/12 px-5 sm:px-8 py-6 border-r border-stone-800/80" 
+              ? "w-full lg:w-1/2 xl:w-7/12 px-5 sm:px-8 py-6 border-r border-[#E8E6F2]" 
               : "w-full px-5 sm:px-10 lg:px-12 py-8"
           )}>
             <div className={cn("space-y-6", !showPreview && "max-w-[1160px] mx-auto w-full")}>
               
               {/* Notification Alerts */}
               {errorMsg && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg flex items-start gap-2.5 text-xs text-rose-300">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-700">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
                   <div className="flex-1">
-                    <span className="font-semibold text-rose-200 block">Unable to save invoice</span>
+                    <span className="font-semibold text-rose-800 block">Unable to save invoice</span>
                     <span>{errorMsg}</span>
                   </div>
-                  <button onClick={() => setErrorMsg(null)} className="text-rose-400 hover:text-rose-200">
+                  <button onClick={() => setErrorMsg(null)} className="text-rose-400 hover:text-rose-700 transition-colors">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
 
               {successMsg && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-2.5 text-xs text-emerald-300">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                <div className="p-3 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl flex items-center gap-2.5 text-xs text-[#059669]">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-[#059669]" />
                   <span>{successMsg}</span>
                 </div>
               )}
 
-              {/* Financial Immutability Notice (When payments exist) */}
+              {/* Financial Immutability Notice (When payments exist) — Soft Amber Treatment */}
               {isFinancialLocked && (
-                <div className="p-3.5 bg-amber-500/[0.08] border border-amber-500/20 rounded-lg flex items-start gap-3 text-xs text-amber-200/90">
-                  <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                <div className="p-3.5 bg-[#FFFBEB] border border-[#FDE68A] rounded-xl flex items-start gap-3 text-xs text-[#92400E]">
+                  <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-[#D97706]" />
                   <div className="flex-1">
-                    <span className="font-semibold text-amber-300 block mb-0.5">
+                    <span className="font-semibold text-[#B45309] block mb-0.5">
                       Financial Lock Active (Payments Recorded)
                     </span>
-                    <span className="text-stone-300">
+                    <span className="text-[#78350F]">
                       This folio has ₹{Number(existingInvoice?.amount_paid || calculations.amountPaid).toLocaleString("en-IN")} in recorded ledger payments. Line items, charges, taxes, discounts, accommodation, and contract dates are locked to preserve accounting integrity. Guest and reservation details can be edited safely.
                     </span>
                   </div>
                 </div>
               )}
 
-              {/* Segmented Navigation Tab: Charges & Items vs Payment Ledger */}
-              <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-                <div className="inline-flex p-1 bg-stone-900 border border-stone-800 rounded-lg gap-1">
+              {/* Segmented Navigation Tabs */}
+              <div className="flex items-center justify-between border-b border-[#E8E6F2] pb-3">
+                <div className="inline-flex p-1 bg-white border border-[#E8E6F2] rounded-xl gap-1 shadow-sm">
                   <button
                     type="button"
                     onClick={() => setActiveTab("items")}
                     className={cn(
-                      "px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer",
+                      "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer",
                       activeTab === "items" 
-                        ? "bg-stone-800 text-stone-100 shadow-sm" 
-                        : "text-stone-400 hover:text-stone-200"
+                        ? "bg-[#5146D8] text-white shadow-sm shadow-[#5146D8]/20" 
+                        : "text-[#77758F] hover:text-[#24213A] hover:bg-[#F6F5FC]"
                     )}
                   >
                     <Receipt className="w-3.5 h-3.5" />
@@ -1065,53 +1087,53 @@ export function InvoiceEditorModal({
                     type="button"
                     onClick={() => setActiveTab("payments")}
                     className={cn(
-                      "px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer",
+                      "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer",
                       activeTab === "payments" 
-                        ? "bg-stone-800 text-stone-100 shadow-sm" 
-                        : "text-stone-400 hover:text-stone-200"
+                        ? "bg-[#5146D8] text-white shadow-sm shadow-[#5146D8]/20" 
+                        : "text-[#77758F] hover:text-[#24213A] hover:bg-[#F6F5FC]"
                     )}
                   >
                     <CreditCard className="w-3.5 h-3.5" />
                     <span>Payment Ledger ({localPayments.length})</span>
                     {calculations.balanceDue > 0 && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
                     )}
                   </button>
                 </div>
 
                 {/* Settlement Progress */}
-                <div className="hidden sm:flex items-center gap-2 text-xs text-stone-400">
+                <div className="hidden sm:flex items-center gap-2 text-xs text-[#77758F]">
                   <span>Settled:</span>
-                  <div className="w-16 h-1.5 bg-stone-800 rounded-full overflow-hidden">
+                  <div className="w-16 h-1.5 bg-[#E8E6F2] rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-emerald-500 transition-all duration-300" 
+                      className="h-full bg-[#059669] transition-all duration-300" 
                       style={{ width: `${percentageSettled}%` }}
                     />
                   </div>
-                  <span className="font-mono tabular-nums text-stone-300 font-medium">{percentageSettled}%</span>
+                  <span className="font-mono tabular-nums text-[#24213A] font-semibold">{percentageSettled}%</span>
                 </div>
               </div>
 
-              {/* TAB 1: INVOICE & CHARGES FORM */}
+              {/* ─── TAB 1: INVOICE & CHARGES FORM ─────────────────────────────── */}
               {activeTab === "items" && (
                 <div className="space-y-6">
                   
                   {/* SECTION A: Invoice Information */}
-                  <div className="border-b border-stone-800/80 pb-6 space-y-4">
+                  <div className="bg-white border border-[#E8E6F2] rounded-2xl p-5 space-y-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
-                        <Hash className="w-3.5 h-3.5 text-stone-500" />
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-[#77758F] flex items-center gap-1.5">
+                        <Hash className="w-3.5 h-3.5 text-[#5146D8]" />
                         <span>Invoice Information</span>
                       </h3>
-                      <span className="text-[11px] text-stone-500 font-mono">
+                      <span className="text-[11px] text-[#77758F] font-mono">
                         {existingInvoice ? "EXISTING FOLIO" : "NEW REGISTRATION"}
                       </span>
                     </div>
 
                     {/* Booking Selector (if creating new invoice without preselected booking) */}
                     {!existingInvoice && !booking && (
-                      <div className="bg-stone-900/50 p-3 rounded-lg border border-stone-800 space-y-1.5">
-                        <label className="text-xs font-medium text-amber-400 block">
+                      <div className="bg-[#F0EEFF] p-3 rounded-xl border border-[#E8E6F2] space-y-1.5">
+                        <label className="text-xs font-semibold text-[#5146D8] block">
                           Select Booking Reservation *
                         </label>
                         <select
@@ -1123,7 +1145,7 @@ export function InvoiceEditorModal({
                             if (matched) applyBookingDetails(matched);
                           }}
                           disabled={isLoadingBookings}
-                          className="w-full h-9 bg-stone-950 border border-stone-700 rounded-md px-3 text-xs text-stone-200 focus:outline-none focus:border-stone-400"
+                          className="w-full h-9 bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 rounded-lg px-3 text-xs text-[#24213A] focus:outline-none focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8]/20"
                         >
                           <option value="">-- Choose a reservation to invoice --</option>
                           {availableBookings.map((b) => (
@@ -1140,9 +1162,9 @@ export function InvoiceEditorModal({
                       showPreview ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                     )}>
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 flex items-center justify-between">
                           <span>Invoice number</span>
-                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-stone-500" /></span>}
+                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-[#D97706]" /></span>}
                         </label>
                         <input
                           type="text"
@@ -1153,18 +1175,16 @@ export function InvoiceEditorModal({
                           onChange={(e) => setInvoiceNumber(e.target.value)}
                           placeholder="Auto-generated"
                           className={cn(
-                            "w-full h-9 rounded-md px-3 text-xs font-mono tabular-nums transition-colors",
-                            isFinancialLocked
-                              ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                              : "bg-stone-900/60 border border-stone-800 hover:border-stone-700 text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-stone-400"
+                            inputBase, "font-mono tabular-nums",
+                            isFinancialLocked ? inputLocked : inputActive
                           )}
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 flex items-center justify-between">
                           <span>Issue date *</span>
-                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-stone-500" /></span>}
+                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-[#D97706]" /></span>}
                         </label>
                         <input
                           type="date"
@@ -1173,19 +1193,14 @@ export function InvoiceEditorModal({
                           tabIndex={isFinancialLocked ? -1 : 0}
                           value={invoiceDate}
                           onChange={(e) => setInvoiceDate(e.target.value)}
-                          className={cn(
-                            "w-full h-9 rounded-md px-3 text-xs transition-colors",
-                            isFinancialLocked
-                              ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                              : "bg-stone-900/60 border border-stone-800 hover:border-stone-700 text-stone-100 focus:outline-none focus:border-stone-400"
-                          )}
+                          className={cn(inputBase, isFinancialLocked ? inputLocked : inputActive)}
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 flex items-center justify-between">
                           <span>Due date</span>
-                          {isFinancialLocked && <span title="Locked on paid invoices (Stay contract frozen)"><Lock className="w-3 h-3 text-stone-500" /></span>}
+                          {isFinancialLocked && <span title="Locked on paid invoices (Stay contract frozen)"><Lock className="w-3 h-3 text-[#D97706]" /></span>}
                         </label>
                         <input
                           type="date"
@@ -1194,25 +1209,20 @@ export function InvoiceEditorModal({
                           tabIndex={isFinancialLocked ? -1 : 0}
                           value={dueDate}
                           onChange={(e) => setDueDate(e.target.value)}
-                          className={cn(
-                            "w-full h-9 rounded-md px-3 text-xs transition-colors",
-                            isFinancialLocked
-                              ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                              : "bg-stone-900/60 border border-stone-800 hover:border-stone-700 text-stone-100 focus:outline-none focus:border-stone-400"
-                          )}
+                          className={cn(inputBase, isFinancialLocked ? inputLocked : inputActive)}
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* SECTION B: Guest Information (Always Editable Metadata) */}
-                  <div className="border-b border-stone-800/80 pb-6 space-y-4">
+                  {/* SECTION B: Guest Information */}
+                  <div className="bg-white border border-[#E8E6F2] rounded-2xl p-5 space-y-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-stone-500" />
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-[#77758F] flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-[#5146D8]" />
                         <span>Guest Information</span>
                       </h3>
-                      <span className="text-[11px] text-stone-400 font-medium">Always Editable Metadata</span>
+                      <span className="text-[11px] text-[#059669] font-medium bg-[#ECFDF5] px-2 py-0.5 rounded-full border border-[#A7F3D0]">Always Editable</span>
                     </div>
 
                     <div className={cn(
@@ -1220,7 +1230,7 @@ export function InvoiceEditorModal({
                       showPreview ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
                     )}>
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                           Primary guest name *
                         </label>
                         <input
@@ -1228,12 +1238,12 @@ export function InvoiceEditorModal({
                           value={guestName}
                           onChange={(e) => setGuestName(e.target.value)}
                           placeholder="e.g. John Doe"
-                          className="w-full h-9 bg-stone-900/60 border border-stone-800 hover:border-stone-700 rounded-md px-3 text-xs text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-stone-400"
+                          className={cn(inputBase, inputActive)}
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                           Contact phone
                         </label>
                         <input
@@ -1241,12 +1251,12 @@ export function InvoiceEditorModal({
                           value={guestPhone}
                           onChange={(e) => setGuestPhone(e.target.value)}
                           placeholder="+91 98765 43210"
-                          className="w-full h-9 bg-stone-900/60 border border-stone-800 hover:border-stone-700 rounded-md px-3 text-xs text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-stone-400 font-mono"
+                          className={cn(inputBase, inputActive, "font-mono")}
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                           Email address
                         </label>
                         <input
@@ -1254,12 +1264,12 @@ export function InvoiceEditorModal({
                           value={guestEmail}
                           onChange={(e) => setGuestEmail(e.target.value)}
                           placeholder="guest@example.com"
-                          className="w-full h-9 bg-stone-900/60 border border-stone-800 hover:border-stone-700 rounded-md px-3 text-xs text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-stone-400"
+                          className={cn(inputBase, inputActive)}
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                           Billing address / City
                         </label>
                         <input
@@ -1267,29 +1277,29 @@ export function InvoiceEditorModal({
                           value={guestAddress}
                           onChange={(e) => setGuestAddress(e.target.value)}
                           placeholder="City, State, Country"
-                          className="w-full h-9 bg-stone-900/60 border border-stone-800 hover:border-stone-700 rounded-md px-3 text-xs text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-stone-400"
+                          className={cn(inputBase, inputActive)}
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* SECTION C: Stay & Accommodation (Locked when payments exist) */}
-                  <div className="border-b border-stone-800/80 pb-6 space-y-4">
+                  {/* SECTION C: Stay & Accommodation */}
+                  <div className="bg-white border border-[#E8E6F2] rounded-2xl p-5 space-y-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
-                        <BedDouble className="w-3.5 h-3.5 text-stone-500" />
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-[#77758F] flex items-center gap-1.5">
+                        <BedDouble className="w-3.5 h-3.5 text-[#5146D8]" />
                         <span>Stay & Accommodation</span>
                       </h3>
-                      <span className="text-xs font-medium text-stone-400">
-                        {computedNights} {computedNights === 1 ? "Night" : "Nights"} Duration
+                      <span className="text-xs font-semibold text-[#5146D8]">
+                        {computedNights} {computedNights === 1 ? "Night" : "Nights"}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 flex items-center justify-between">
                           <span>Room / Accommodation</span>
-                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-stone-500" /></span>}
+                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-[#D97706]" /></span>}
                         </label>
                         <input
                           type="text"
@@ -1299,19 +1309,14 @@ export function InvoiceEditorModal({
                           value={roomName}
                           onChange={(e) => setRoomName(e.target.value)}
                           placeholder="e.g. Deluxe Room"
-                          className={cn(
-                            "w-full h-9 rounded-md px-3 text-xs transition-colors",
-                            isFinancialLocked
-                              ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                              : "bg-stone-900/60 border border-stone-800 hover:border-stone-700 text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-stone-400"
-                          )}
+                          className={cn(inputBase, isFinancialLocked ? inputLocked : inputActive)}
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 flex items-center justify-between">
                           <span>Check-in date *</span>
-                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-stone-500" /></span>}
+                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-[#D97706]" /></span>}
                         </label>
                         <input
                           type="date"
@@ -1320,19 +1325,14 @@ export function InvoiceEditorModal({
                           tabIndex={isFinancialLocked ? -1 : 0}
                           value={checkIn}
                           onChange={(e) => setCheckIn(e.target.value)}
-                          className={cn(
-                            "w-full h-9 rounded-md px-3 text-xs transition-colors",
-                            isFinancialLocked
-                              ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                              : "bg-stone-900/60 border border-stone-800 hover:border-stone-700 text-stone-100 focus:outline-none focus:border-stone-400"
-                          )}
+                          className={cn(inputBase, isFinancialLocked ? inputLocked : inputActive)}
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 flex items-center justify-between">
                           <span>Check-out date *</span>
-                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-stone-500" /></span>}
+                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-[#D97706]" /></span>}
                         </label>
                         <input
                           type="date"
@@ -1341,19 +1341,14 @@ export function InvoiceEditorModal({
                           tabIndex={isFinancialLocked ? -1 : 0}
                           value={checkOut}
                           onChange={(e) => setCheckOut(e.target.value)}
-                          className={cn(
-                            "w-full h-9 rounded-md px-3 text-xs transition-colors",
-                            isFinancialLocked
-                              ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                              : "bg-stone-900/60 border border-stone-800 hover:border-stone-700 text-stone-100 focus:outline-none focus:border-stone-400"
-                          )}
+                          className={cn(inputBase, isFinancialLocked ? inputLocked : inputActive)}
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* SECTION D: Invoice Items & Services */}
-                  <div className="border-b border-stone-800/80 pb-6 space-y-4">
+                  <div className="bg-white border border-[#E8E6F2] rounded-2xl p-5 space-y-4 shadow-sm">
                     {/* Datalist for optional autocomplete suggestions */}
                     <datalist id="item-service-suggestions">
                       {suggestedItemNames.map((name) => (
@@ -1363,11 +1358,11 @@ export function InvoiceEditorModal({
 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
-                          <Receipt className="w-3.5 h-3.5 text-stone-500" />
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#77758F] flex items-center gap-1.5">
+                          <Receipt className="w-3.5 h-3.5 text-[#5146D8]" />
                           <span>Invoice Items & Services ({items.length})</span>
                         </h3>
-                        <p className="text-xs text-stone-500 mt-0.5">
+                        <p className="text-xs text-[#77758F] mt-0.5">
                           Add accommodation, transport, meals, tour guide, or custom services.
                         </p>
                       </div>
@@ -1376,29 +1371,29 @@ export function InvoiceEditorModal({
                         <button
                           type="button"
                           onClick={() => handleAddItem("custom", "", 0)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-stone-100 hover:bg-white text-stone-900 text-xs font-semibold transition-colors shadow-sm cursor-pointer self-start sm:self-auto"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#5146D8] hover:bg-[#4338CA] text-white text-xs font-semibold transition-colors shadow-sm shadow-[#5146D8]/20 cursor-pointer self-start sm:self-auto"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>+ Add Item</span>
                         </button>
                       ) : (
-                        <span className="text-[11px] font-medium text-amber-400 flex items-center gap-1">
+                        <span className="text-[11px] font-medium text-[#D97706] flex items-center gap-1 bg-[#FFFBEB] px-2.5 py-1 rounded-full border border-[#FDE68A]">
                           <Lock className="w-3 h-3" />
                           <span>Charges locked (payments recorded)</span>
                         </span>
                       )}
                     </div>
 
-                    {/* Item Cards / Rows */}
+                    {/* Item Cards */}
                     <div className="space-y-3">
                       {items.length === 0 ? (
-                        <div className="p-8 text-center text-xs text-stone-500 bg-stone-900/30 rounded-lg border border-dashed border-stone-800">
+                        <div className="p-8 text-center text-xs text-[#77758F] bg-[#F6F5FC] rounded-xl border-2 border-dashed border-[#E8E6F2]">
                           <p className="mb-3">No line items added yet.</p>
                           {!isFinancialLocked && (
                             <button
                               type="button"
                               onClick={() => handleAddItem("custom", "", 0)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-stone-100 hover:bg-white text-stone-900 text-xs font-medium transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#5146D8] hover:bg-[#4338CA] text-white text-xs font-medium transition-colors cursor-pointer"
                             >
                               <Plus className="w-3.5 h-3.5" />
                               <span>+ Add Item</span>
@@ -1409,16 +1404,16 @@ export function InvoiceEditorModal({
                         items.map((item, idx) => (
                           <div 
                             key={idx} 
-                            className="p-3 bg-stone-900/40 rounded-lg border border-stone-800/80 space-y-2.5 transition-colors hover:border-stone-700/80"
+                            className="p-3.5 bg-[#F6F5FC] rounded-xl border border-[#E8E6F2] space-y-2.5 transition-colors hover:border-[#5146D8]/40"
                           >
                             {/* Primary Row: Name & Category & Delete */}
                             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
-                              {/* Item / Service Name (Required, Autocomplete, Arbitrary) */}
+                              {/* Item / Service Name */}
                               <div className="sm:col-span-7">
-                                <label className="text-[10px] uppercase font-semibold tracking-wider text-stone-400 mb-1 flex items-center justify-between">
+                                <label className="text-[10px] uppercase font-semibold tracking-wider text-[#77758F] mb-1 flex items-center justify-between">
                                   <span>Item / Service Name *</span>
                                   {item.is_complimentary && (
-                                    <span className="text-[9px] text-emerald-400 font-medium">Complimentary</span>
+                                    <span className="text-[9px] text-[#059669] font-semibold bg-[#ECFDF5] px-1.5 py-0.5 rounded-full border border-[#A7F3D0]">Complimentary</span>
                                   )}
                                 </label>
                                 <input
@@ -1431,17 +1426,17 @@ export function InvoiceEditorModal({
                                   onChange={(e) => handleItemChange(idx, "description", e.target.value)}
                                   placeholder="e.g. Airport Pickup, River Cruise, Breakfast..."
                                   className={cn(
-                                    "w-full h-8.5 rounded-md px-2.5 text-xs text-stone-100 placeholder:text-stone-600 focus:outline-none",
+                                    "w-full h-8 rounded-lg px-2.5 text-xs text-[#24213A] placeholder:text-[#77758F]/60 focus:outline-none transition-colors",
                                     isFinancialLocked
-                                      ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                                      : "bg-stone-950 border border-stone-800 hover:border-stone-700 focus:border-stone-400"
+                                      ? "bg-[#F6F5FC] border border-[#E8E6F2] text-[#77758F] cursor-not-allowed select-none opacity-80"
+                                      : "bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8]/20"
                                   )}
                                 />
                               </div>
 
-                              {/* Category Selector (Optional, allows Custom) */}
+                              {/* Category Selector */}
                               <div className="sm:col-span-4">
-                                <label className="text-[10px] uppercase font-semibold tracking-wider text-stone-400 mb-1 block">
+                                <label className="text-[10px] uppercase font-semibold tracking-wider text-[#77758F] mb-1 block">
                                   Category
                                 </label>
                                 <select
@@ -1450,10 +1445,10 @@ export function InvoiceEditorModal({
                                   value={item.category}
                                   onChange={(e) => handleItemChange(idx, "category", e.target.value)}
                                   className={cn(
-                                    "w-full h-8.5 bg-stone-950 border border-stone-800 rounded-md px-2 text-xs text-stone-200 focus:outline-none",
+                                    "w-full h-8 border rounded-lg px-2 text-xs text-[#24213A] focus:outline-none transition-colors",
                                     isFinancialLocked 
-                                      ? "opacity-60 cursor-not-allowed select-none bg-stone-900/40" 
-                                      : "hover:border-stone-700 focus:border-stone-400"
+                                      ? "bg-[#F6F5FC] border-[#E8E6F2] opacity-70 cursor-not-allowed select-none text-[#77758F]" 
+                                      : "bg-white border-[#E8E6F2] hover:border-[#5146D8]/40 focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8]/20"
                                   )}
                                 >
                                   {CATEGORY_OPTIONS.map(opt => (
@@ -1473,10 +1468,10 @@ export function InvoiceEditorModal({
                                   onClick={() => handleRemoveItem(idx)}
                                   title={isFinancialLocked ? "Locked" : "Remove item"}
                                   className={cn(
-                                    "p-1.5 rounded transition-colors",
+                                    "p-1.5 rounded-lg transition-colors",
                                     isFinancialLocked
-                                      ? "text-stone-600 opacity-40 cursor-not-allowed pointer-events-none"
-                                      : "text-stone-500 hover:text-rose-400 hover:bg-stone-800 cursor-pointer"
+                                      ? "text-[#77758F] opacity-40 cursor-not-allowed pointer-events-none"
+                                      : "text-[#77758F] hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
                                   )}
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -1484,9 +1479,9 @@ export function InvoiceEditorModal({
                               </div>
                             </div>
 
-                            {/* Secondary Row: Optional Description, Rate, Qty, Amount, Free Checkbox */}
-                            <div className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-center pt-1 border-t border-stone-800/40">
-                              {/* Optional Details / Description (stored in stay_period) */}
+                            {/* Secondary Row: Details, Rate, Qty, Amount, Free */}
+                            <div className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-center pt-1 border-t border-[#E8E6F2]">
+                              {/* Optional Details */}
                               <div className="col-span-2 sm:col-span-5">
                                 <input
                                   type="text"
@@ -1497,18 +1492,18 @@ export function InvoiceEditorModal({
                                   onChange={(e) => handleItemChange(idx, "stay_period", e.target.value)}
                                   placeholder="Optional description (e.g. flight #, dates, specs)..."
                                   className={cn(
-                                    "w-full h-8 rounded-md px-2.5 text-[11px] text-stone-300 placeholder:text-stone-600 focus:outline-none",
+                                    "w-full h-7 rounded-lg px-2.5 text-[11px] text-[#24213A] placeholder:text-[#77758F]/60 focus:outline-none transition-colors",
                                     isFinancialLocked
-                                      ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                                      : "bg-stone-950/70 border border-stone-800/80 hover:border-stone-700 focus:border-stone-400"
+                                      ? "bg-[#F6F5FC] border border-[#E8E6F2] text-[#77758F] cursor-not-allowed select-none opacity-80"
+                                      : "bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 focus:border-[#5146D8]"
                                   )}
                                 />
                               </div>
 
-                              {/* Rate (Required) */}
+                              {/* Rate */}
                               <div className="col-span-1 sm:col-span-2">
                                 <div className="flex items-center gap-1">
-                                  <span className="text-[10px] text-stone-500 shrink-0">Rate:</span>
+                                  <span className="text-[10px] text-[#77758F] shrink-0">Rate:</span>
                                   <input
                                     type="number"
                                     step="0.01"
@@ -1520,19 +1515,19 @@ export function InvoiceEditorModal({
                                     onChange={(e) => handleItemChange(idx, "rate", e.target.value)}
                                     placeholder="Rate"
                                     className={cn(
-                                      "w-full h-8 rounded-md px-2 text-xs text-stone-100 font-mono tabular-nums text-right focus:outline-none",
+                                      "w-full h-7 rounded-lg px-2 text-xs text-[#24213A] font-mono tabular-nums text-right focus:outline-none transition-colors",
                                       (isFinancialLocked || item.is_complimentary)
-                                        ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                                        : "bg-stone-950 border border-stone-800 hover:border-stone-700 focus:border-stone-400"
+                                        ? "bg-[#F6F5FC] border border-[#E8E6F2] text-[#77758F] cursor-not-allowed select-none opacity-80"
+                                        : "bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 focus:border-[#5146D8]"
                                     )}
                                   />
                                 </div>
                               </div>
 
-                              {/* Quantity (Required, Min 1) */}
+                              {/* Quantity */}
                               <div className="col-span-1 sm:col-span-2">
                                 <div className="flex items-center gap-1">
-                                  <span className="text-[10px] text-stone-500 shrink-0">Qty:</span>
+                                  <span className="text-[10px] text-[#77758F] shrink-0">Qty:</span>
                                   <input
                                     type="number"
                                     min="1"
@@ -1544,10 +1539,10 @@ export function InvoiceEditorModal({
                                     onChange={(e) => handleItemChange(idx, "quantity", e.target.value)}
                                     placeholder="Qty"
                                     className={cn(
-                                      "w-full h-8 rounded-md px-1.5 text-xs text-stone-100 font-mono tabular-nums text-center focus:outline-none",
+                                      "w-full h-7 rounded-lg px-1.5 text-xs text-[#24213A] font-mono tabular-nums text-center focus:outline-none transition-colors",
                                       isFinancialLocked
-                                        ? "bg-stone-900/40 border border-stone-800/60 text-stone-400 cursor-not-allowed select-none opacity-80"
-                                        : "bg-stone-950 border border-stone-800 hover:border-stone-700 focus:border-stone-400"
+                                        ? "bg-[#F6F5FC] border border-[#E8E6F2] text-[#77758F] cursor-not-allowed select-none opacity-80"
+                                        : "bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 focus:border-[#5146D8]"
                                     )}
                                   />
                                 </div>
@@ -1555,15 +1550,15 @@ export function InvoiceEditorModal({
 
                               {/* Amount (Auto calculated) */}
                               <div className="col-span-1 sm:col-span-2 text-right">
-                                <span className="text-[10px] text-stone-500 mr-1 sm:hidden">Amount:</span>
-                                <span className="font-mono text-xs font-semibold text-stone-200 tabular-nums">
+                                <span className="text-[10px] text-[#77758F] mr-1 sm:hidden">Amount:</span>
+                                <span className="font-mono text-xs font-semibold text-[#24213A] tabular-nums">
                                   ₹{Number(item.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                               </div>
 
                               {/* Complimentary Checkbox */}
                               <div className="col-span-1 sm:col-span-1 flex items-center justify-end">
-                                <label className="flex items-center gap-1 text-[10px] text-stone-400 cursor-pointer select-none" title="Mark as complimentary ₹0 item">
+                                <label className="flex items-center gap-1 text-[10px] text-[#77758F] cursor-pointer select-none" title="Mark as complimentary ₹0 item">
                                   <input
                                     type="checkbox"
                                     disabled={isFinancialLocked}
@@ -1576,9 +1571,9 @@ export function InvoiceEditorModal({
                                         handleItemChange(idx, "rate", 0);
                                       }
                                     }}
-                                    className="w-3.5 h-3.5 rounded border-stone-700 bg-stone-950 text-emerald-500 focus:ring-0 focus:ring-offset-0"
+                                    className="w-3.5 h-3.5 rounded border-[#E8E6F2] bg-white text-[#5146D8] focus:ring-0 focus:ring-offset-0"
                                   />
-                                  <span className="hidden sm:inline text-[9px] text-stone-500">Free</span>
+                                  <span className="hidden sm:inline text-[9px] text-[#77758F]">Free</span>
                                 </label>
                               </div>
                             </div>
@@ -1592,7 +1587,7 @@ export function InvoiceEditorModal({
                         <button
                           type="button"
                           onClick={() => handleAddItem("custom", "", 0)}
-                          className="text-xs font-medium text-stone-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-xs font-semibold text-[#5146D8] hover:text-[#4338CA] flex items-center gap-1 cursor-pointer transition-colors"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>+ Add Item</span>
@@ -1602,20 +1597,20 @@ export function InvoiceEditorModal({
                   </div>
 
                   {/* SECTION E: Taxes & Concessions */}
-                  <div className="border-b border-stone-800/80 pb-6 space-y-4">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
-                      <Percent className="w-3.5 h-3.5 text-stone-500" />
+                  <div className="bg-white border border-[#E8E6F2] rounded-2xl p-5 space-y-4 shadow-sm">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-[#77758F] flex items-center gap-1.5">
+                      <Percent className="w-3.5 h-3.5 text-[#5146D8]" />
                       <span>Taxes & Concessions</span>
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Tax Rate (GST) */}
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 flex items-center justify-between">
                           <span>Applicable Tax Rate (GST)</span>
-                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-stone-500" /></span>}
+                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-[#D97706]" /></span>}
                         </label>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           {[0, 5, 12, 18].map((rate) => (
                             <button
                               key={rate}
@@ -1624,23 +1619,23 @@ export function InvoiceEditorModal({
                               tabIndex={isFinancialLocked ? -1 : 0}
                               onClick={() => setTaxRate(rate)}
                               className={cn(
-                                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                                "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
                                 taxRate === rate
-                                  ? "bg-amber-500 text-stone-950 font-semibold"
-                                  : "bg-stone-900 border border-stone-800 text-stone-400",
+                                  ? "bg-[#5146D8] text-white border-[#5146D8] font-semibold shadow-sm"
+                                  : "bg-white border-[#E8E6F2] text-[#77758F]",
                                 isFinancialLocked 
                                   ? "opacity-50 cursor-not-allowed pointer-events-none" 
-                                  : "hover:text-stone-200 cursor-pointer"
+                                  : "hover:border-[#5146D8]/40 hover:text-[#5146D8] cursor-pointer"
                               )}
                             >
                               {rate === 0 ? "0%" : `${rate}%`}
                             </button>
                           ))}
                           <div className={cn(
-                            "flex items-center rounded-md px-2.5 h-9 w-24 transition-colors",
+                            "flex items-center rounded-lg px-2.5 h-9 w-24 border transition-colors",
                             isFinancialLocked
-                              ? "bg-stone-900/40 border border-stone-800/60 opacity-60 cursor-not-allowed"
-                              : "bg-stone-900 border border-stone-800"
+                              ? "bg-[#F6F5FC] border-[#E8E6F2] opacity-60 cursor-not-allowed"
+                              : "bg-white border-[#E8E6F2] hover:border-[#5146D8]/40 focus-within:border-[#5146D8]"
                           )}>
                             <input
                               type="number"
@@ -1652,26 +1647,26 @@ export function InvoiceEditorModal({
                               tabIndex={isFinancialLocked ? -1 : 0}
                               value={taxRate}
                               onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                              className="w-full bg-transparent text-xs text-stone-100 font-mono tabular-nums text-right outline-none"
+                              className="w-full bg-transparent text-xs text-[#24213A] font-mono tabular-nums text-right outline-none"
                             />
-                            <span className="text-xs text-stone-500 ml-1">%</span>
+                            <span className="text-xs text-[#77758F] ml-1">%</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Flat Concession / Discount */}
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 flex items-center justify-between">
                           <span>Special Concession / Discount (₹)</span>
-                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-stone-500" /></span>}
+                          {isFinancialLocked && <span title="Locked on paid invoices"><Lock className="w-3 h-3 text-[#D97706]" /></span>}
                         </label>
                         <div className={cn(
-                          "flex items-center rounded-md px-3 h-9 w-48 transition-colors",
+                          "flex items-center rounded-lg px-3 h-9 w-48 border transition-colors",
                           isFinancialLocked
-                            ? "bg-stone-900/40 border border-stone-800/60 opacity-60 cursor-not-allowed"
-                            : "bg-stone-900 border border-stone-800"
+                            ? "bg-[#F6F5FC] border-[#E8E6F2] opacity-60 cursor-not-allowed"
+                            : "bg-white border-[#E8E6F2] hover:border-[#5146D8]/40 focus-within:border-[#5146D8]"
                         )}>
-                          <span className="text-xs text-stone-500 mr-1.5 font-mono">₹</span>
+                          <span className="text-xs text-[#77758F] mr-1.5 font-mono">₹</span>
                           <input
                             type="number"
                             min="0"
@@ -1682,7 +1677,7 @@ export function InvoiceEditorModal({
                             value={flatDiscount}
                             onChange={(e) => setFlatDiscount(parseFloat(e.target.value) || 0)}
                             placeholder="0.00"
-                            className="w-full bg-transparent text-xs text-stone-100 font-mono tabular-nums outline-none"
+                            className="w-full bg-transparent text-xs text-[#24213A] font-mono tabular-nums outline-none"
                           />
                         </div>
                       </div>
@@ -1690,46 +1685,46 @@ export function InvoiceEditorModal({
                   </div>
 
                   {/* SECTION F: Financial Summary */}
-                  <div className="bg-stone-900/40 border border-stone-800 rounded-lg p-4 space-y-2">
-                    <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider pb-1.5 border-b border-stone-800 flex justify-between">
+                  <div className="bg-white border border-[#E8E6F2] rounded-2xl p-5 shadow-sm">
+                    <div className="text-[11px] font-semibold text-[#77758F] uppercase tracking-wider pb-3 border-b border-[#E8E6F2] flex justify-between">
                       <span>Financial Summary</span>
-                      <span className="font-mono text-stone-500">INR (₹)</span>
+                      <span className="font-mono text-[#77758F]">INR (₹)</span>
                     </div>
 
                     <div className={cn(
-                      "grid gap-4 text-xs pt-1",
+                      "grid gap-4 text-xs pt-3",
                       showPreview ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
                     )}>
                       <div>
-                        <span className="text-stone-500 text-[11px] block">Subtotal</span>
-                        <span className="font-mono font-medium text-stone-200 tabular-nums">{calculations.formatted.subtotal}</span>
+                        <span className="text-[#77758F] text-[11px] block">Subtotal</span>
+                        <span className="font-mono font-semibold text-[#24213A] tabular-nums">{calculations.formatted.subtotal}</span>
                       </div>
 
                       <div>
-                        <span className="text-stone-500 text-[11px] block">Discount</span>
-                        <span className="font-mono font-medium text-rose-400 tabular-nums">-{calculations.formatted.discountAmount}</span>
+                        <span className="text-[#77758F] text-[11px] block">Discount</span>
+                        <span className="font-mono font-semibold text-rose-600 tabular-nums">-{calculations.formatted.discountAmount}</span>
                       </div>
 
                       <div>
-                        <span className="text-stone-500 text-[11px] block">Tax ({taxRate}%)</span>
-                        <span className="font-mono font-medium text-stone-300 tabular-nums">+{calculations.formatted.taxAmount}</span>
+                        <span className="text-[#77758F] text-[11px] block">Tax ({taxRate}%)</span>
+                        <span className="font-mono font-semibold text-[#24213A] tabular-nums">+{calculations.formatted.taxAmount}</span>
                       </div>
 
-                      <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-800">
-                        <span className="text-stone-400 text-[11px] block font-medium">Grand Total</span>
-                        <span className="font-mono text-sm font-semibold text-stone-100 tabular-nums">{calculations.formatted.grandTotal}</span>
+                      <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E8E6F2]">
+                        <span className="text-[#24213A] text-[11px] block font-semibold">Grand Total</span>
+                        <span className="font-mono text-sm font-bold text-[#24213A] tabular-nums">{calculations.formatted.grandTotal}</span>
                       </div>
 
-                      <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-800">
-                        <span className="text-stone-400 text-[11px] block font-medium">Amount Paid</span>
-                        <span className="font-mono text-sm font-semibold text-emerald-400 tabular-nums">{calculations.formatted.amountPaid}</span>
+                      <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E8E6F2]">
+                        <span className="text-[#24213A] text-[11px] block font-semibold">Amount Paid</span>
+                        <span className="font-mono text-sm font-bold text-[#059669] tabular-nums">{calculations.formatted.amountPaid}</span>
                       </div>
 
-                      <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-800">
-                        <span className="text-stone-400 text-[11px] block font-medium">Balance Due</span>
+                      <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E8E6F2]">
+                        <span className="text-[#24213A] text-[11px] block font-semibold">Balance Due</span>
                         <span className={cn(
-                          "font-mono text-sm font-semibold tabular-nums",
-                          calculations.balanceDue <= 0 ? "text-emerald-400" : "text-amber-400"
+                          "font-mono text-sm font-bold tabular-nums",
+                          calculations.balanceDue <= 0 ? "text-[#059669]" : "text-[#D97706]"
                         )}>
                           {calculations.formatted.balanceDue}
                         </span>
@@ -1737,21 +1732,21 @@ export function InvoiceEditorModal({
                     </div>
                   </div>
 
-                  {/* SECTION G: Additional Information (Always Editable) */}
-                  <div className="space-y-4 pt-2">
+                  {/* SECTION G: Additional Information */}
+                  <div className="bg-white border border-[#E8E6F2] rounded-2xl p-5 space-y-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5 text-stone-500" />
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-[#77758F] flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-[#5146D8]" />
                         <span>Additional Information</span>
                       </h3>
-                      <span className="text-[11px] text-stone-400 font-medium">Always Editable Metadata</span>
+                      <span className="text-[11px] text-[#059669] font-medium bg-[#ECFDF5] px-2 py-0.5 rounded-full border border-[#A7F3D0]">Always Editable</span>
                     </div>
 
                     <div className={cn(
                       showPreview ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-4"
                     )}>
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                           Folio remarks & internal notes
                         </label>
                         <textarea
@@ -1759,12 +1754,12 @@ export function InvoiceEditorModal({
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
                           placeholder="e.g. Complimentary airport pickup arranged, early arrival..."
-                          className="w-full bg-stone-900/60 border border-stone-800 hover:border-stone-700 rounded-md p-2.5 text-xs text-stone-100 focus:outline-none focus:border-stone-400"
+                          className="w-full bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 rounded-xl p-2.5 text-xs text-[#24213A] placeholder:text-[#77758F]/60 focus:outline-none focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8]/20 resize-none transition-colors"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                        <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                           House rules & stay guidelines
                         </label>
                         <textarea
@@ -1772,7 +1767,7 @@ export function InvoiceEditorModal({
                           value={houseRules}
                           onChange={(e) => setHouseRules(e.target.value)}
                           placeholder="e.g. Check-out by 11:00 AM, quiet hours after 10:00 PM..."
-                          className="w-full bg-stone-900/60 border border-stone-800 hover:border-stone-700 rounded-md p-2.5 text-xs text-stone-100 focus:outline-none focus:border-stone-400"
+                          className="w-full bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 rounded-xl p-2.5 text-xs text-[#24213A] placeholder:text-[#77758F]/60 focus:outline-none focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8]/20 resize-none transition-colors"
                         />
                       </div>
                     </div>
@@ -1781,39 +1776,39 @@ export function InvoiceEditorModal({
                 </div>
               )}
 
-              {/* TAB 2: PAYMENT LEDGER & TRANSACTIONS */}
+              {/* ─── TAB 2: PAYMENT LEDGER & TRANSACTIONS ───────────────────────── */}
               {activeTab === "payments" && (
                 <div className="space-y-6">
                   {/* Status Banners */}
                   {paymentError && (
-                    <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg flex items-center gap-2.5 text-xs text-rose-300">
-                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-xs text-rose-700">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
                       <span>{paymentError}</span>
                     </div>
                   )}
                   {paymentSuccess && (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-2.5 text-xs text-emerald-300">
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <div className="p-3 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl flex items-center gap-2.5 text-xs text-[#059669]">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-[#059669]" />
                       <span>{paymentSuccess}</span>
                     </div>
                   )}
 
                   {/* Payment Recording Form */}
-                  <div className="border border-stone-800 rounded-lg p-4 space-y-4 bg-stone-900/30">
-                    <div className="flex items-center justify-between border-b border-stone-800 pb-2.5">
+                  <div className="bg-white border border-[#E8E6F2] rounded-2xl p-5 space-y-4 shadow-sm">
+                    <div className="flex items-center justify-between border-b border-[#E8E6F2] pb-3">
                       <div>
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-300 flex items-center gap-1.5">
-                          <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#24213A] flex items-center gap-1.5">
+                          <CreditCard className="w-3.5 h-3.5 text-[#059669]" />
                           <span>Record Payment Transaction</span>
                         </h3>
-                        <p className="text-xs text-stone-500 mt-0.5">Append-only immutable transaction entry.</p>
+                        <p className="text-xs text-[#77758F] mt-0.5">Append-only immutable transaction entry.</p>
                       </div>
 
                       {calculations.balanceDue > 0 && (
                         <button
                           type="button"
                           onClick={handleQuickFillDue}
-                          className="text-xs font-medium px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-stone-300 transition-colors cursor-pointer"
+                          className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#F0EEFF] hover:bg-[#E8E4FF] text-[#5146D8] border border-[#E8E6F2] transition-colors cursor-pointer"
                         >
                           Fill Due: {calculations.formatted.balanceDue}
                         </button>
@@ -1821,19 +1816,19 @@ export function InvoiceEditorModal({
                     </div>
 
                     {!existingInvoice ? (
-                      <div className="p-3 bg-stone-900 border border-stone-800 rounded-md text-xs text-stone-400">
+                      <div className="p-3 bg-[#F6F5FC] border border-[#E8E6F2] rounded-xl text-xs text-[#77758F]">
                         Please save this invoice before recording ledger transactions.
                       </div>
                     ) : calculations.balanceDue <= 0 ? (
-                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-md flex items-center gap-2 text-xs text-emerald-300">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <div className="p-3 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl flex items-center gap-2 text-xs text-[#059669]">
+                        <CheckCircle2 className="w-4 h-4 text-[#059669]" />
                         <span>This folio is settled in full. No outstanding balance remains.</span>
                       </div>
                     ) : (
                       <form onSubmit={handleRecordPayment} className="space-y-3.5">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                            <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                               Payment Amount (₹) *
                             </label>
                             <input
@@ -1844,18 +1839,18 @@ export function InvoiceEditorModal({
                               value={paymentAmount}
                               onChange={(e) => setPaymentAmount(e.target.value)}
                               placeholder="e.g. 1500.00"
-                              className="w-full h-9 bg-stone-950 border border-stone-800 rounded-md px-3 text-xs font-mono tabular-nums text-stone-100 focus:outline-none focus:border-stone-400 font-semibold"
+                              className={cn(inputBase, inputActive, "font-mono tabular-nums font-semibold")}
                             />
                           </div>
 
                           <div>
-                            <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                            <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                               Payment Method *
                             </label>
                             <select
                               value={paymentMethod}
                               onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                              className="w-full h-9 bg-stone-950 border border-stone-800 rounded-md px-2.5 text-xs text-stone-200 focus:outline-none focus:border-stone-400"
+                              className="w-full h-9 bg-white border border-[#E8E6F2] hover:border-[#5146D8]/40 rounded-lg px-2.5 text-xs text-[#24213A] focus:outline-none focus:border-[#5146D8] transition-colors"
                             >
                               <option value="upi">UPI (GPay / PhonePe / QR)</option>
                               <option value="cash">Direct Cash</option>
@@ -1865,7 +1860,7 @@ export function InvoiceEditorModal({
                           </div>
 
                           <div>
-                            <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                            <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                               Transaction Reference
                             </label>
                             <input
@@ -1873,12 +1868,12 @@ export function InvoiceEditorModal({
                               value={paymentRef}
                               onChange={(e) => setPaymentRef(e.target.value)}
                               placeholder="UTR / Auth code / receipt #"
-                              className="w-full h-9 bg-stone-950 border border-stone-800 rounded-md px-3 text-xs font-mono text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-stone-400"
+                              className={cn(inputBase, inputActive, "font-mono")}
                             />
                           </div>
 
                           <div>
-                            <label className="text-xs font-medium text-stone-300 mb-1.5 block">
+                            <label className="text-xs font-medium text-[#24213A] mb-1.5 block">
                               Audit Notes
                             </label>
                             <input
@@ -1886,7 +1881,7 @@ export function InvoiceEditorModal({
                               value={paymentNotes}
                               onChange={(e) => setPaymentNotes(e.target.value)}
                               placeholder="e.g. Advance paid at check-in"
-                              className="w-full h-9 bg-stone-950 border border-stone-800 rounded-md px-3 text-xs text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-stone-400"
+                              className={cn(inputBase, inputActive)}
                             />
                           </div>
                         </div>
@@ -1895,7 +1890,7 @@ export function InvoiceEditorModal({
                           <button
                             type="submit"
                             disabled={isRecordingPayment || !paymentAmount}
-                            className="px-4 py-2 rounded-md text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors disabled:opacity-50 cursor-pointer"
+                            className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#059669] hover:bg-[#047857] text-white transition-colors disabled:opacity-50 cursor-pointer shadow-sm shadow-[#059669]/20"
                           >
                             {isRecordingPayment ? "Recording Payment..." : "Record Payment"}
                           </button>
@@ -1904,14 +1899,14 @@ export function InvoiceEditorModal({
                     )}
                   </div>
 
-                  {/* Payment History Table */}
+                  {/* Payment History */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-[#77758F]">
                       Payment Ledger History ({localPayments.length})
                     </h4>
 
                     {localPayments.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-stone-500 bg-stone-900/30 rounded-lg border border-stone-800">
+                      <div className="p-6 text-center text-xs text-[#77758F] bg-white rounded-xl border border-[#E8E6F2]">
                         No payments recorded for this folio yet.
                       </div>
                     ) : (
@@ -1919,20 +1914,20 @@ export function InvoiceEditorModal({
                         {localPayments.map((p) => (
                           <div 
                             key={p.id}
-                            className="flex items-center justify-between bg-stone-900/50 p-3 rounded-lg border border-stone-800 text-xs"
+                            className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-[#E8E6F2] text-xs hover:border-[#5146D8]/30 transition-colors"
                           >
                             <div>
-                              <div className="font-semibold text-stone-200">
+                              <div className="font-semibold text-[#24213A]">
                                 ₹{Number(p.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })} via {p.payment_method?.toUpperCase()}
                               </div>
-                              <div className="text-[11px] text-stone-500 mt-0.5">
+                              <div className="text-[11px] text-[#77758F] mt-0.5">
                                 {p.created_at ? formatISTCompactDate(p.created_at) : "Confirmed"} 
                                 {p.transaction_ref ? ` • Ref: ${p.transaction_ref}` : ""}
                                 {p.notes ? ` • ${p.notes}` : ""}
                               </div>
                             </div>
 
-                            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
                               CONFIRMED
                             </span>
                           </div>
@@ -1947,20 +1942,20 @@ export function InvoiceEditorModal({
             </div>
           </div>
 
-          {/* RIGHT PANEL: Live Invoice Document Preview (Independently scrollable) */}
+          {/* RIGHT PANEL: Live Invoice Document Preview */}
           {showPreview && (
-            <div className="hidden lg:flex lg:w-1/2 xl:w-5/12 bg-[#12100E] overflow-y-auto custom-scrollbar p-6 lg:p-8 flex-col items-center justify-start border-l border-stone-800/80 min-h-0 pb-16">
+            <div className="hidden lg:flex lg:w-1/2 xl:w-5/12 bg-[#F6F5FC] overflow-y-auto hms-editor-scrollbar p-6 lg:p-8 flex-col items-center justify-start border-l border-[#E8E6F2] min-h-0 pb-16">
               {/* Header above preview document */}
               <div className="w-full max-w-[800px] mb-3 flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-semibold text-stone-300">Live Document Preview</span>
-                  <span className="text-[11px] text-stone-500 hidden sm:inline">• Synced</span>
+                  <span className="w-2 h-2 rounded-full bg-[#059669]" />
+                  <span className="text-xs font-semibold text-[#24213A]">Live Document Preview</span>
+                  <span className="text-[11px] text-[#77758F] hidden sm:inline">• Synced</span>
                 </div>
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="text-xs text-stone-400 hover:text-stone-200 flex items-center gap-1 font-medium cursor-pointer transition-colors"
+                  className="text-xs text-[#77758F] hover:text-[#5146D8] flex items-center gap-1 font-medium cursor-pointer transition-colors"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print Document</span>
@@ -1968,7 +1963,7 @@ export function InvoiceEditorModal({
               </div>
 
               {/* Physical A4 Paper Sheet Preview Container */}
-              <div id="printable-live-invoice" className="w-full max-w-[800px] shadow-2xl rounded-sm overflow-hidden border border-stone-300 transition-all print:shadow-none print:border-none print:overflow-visible">
+              <div id="printable-live-invoice" className="w-full max-w-[800px] shadow-xl rounded-sm overflow-hidden border border-[#E8E6F2] transition-all print:shadow-none print:border-none print:overflow-visible">
                 <InvoicePDFView
                   invoice={liveInvoice}
                   homestay={currentHomestay}
@@ -1984,24 +1979,24 @@ export function InvoiceEditorModal({
 
       {/* Discard Unsaved Changes Confirmation Modal */}
       {showDiscardConfirm && (
-        <div className="fixed inset-0 z-[100020] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#161311] border border-stone-800 rounded-xl p-5 shadow-2xl text-left space-y-4">
+        <div className="fixed inset-0 z-[100060] flex items-center justify-center p-4 bg-[#24213A]/40 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-white border border-[#E8E6F2] rounded-2xl p-5 shadow-2xl text-left space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 text-rose-400">
+              <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 text-rose-500">
                 <AlertCircle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-stone-100">Discard unsaved changes?</h3>
-                <p className="text-xs text-stone-400 mt-1 leading-relaxed">
+                <h3 className="text-sm font-semibold text-[#24213A]">Discard unsaved changes?</h3>
+                <p className="text-xs text-[#77758F] mt-1 leading-relaxed">
                   You have uncommitted modifications. Closing now will permanently discard any changes made to this folio.
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-stone-800">
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#E8E6F2]">
               <button
                 type="button"
                 onClick={() => setShowDiscardConfirm(false)}
-                className="px-3 py-1.5 rounded-md text-xs font-medium text-stone-300 hover:text-stone-100 hover:bg-stone-800 transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-[#77758F] hover:text-[#24213A] hover:bg-[#F6F5FC] border border-[#E8E6F2] transition-colors cursor-pointer"
               >
                 Keep Editing
               </button>
@@ -2011,7 +2006,7 @@ export function InvoiceEditorModal({
                   setShowDiscardConfirm(false);
                   onClose();
                 }}
-                className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-rose-600 hover:bg-rose-500 text-white transition-colors cursor-pointer active:scale-95"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-rose-600 hover:bg-rose-500 text-white transition-colors cursor-pointer active:scale-95"
               >
                 Discard Changes
               </button>
@@ -2019,6 +2014,7 @@ export function InvoiceEditorModal({
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body
   );
 }

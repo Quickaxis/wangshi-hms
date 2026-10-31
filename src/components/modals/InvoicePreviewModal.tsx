@@ -51,13 +51,13 @@ export function InvoicePreviewModal({
             <div className="flex items-center gap-2">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                 isPaid 
-                  ? "bg-[rgba(79,231,123,0.15)] text-[#4FE77B] border-[rgba(79,231,123,0.3)]" 
-                  : "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[rgba(245,158,11,0.3)]"
+                  ? "bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]" 
+                  : "bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]"
               }`}>
                 {isPaid ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
                 <span>{isPaid ? "Paid in Full" : `Balance Due: ₹${Number(invoice.balance_due).toLocaleString("en-IN")}`}</span>
               </span>
-              <span className="text-[11px] text-[#96928A] hidden md:inline">
+              <span className="text-[11px] text-[#77758F] hidden md:inline">
                 Standard A4 Boutique Folio • {invoice.guest_name}
               </span>
             </div>
@@ -73,16 +73,16 @@ export function InvoicePreviewModal({
               <button
                 type="button"
                 onClick={handlePrint}
-                className="px-5 py-2 rounded-full text-xs font-semibold flex items-center justify-center gap-2 bg-[#5B131E] hover:bg-[#781B29] text-[#F5F1E8] shadow-lg border border-[rgba(212,175,55,0.3)] transition-all cursor-pointer active:scale-95"
+                className="px-5 py-2 rounded-full text-xs font-semibold flex items-center justify-center gap-2 bg-[#5146D8] hover:bg-[#4338CA] text-white shadow-md shadow-[#5146D8]/20 transition-all cursor-pointer active:scale-95"
               >
-                <Printer className="w-4 h-4 text-[#D4AF37]" />
+                <Printer className="w-4 h-4 text-white" />
                 <span>Print / Save as PDF</span>
               </button>
             </div>
           </div>
         }
       >
-        <div className="overflow-y-auto max-h-[74vh] p-2 sm:p-6 bg-[rgba(0,0,0,0.55)] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-inner">
+        <div className="overflow-y-auto max-h-[74vh] p-2 sm:p-6 bg-[#F6F5FC] rounded-2xl border border-[#E8E6F2] shadow-inner">
           <div id="printable-invoice" ref={printRef}>
             <InvoicePDFView invoice={invoice} homestay={homestay} />
           </div>
