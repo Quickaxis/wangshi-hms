@@ -33,9 +33,9 @@ export function AppShellWrapper({ children }: { children: ReactNode }) {
   // Show a minimal loading state until Supabase confirms the session on the client
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-[#0b0907]">
-        <div className="w-10 h-10 border-2 border-[#f5a000] border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(245,160,0,0.2)]"></div>
-        <p className="text-[#f5a000] tracking-widest text-xs font-semibold animate-pulse opacity-80">AUTHENTICATING...</p>
+      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-[#F7F7FC]">
+        <div className="w-10 h-10 border-2 border-[#5146D8] border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(81,70,216,0.2)]"></div>
+        <p className="text-[#5146D8] tracking-widest text-xs font-semibold animate-pulse opacity-80">AUTHENTICATING...</p>
       </div>
     );
   }

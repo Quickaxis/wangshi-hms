@@ -117,8 +117,8 @@ export default function PartnersPage() {
   if (!selectedHomestayId) {
     return (
       <div className="flex flex-col h-full items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#F59E0B] animate-spin mb-4" />
-        <p className="text-[#96928A]">Loading homestay context...</p>
+        <Loader2 className="w-8 h-8 text-[#5146D8] animate-spin mb-4" />
+        <p className="text-[#77758F]">Loading homestay context...</p>
       </div>
     );
   }
@@ -127,86 +127,90 @@ export default function PartnersPage() {
     <div className="flex flex-col h-full overflow-y-auto hide-scrollbar space-y-6 pb-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 md:text-[#F5F1E8]">Partners</h2>
-          <p className="text-gray-500 md:text-[#96928A] mt-1 text-xs md:text-sm tracking-wide">
+          <h2 className="text-xl md:text-2xl font-bold text-[#24213A]">Partners</h2>
+          <p className="text-[#77758F] mt-1 text-xs md:text-sm tracking-wide">
             Manage partners and booking sources for your homestay.
           </p>
         </div>
 
         {/* Search */}
         <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 text-gray-400 md:text-[#96928A] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#77758F] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search partners..."
-            className="w-full bg-white md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl pl-9 pr-4 py-2.5 text-xs text-gray-900 md:text-[#F5F1E8] placeholder-gray-400 md:placeholder-[#96928A] outline-none focus:border-[rgba(255,255,255,0.2)] transition-colors"
+            className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl pl-9 pr-4 py-2.5 text-xs text-[#24213A] placeholder-[#8F8CA4] outline-none focus:border-[#5146D8] transition-colors shadow-sm"
           />
         </div>
       </div>
 
-      <GlassPanel className="p-0 md:p-1 rounded-[24px] bg-transparent border-transparent md:bg-[rgba(255,255,255,0.02)] md:border-[rgba(255,255,255,0.05)] shadow-none md:shadow-lg overflow-hidden">
+      <div className="p-0 md:p-1 rounded-[24px] bg-transparent border-transparent md:bg-[#FFFFFF] md:border md:border-[#E8E7F2] shadow-none md:shadow-[0_4px_24px_rgba(36,33,58,0.03)] overflow-hidden">
         
         {/* Mobile View (Cards) */}
         <div className="md:hidden flex flex-col gap-3 pb-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <Loader2 className="w-6 h-6 text-[#F59E0B] animate-spin" />
-              <span className="text-gray-500 text-xs">Loading partners...</span>
+              <Loader2 className="w-6 h-6 text-[#5146D8] animate-spin" />
+              <span className="text-[#77758F] text-xs">Loading partners...</span>
             </div>
           ) : fetchError ? (
-            <div className="bg-white border border-gray-100 shadow-sm rounded-[20px] p-8 flex flex-col items-center justify-center gap-3 text-center">
-              <div className="text-rose-600 font-bold text-sm">Unable to load partners</div>
-              <button onClick={fetchPartners} className="px-4 py-2 bg-gray-100 rounded-lg text-xs font-bold">Retry</button>
+            <div className="bg-[#FFFFFF] border border-[#FECACA] rounded-[20px] p-8 flex flex-col items-center justify-center gap-3 text-center shadow-sm">
+              <div className="text-[#DC2626] font-bold text-sm">Unable to load partners</div>
+              <button onClick={fetchPartners} className="px-4 py-2 bg-[#F0EEFF] text-[#5146D8] rounded-xl text-xs font-bold cursor-pointer hover:bg-[#E0DEF8]">Retry</button>
             </div>
           ) : filteredPartners.length === 0 ? (
-            <div className="bg-white border border-gray-100 shadow-sm rounded-[20px] p-8 flex flex-col items-center justify-center gap-2 text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-1">
-                <Handshake className="w-5 h-5 text-gray-400" />
+            <div className="bg-[#FFFFFF] border border-[#E8E7F2] rounded-[20px] p-8 flex flex-col items-center justify-center gap-2 text-center shadow-sm">
+              <div className="w-12 h-12 rounded-full bg-[#F7F7FC] flex items-center justify-center mb-1">
+                <Handshake className="w-5 h-5 text-[#77758F]" />
               </div>
-              <div className="text-gray-700 font-bold text-sm">
+              <div className="text-[#24213A] font-bold text-sm">
                 {searchQuery ? "No partners found" : "No partners yet"}
               </div>
-              <div className="text-xs text-gray-400 font-medium">
+              <div className="text-xs text-[#77758F] font-medium">
                 {searchQuery ? "Try a different name or email." : "Partner accounts for this homestay will appear here."}
               </div>
             </div>
           ) : (
             filteredPartners.map((partner) => (
-              <div key={partner.id} className="bg-white border border-gray-100 shadow-sm rounded-[20px] p-4 flex flex-col gap-3">
+              <div key={partner.id} className="bg-[#FFFFFF] border border-[#E8E7F2] shadow-sm rounded-[20px] p-4 flex flex-col gap-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                      <Building2 className="w-5 h-5 text-gray-400" />
+                    <div className="w-10 h-10 rounded-full bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center text-[#5146D8] font-bold text-xs shrink-0 uppercase">
+                      {partner.name.slice(0, 2)}
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 text-sm">{partner.name}</h4>
-                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                      <h4 className="font-bold text-[#24213A] text-sm">{partner.name}</h4>
+                      <div className="text-xs text-[#77758F] flex items-center gap-1 mt-0.5">
                         <Mail className="w-3 h-3" />
                         {partner.email || "N/A"}
                       </div>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${partner.is_active ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                    partner.is_active 
+                      ? 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]' 
+                      : 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]'
+                  }`}>
                     {partner.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 bg-gray-50 rounded-xl p-3 border border-gray-100">
+                <div className="grid grid-cols-2 gap-2 bg-[#F7F7FC] rounded-xl p-3 border border-[#E8E7F2]">
                   <div>
-                    <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Bookings</div>
-                    <div className="text-sm font-bold text-gray-700">{partner.bookingCount}</div>
+                    <div className="text-[9px] text-[#77758F] font-bold uppercase tracking-wider mb-1">Bookings</div>
+                    <div className="text-sm font-bold text-[#24213A]">{partner.bookingCount}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Revenue</div>
-                    <div className="text-sm font-bold text-[#F59E0B]">₹{partner.totalRevenue.toLocaleString("en-IN")}</div>
+                    <div className="text-[9px] text-[#77758F] font-bold uppercase tracking-wider mb-1">Revenue</div>
+                    <div className="text-sm font-bold text-[#5146D8]">₹{partner.totalRevenue.toLocaleString("en-IN")}</div>
                   </div>
                 </div>
 
                 <button 
                   onClick={() => setViewingPartner(partner)}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-lg text-xs font-bold transition-colors"
+                  className="w-full bg-[#F0EEFF] hover:bg-[#E0DEF8] border border-[#E0DEF8] text-[#5146D8] py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   View Details
                 </button>
@@ -219,7 +223,7 @@ export default function PartnersPage() {
         <div className="hidden md:block w-full overflow-x-auto hide-scrollbar">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
-              <tr className="border-b border-[rgba(255,255,255,0.05)] text-[10px] uppercase tracking-widest text-[#96928A]">
+              <tr className="border-b border-[#E8E7F2] bg-[#F7F7FC]/70 text-[10px] uppercase tracking-widest text-[#77758F]">
                 <th className="px-6 py-4 font-semibold">Partner</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold text-center">Bookings</th>
@@ -230,26 +234,26 @@ export default function PartnersPage() {
             </thead>
             <tbody className="text-sm">
               {isLoading ? (
-                <tr><td colSpan={6} className="px-6 py-16 text-center text-[#96928A]"><Loader2 className="w-6 h-6 text-[#F59E0B] animate-spin mx-auto" /></td></tr>
+                <tr><td colSpan={6} className="px-6 py-16 text-center text-[#77758F]"><Loader2 className="w-6 h-6 text-[#5146D8] animate-spin mx-auto" /></td></tr>
               ) : fetchError ? (
-                <tr><td colSpan={6} className="px-6 py-16 text-center text-[#FF6978] font-bold">Unable to load partners</td></tr>
+                <tr><td colSpan={6} className="px-6 py-16 text-center text-[#DC2626] font-bold">Unable to load partners</td></tr>
               ) : filteredPartners.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center text-[#96928A]">
+                  <td colSpan={6} className="px-6 py-16 text-center text-[#77758F]">
                     {searchQuery ? "No partners found matching search." : "No partner accounts exist for this homestay."}
                   </td>
                 </tr>
               ) : (
                 filteredPartners.map((partner) => (
-                  <tr key={partner.id} className="group transition-colors hover:bg-[rgba(255,255,255,0.02)] border-b border-[rgba(255,255,255,0.03)]">
+                  <tr key={partner.id} className="group transition-colors hover:bg-[#F7F7FC] border-b border-[#E8E7F2]">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center shrink-0">
-                          <Building2 className="w-4 h-4 text-[#C7C3BA]" />
+                        <div className="w-10 h-10 rounded-full bg-[#F0EEFF] flex items-center justify-center shrink-0">
+                          <Building2 className="w-4 h-4 text-[#5146D8]" />
                         </div>
                         <div>
-                          <div className="font-bold text-[#F5F1E8]">{partner.name}</div>
-                          <div className="text-[11px] text-[#96928A] flex items-center gap-1 mt-0.5">
+                          <div className="font-bold text-[#24213A]">{partner.name}</div>
+                          <div className="text-[11px] text-[#77758F] flex items-center gap-1 mt-0.5">
                             <Mail className="w-3 h-3" />
                             {partner.email || "N/A"}
                           </div>
@@ -259,28 +263,28 @@ export default function PartnersPage() {
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
                         partner.is_active 
-                        ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/30' 
-                        : 'bg-red-400/10 text-red-400 border-red-400/30'
+                        ? 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]' 
+                        : 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]'
                       }`}>
                         {partner.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="font-bold text-[#F2EEE3]">{partner.bookingCount}</span>
+                      <span className="font-bold text-[#24213A]">{partner.bookingCount}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="font-bold text-[#F59E0B]">₹{partner.totalRevenue.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-[#5146D8]">₹{partner.totalRevenue.toLocaleString("en-IN")}</span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <div className="text-[11px] text-[#C7C3BA] flex items-center justify-center gap-1">
-                        <Calendar className="w-3 h-3 text-[#96928A]" />
+                      <div className="text-[11px] text-[#77758F] flex items-center justify-center gap-1">
+                        <Calendar className="w-3 h-3 text-[#77758F]" />
                         {new Date(partner.created_at).toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' })}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button 
                         onClick={() => setViewingPartner(partner)}
-                        className="px-4 py-1.5 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] text-[#F5F1E8] rounded-lg text-xs font-bold transition-colors"
+                        className="px-4 py-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] border border-[#E0DEF8] text-[#5146D8] rounded-lg text-xs font-bold transition-colors cursor-pointer"
                       >
                         View Details
                       </button>
@@ -291,7 +295,7 @@ export default function PartnersPage() {
             </tbody>
           </table>
         </div>
-      </GlassPanel>
+      </div>
 
       {/* Partner Details Modal */}
       {viewingPartner && (
@@ -300,34 +304,34 @@ export default function PartnersPage() {
             
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-xl md:text-2xl font-bold text-gray-900 md:text-[#F5F1E8] mb-1">{viewingPartner.name}</h3>
-                <div className="text-sm text-gray-500 md:text-[#96928A] flex items-center gap-1.5">
+                <h3 className="text-xl md:text-2xl font-bold text-[#24213A] mb-1">{viewingPartner.name}</h3>
+                <div className="text-sm text-[#77758F] flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5" />
                   {viewingPartner.email || "No email provided"}
                 </div>
               </div>
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                 viewingPartner.is_active 
-                ? 'bg-emerald-100 text-emerald-600 md:bg-emerald-400/10 md:text-emerald-400 md:border-emerald-400/30' 
-                : 'bg-red-100 text-red-600 md:bg-red-400/10 md:text-red-400 md:border-red-400/30'
+                ? 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]' 
+                : 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]'
               }`}>
                 {viewingPartner.is_active ? 'ACTIVE' : 'INACTIVE'}
               </span>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 md:bg-[rgba(255,255,255,0.02)] p-4 rounded-xl border border-gray-100 md:border-[rgba(255,255,255,0.05)]">
+            <div className="grid grid-cols-2 gap-4 bg-[#F7F7FC] p-4 rounded-xl border border-[#E8E7F2]">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 md:text-[#96928A] block mb-1">Total Bookings</span>
-                <span className="text-lg font-bold text-gray-900 md:text-[#F2EEE3]">{viewingPartner.bookingCount}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#77758F] block mb-1">Total Bookings</span>
+                <span className="text-lg font-bold text-[#24213A]">{viewingPartner.bookingCount}</span>
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 md:text-[#96928A] block mb-1">Total Revenue</span>
-                <span className="text-lg font-bold text-[#F59E0B]">₹{viewingPartner.totalRevenue.toLocaleString("en-IN")}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#77758F] block mb-1">Total Revenue</span>
+                <span className="text-lg font-bold text-[#5146D8]">₹{viewingPartner.totalRevenue.toLocaleString("en-IN")}</span>
               </div>
             </div>
 
             <div className="max-h-[300px] overflow-y-auto hide-scrollbar">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 md:text-[#C7C3BA] mb-3">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-[#77758F] mb-3">
                 Recent Bookings {viewingPartner.recentBookings.length === 0 && "(None)"}
               </h4>
               
@@ -336,32 +340,32 @@ export default function PartnersPage() {
                   const primaryGuest = booking.guests?.find((g: any) => g.is_primary) || booking.guests?.[0];
                   
                   return (
-                    <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white md:bg-[rgba(255,255,255,0.03)] border border-gray-100 md:border-[rgba(255,255,255,0.05)] p-3 rounded-xl">
+                    <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl shadow-sm">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-bold text-gray-900 md:text-[#F5F1E8]">
+                          <span className="text-sm font-bold text-[#24213A]">
                             {booking.rooms?.name || "Room"}
                           </span>
                           <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${
-                            booking.status === "confirmed" ? "border-[#F59E0B]/30 text-[#F59E0B] bg-[#F59E0B]/10" :
-                            booking.status === "checked_in" ? "border-emerald-400/30 text-emerald-400 bg-emerald-400/10" :
-                            booking.status === "cancelled" ? "border-rose-400/30 text-rose-400 bg-rose-400/10" :
-                            "border-blue-400/30 text-blue-400 bg-blue-400/10"
+                            booking.status === "confirmed" ? "border-[#FDE68A] text-[#D97706] bg-[#FFFBEB]" :
+                            booking.status === "checked_in" ? "border-[#A7F3D0] text-[#059669] bg-[#ECFDF5]" :
+                            booking.status === "cancelled" ? "border-[#FECACA] text-[#DC2626] bg-[#FEF2F2]" :
+                            "border-[#BFDBFE] text-[#2563EB] bg-[#EFF6FF]"
                           }`}>
                             {booking.status.replace("_", " ")}
                           </span>
                         </div>
-                        <div className="text-[11px] text-gray-500 md:text-[#96928A] flex items-center gap-1.5">
-                          <UserCircle2 className="w-3 h-3" />
+                        <div className="text-[11px] text-[#77758F] flex items-center gap-1.5">
+                          <UserCircle2 className="w-3 h-3 text-[#77758F]" />
                           {primaryGuest?.name || "Unknown Guest"}
                         </div>
                       </div>
                       
                       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1">
-                        <span className="text-sm font-bold text-gray-900 md:text-[#F2EEE3]">
+                        <span className="text-sm font-bold text-[#24213A]">
                           ₹{booking.total_amount?.toLocaleString("en-IN") || 0}
                         </span>
-                        <span className="text-[10px] text-gray-500 md:text-[#96928A] flex items-center gap-1">
+                        <span className="text-[10px] text-[#77758F] flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {formatISTCompactDate(booking.check_in)}
                         </span>
@@ -372,10 +376,10 @@ export default function PartnersPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-gray-100 md:border-[rgba(255,255,255,0.05)]">
+            <div className="flex justify-end pt-2 border-t border-[#E8E7F2]">
               <button 
                 onClick={() => setViewingPartner(null)}
-                className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 md:bg-[rgba(255,255,255,0.1)] md:hover:bg-[rgba(255,255,255,0.15)] md:text-white rounded-xl text-sm font-bold transition-colors"
+                className="px-6 py-2.5 bg-[#5146D8] hover:bg-[#4338CA] text-white rounded-xl text-sm font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>

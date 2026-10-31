@@ -17,14 +17,14 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
         className={cn(
           "inline-flex items-center justify-center rounded-full font-medium transition-all focus:outline-none disabled:opacity-50 disabled:pointer-events-none active:scale-95",
           {
-            // Primary: Cream button with dark text
-            "bg-[#F2EEE3] text-[#22211E] hover:bg-white shadow-[0_2px_10px_rgba(255,255,255,0.1)]": variant === "primary",
-            // Secondary: Glass button
-            "glass-panel hover:bg-[rgba(255,255,255,0.1)] text-[#F5F1E8]": variant === "secondary",
-            // Danger: Subtle rose button
-            "bg-[#F18F9B] text-white hover:bg-[#FF6978] shadow-[0_2px_10px_rgba(241,143,155,0.2)]": variant === "danger",
-            // Ghost: Transparent with hover
-            "bg-transparent hover:bg-[rgba(255,255,255,0.05)] text-[#F5F1E8]": variant === "ghost",
+            // Primary: Finnova Indigo button
+            "bg-[#5146D8] text-white hover:bg-[#4338CA] shadow-[0_4px_14px_rgba(81,70,216,0.25)]": variant === "primary",
+            // Secondary: Clean white with soft border and lavender hover
+            "bg-[#FFFFFF] border border-[#E8E7F2] hover:bg-[#F0EEFF] hover:border-[#8B83F6] hover:text-[#5146D8] text-[#24213A] shadow-sm": variant === "secondary",
+            // Danger: Semantic rose button
+            "bg-[#EF4444] text-white hover:bg-[#DC2626] shadow-[0_2px_10px_rgba(239,68,68,0.2)]": variant === "danger",
+            // Ghost: Transparent with subtle lavender hover
+            "bg-transparent hover:bg-[#F0EEFF] hover:text-[#5146D8] text-[#24213A]": variant === "ghost",
             
             // Sizes
             "h-8 px-4 text-xs": size === "sm",

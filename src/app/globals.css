@@ -1,16 +1,22 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #080706;
-  --color-primary: #F5F1E8;
-  --color-secondary: #C7C3BA;
-  --color-muted: #96928A;
-  --color-cream: #F2EEE3;
-  --color-amber-glow: rgba(245, 158, 11, 0.15); /* Amber glow */
-  --color-available: #7FE39D;
-  --color-available-light: #4FE77B;
-  --color-booked: #F18F9B;
-  --color-booked-light: #FF6978;
+  --color-background: #F7F7FC;
+  --color-surface: #FFFFFF;
+  --color-border: #E8E7F2;
+  --color-primary: #5146D8;
+  --color-secondary: #8B83F6;
+  --color-main-text: #24213A;
+  --color-muted: #77758F;
+  --color-lavender-subtle: #F0EEFF;
+  --color-lavender-border: #E0DEF8;
+  --color-cream: #F0EEFF;
+  --color-selected: #F0EEFF;
+  --color-amber-glow: rgba(81, 70, 216, 0.15); /* Indigo glow */
+  --color-available: #10B981;
+  --color-available-light: #059669;
+  --color-booked: #EF4444;
+  --color-booked-light: #DC2626;
   --font-sans: var(--font-poppins);
 }
 
@@ -21,46 +27,38 @@ html, body {
 
 body {
   background-color: var(--color-background);
-  color: var(--color-primary);
-  /* Full screen dark background with subtle blur and amber glow */
+  color: var(--color-main-text);
+  /* Clean light background with subtle top lavender ambient tint */
   background-image: 
-    radial-gradient(circle at 50% 30%, rgba(245, 158, 11, 0.08) 0%, transparent 60%),
-    linear-gradient(to bottom, rgba(8, 7, 6, 0.9), rgba(13, 10, 8, 0.98)),
-    url('https://images.unsplash.com/photo-1542718143-69ba3fbfbe88?q=80&w=2070&auto=format&fit=crop');
+    radial-gradient(circle at 50% 0%, rgba(139, 131, 246, 0.05) 0%, transparent 60%);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 
 @layer utilities {
   .glass-panel {
-    background: rgba(255, 255, 255, 0.055);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    background: #FFFFFF;
+    border: 1px solid #E8E7F2;
+    box-shadow: 0 4px 20px -2px rgba(36, 33, 58, 0.04), 0 2px 6px -1px rgba(36, 33, 58, 0.02);
   }
   
   .glass-panel-secondary {
-    background: rgba(255, 255, 255, 0.035);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    background: #FFFFFF;
+    border: 1px solid #E8E7F2;
+    box-shadow: 0 2px 10px rgba(36, 33, 58, 0.03);
   }
 
   .glass-panel-strong {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+    background: #FFFFFF;
+    border: 1px solid #E8E7F2;
+    box-shadow: 0 10px 30px -4px rgba(36, 33, 58, 0.08), 0 4px 12px -2px rgba(36, 33, 58, 0.03);
   }
 
   .amber-glow-border {
-    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.4), 0 0 20px rgba(245, 158, 11, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(81, 70, 216, 0.3), 0 0 20px rgba(81, 70, 216, 0.1);
   }
 
   .hide-scrollbar::-webkit-scrollbar {
@@ -70,6 +68,38 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+/* ==========================================================================
+   GLOBAL DESIGN SYSTEM — Focus, Inputs, Interactive
+   ========================================================================== */
+
+/* Standardized focus ring — indigo halo, never browser default */
+*:focus-visible {
+  outline: 2px solid rgba(81, 70, 216, 0.5);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Inputs and selects: consistent height, border, focus */
+input:not([type='checkbox']):not([type='radio']):not([type='range']),
+select,
+textarea {
+  font-family: var(--font-sans);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='range']):focus,
+select:focus,
+textarea:focus {
+  border-color: #5146D8 !important;
+  box-shadow: 0 0 0 3px rgba(81, 70, 216, 0.08);
+  outline: none;
+}
+
+/* Select: remove default appearance for consistent styling */
+select {
+  appearance: auto;
 }
 
 /* ==========================================================================

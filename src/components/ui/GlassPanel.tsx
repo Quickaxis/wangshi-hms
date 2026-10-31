@@ -11,7 +11,7 @@ const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-[28px] text-primary",
+          "rounded-[28px] text-[#24213A]",
           {
             "glass-panel": variant === "primary",
             "glass-panel-secondary": variant === "secondary",

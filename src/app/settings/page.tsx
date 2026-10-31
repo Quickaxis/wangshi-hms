@@ -140,8 +140,8 @@ export default function SettingsPage() {
     <div className="flex flex-col h-full overflow-y-auto hide-scrollbar space-y-6 pb-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 md:text-[#F5F1E8]">Settings</h2>
-          <p className="text-gray-500 md:text-[#96928A] mt-1 text-xs md:text-sm tracking-wide">
+          <h2 className="text-xl md:text-2xl font-bold text-[#24213A]">Settings</h2>
+          <p className="text-[#77758F] mt-1 text-xs md:text-sm tracking-wide">
             Manage your homestay profile, branding, and security.
           </p>
         </div>
@@ -155,8 +155,8 @@ export default function SettingsPage() {
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 text-left",
               activeTab === 'profile' 
-                ? "bg-[rgba(245,158,11,0.1)] text-[#F2EEE3] border border-[rgba(245,158,11,0.2)] shadow-[inset_0_0_12px_rgba(245,158,11,0.1)]" 
-                : "text-[#96928A] hover:bg-[rgba(255,255,255,0.03)] hover:text-[#C7C3BA] border border-transparent"
+                ? "bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8] font-semibold" 
+                : "text-[#77758F] hover:bg-[#F7F7FC] hover:text-[#24213A] border border-transparent"
             )}
           >
             <Building2 className="w-4 h-4" /> Property Profile
@@ -167,8 +167,8 @@ export default function SettingsPage() {
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 text-left",
               activeTab === 'branding' 
-                ? "bg-[rgba(245,158,11,0.1)] text-[#F2EEE3] border border-[rgba(245,158,11,0.2)] shadow-[inset_0_0_12px_rgba(245,158,11,0.1)]" 
-                : "text-[#96928A] hover:bg-[rgba(255,255,255,0.03)] hover:text-[#C7C3BA] border border-transparent"
+                ? "bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8] font-semibold" 
+                : "text-[#77758F] hover:bg-[#F7F7FC] hover:text-[#24213A] border border-transparent"
             )}
           >
             <ImageIcon className="w-4 h-4" /> Branding
@@ -179,8 +179,8 @@ export default function SettingsPage() {
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 text-left",
               activeTab === 'security' 
-                ? "bg-[rgba(245,158,11,0.1)] text-[#F2EEE3] border border-[rgba(245,158,11,0.2)] shadow-[inset_0_0_12px_rgba(245,158,11,0.1)]" 
-                : "text-[#96928A] hover:bg-[rgba(255,255,255,0.03)] hover:text-[#C7C3BA] border border-transparent"
+                ? "bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8] font-semibold" 
+                : "text-[#77758F] hover:bg-[#F7F7FC] hover:text-[#24213A] border border-transparent"
             )}
           >
             <Lock className="w-4 h-4" /> Account & Security
@@ -188,39 +188,39 @@ export default function SettingsPage() {
         </div>
 
         {/* Content Area */}
-        <GlassPanel className="flex-1 p-6 md:p-8 rounded-[24px] bg-transparent border-transparent md:bg-[rgba(255,255,255,0.02)] md:border-[rgba(255,255,255,0.05)] shadow-none md:shadow-lg">
+        <GlassPanel className="flex-1 p-6 md:p-8 rounded-[24px] bg-[#FFFFFF] border border-[#E8E7F2] shadow-sm">
           
           {/* PROFILE TAB */}
           {activeTab === 'profile' && (
             <div className="space-y-6 max-w-2xl">
               <div>
-                <h3 className="text-xl font-bold text-[#F5F1E8] mb-1">Property Profile</h3>
-                <p className="text-[#96928A] text-sm mb-6">Basic information about your homestay.</p>
+                <h3 className="text-xl font-bold text-[#24213A] mb-1">Property Profile</h3>
+                <p className="text-[#77758F] text-sm mb-6">Basic information about your homestay.</p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-[#96928A] mb-1">Homestay Name</label>
-                  <div className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-[#F2EEE3]">
+                  <label className="block text-xs font-medium text-[#77758F] mb-1">Homestay Name</label>
+                  <div className="w-full bg-[#F7F7FC] border border-[#E8E7F2] rounded-xl px-4 py-3 text-[#24213A] font-medium">
                     {currentHomestay?.name || 'Loading...'}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#96928A] mb-1">Location</label>
-                  <div className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-[#F2EEE3]">
+                  <label className="block text-xs font-medium text-[#77758F] mb-1">Location</label>
+                  <div className="w-full bg-[#F7F7FC] border border-[#E8E7F2] rounded-xl px-4 py-3 text-[#24213A]">
                     {currentHomestay?.location || 'Not set'}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-[#96928A] mb-1">Email</label>
-                    <div className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-[#F2EEE3]">
+                    <label className="block text-xs font-medium text-[#77758F] mb-1">Email</label>
+                    <div className="w-full bg-[#F7F7FC] border border-[#E8E7F2] rounded-xl px-4 py-3 text-[#24213A]">
                       {currentHomestay?.email || 'Not set'}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#96928A] mb-1">Phone</label>
-                    <div className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-[#F2EEE3]">
+                    <label className="block text-xs font-medium text-[#77758F] mb-1">Phone</label>
+                    <div className="w-full bg-[#F7F7FC] border border-[#E8E7F2] rounded-xl px-4 py-3 text-[#24213A]">
                       {currentHomestay?.phone || 'Not set'}
                     </div>
                   </div>
@@ -233,19 +233,19 @@ export default function SettingsPage() {
           {activeTab === 'branding' && (
             <div className="space-y-6 max-w-2xl">
               <div>
-                <h3 className="text-xl font-bold text-[#F5F1E8] mb-1">Homestay Logo</h3>
-                <p className="text-[#96928A] text-sm mb-6">This logo will appear in the main navigation sidebar.</p>
+                <h3 className="text-xl font-bold text-[#24213A] mb-1">Homestay Logo</h3>
+                <p className="text-[#77758F] text-sm mb-6">This logo will appear in the main navigation sidebar.</p>
               </div>
 
               {uploadError && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl flex items-start gap-3 text-sm">
+                <div className="bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] p-4 rounded-xl flex items-start gap-3 text-sm">
                   <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                   <p>{uploadError}</p>
                 </div>
               )}
 
               {uploadSuccess && (
-                <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-xl flex items-start gap-3 text-sm">
+                <div className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] p-4 rounded-xl flex items-start gap-3 text-sm">
                   <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
                   <p>{uploadSuccess}</p>
                 </div>
@@ -254,7 +254,7 @@ export default function SettingsPage() {
               <div className="flex flex-col md:flex-row items-start gap-8">
                 {/* Logo Preview */}
                 <div className="flex flex-col items-center gap-4">
-                  <div className="w-32 h-32 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden shadow-lg relative group">
+                  <div className="w-32 h-32 rounded-full bg-[#F7F7FC] border border-[#E8E7F2] flex items-center justify-center overflow-hidden shadow-sm relative group">
                     {currentHomestay?.logo_url ? (
                       <Image 
                         src={currentHomestay.logo_url} 
@@ -264,18 +264,18 @@ export default function SettingsPage() {
                         unoptimized
                       />
                     ) : (
-                      <ImageIcon className="w-10 h-10 text-[#96928A]" strokeWidth={1} />
+                      <ImageIcon className="w-10 h-10 text-[#77758F]" strokeWidth={1} />
                     )}
                     {isUploading && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm z-10">
-                        <Loader2 className="w-6 h-6 text-[#F59E0B] animate-spin" />
+                      <div className="absolute inset-0 bg-white/70 flex items-center justify-center backdrop-blur-sm z-10">
+                        <Loader2 className="w-6 h-6 text-[#5146D8] animate-spin" />
                       </div>
                     )}
                   </div>
                   {currentHomestay?.logo_url && !isUploading && (
                     <button 
                       onClick={handleLogoRemove}
-                      className="text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1.5 transition-colors"
+                      className="text-xs text-[#DC2626] hover:text-[#B91C1C] font-medium flex items-center gap-1.5 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Remove Logo
                     </button>
@@ -284,7 +284,7 @@ export default function SettingsPage() {
 
                 {/* Upload Action */}
                 <div className="flex-1 space-y-4">
-                  <p className="text-[#C7C3BA] text-sm">
+                  <p className="text-[#77758F] text-sm">
                     Upload your property's logo to customize your dashboard. We recommend a square image (1:1 ratio) in PNG or JPEG format, at least 256x256 pixels. Maximum file size is 5MB.
                   </p>
                   
@@ -301,16 +301,16 @@ export default function SettingsPage() {
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
                       className={cn(
-                        "flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all shadow-lg",
+                        "flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm",
                         isUploading 
-                          ? "bg-[#F59E0B]/50 text-white/50 cursor-not-allowed" 
-                          : "bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#F59E0B] text-white hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+                          ? "bg-[#5146D8]/50 text-white/50 cursor-not-allowed" 
+                          : "bg-[#5146D8] hover:bg-[#4338CA] text-white hover:shadow-md"
                       )}
                     >
                       <UploadCloud className="w-4 h-4" /> 
                       {currentHomestay?.logo_url ? "Replace Logo" : "Upload Logo"}
                     </button>
-                    {isAdmin && <p className="text-xs text-amber-500/70 mt-2">Uploading as Super Admin for {currentHomestay?.name}</p>}
+                    {isAdmin && <p className="text-xs text-[#5146D8] mt-2">Uploading as Super Admin for {currentHomestay?.name}</p>}
                   </div>
                 </div>
               </div>
@@ -321,16 +321,16 @@ export default function SettingsPage() {
           {activeTab === 'security' && (
             <div className="space-y-6 max-w-xl">
               <div>
-                <h3 className="text-xl font-bold text-[#F5F1E8] mb-1">Account & Security</h3>
-                <p className="text-[#96928A] text-sm mb-6">Manage your password and security preferences.</p>
+                <h3 className="text-xl font-bold text-[#24213A] mb-1">Account & Security</h3>
+                <p className="text-[#77758F] text-sm mb-6">Manage your password and security preferences.</p>
               </div>
 
               {passwordMessage.text && (
                 <div className={cn(
                   "p-4 rounded-xl flex items-start gap-3 text-sm border",
                   passwordMessage.type === 'success' 
-                    ? "bg-green-500/10 border-green-500/20 text-green-400" 
-                    : "bg-red-500/10 border-red-500/20 text-red-400"
+                    ? "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]" 
+                    : "bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]"
                 )}>
                   {passwordMessage.type === 'success' ? (
                     <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
@@ -343,39 +343,39 @@ export default function SettingsPage() {
 
               <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-[#96928A] mb-1">Current Password</label>
+                  <label className="block text-xs font-medium text-[#77758F] mb-1">Current Password</label>
                   <input
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
-                    className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-[#F2EEE3] focus:outline-none focus:border-[rgba(245,158,11,0.5)] focus:bg-[rgba(255,255,255,0.05)] transition-all"
+                    className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl px-4 py-3 text-[#24213A] focus:outline-none focus:border-[#5146D8] transition-all"
                     placeholder="Enter current password"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-medium text-[#96928A] mb-1">New Password</label>
+                  <label className="block text-xs font-medium text-[#77758F] mb-1">New Password</label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-[#F2EEE3] focus:outline-none focus:border-[rgba(245,158,11,0.5)] focus:bg-[rgba(255,255,255,0.05)] transition-all"
+                    className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl px-4 py-3 text-[#24213A] focus:outline-none focus:border-[#5146D8] transition-all"
                     placeholder="Enter new password"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-[#96928A] mb-1">Confirm New Password</label>
+                  <label className="block text-xs font-medium text-[#77758F] mb-1">Confirm New Password</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-[#F2EEE3] focus:outline-none focus:border-[rgba(245,158,11,0.5)] focus:bg-[rgba(255,255,255,0.05)] transition-all"
+                    className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl px-4 py-3 text-[#24213A] focus:outline-none focus:border-[#5146D8] transition-all"
                     placeholder="Confirm new password"
                   />
                 </div>
@@ -385,10 +385,10 @@ export default function SettingsPage() {
                     type="submit"
                     disabled={isChangingPassword}
                     className={cn(
-                      "flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 rounded-xl font-medium transition-all shadow-lg",
+                      "flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 rounded-xl font-medium transition-all shadow-sm",
                       isChangingPassword
-                        ? "bg-[rgba(255,255,255,0.1)] text-[#96928A] cursor-not-allowed"
-                        : "bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#F59E0B] text-white hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+                        ? "bg-[#E8E7F2] text-[#77758F] cursor-not-allowed"
+                        : "bg-[#5146D8] hover:bg-[#4338CA] text-white hover:shadow-md"
                     )}
                   >
                     {isChangingPassword ? (

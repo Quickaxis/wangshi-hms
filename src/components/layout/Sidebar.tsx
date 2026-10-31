@@ -76,7 +76,7 @@ export function Sidebar() {
   return (
     <GlassPanel className="h-full flex flex-col p-6 rounded-[32px]">
       <div className="mb-10 flex flex-col items-center text-center gap-2">
-        <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center shrink-0 mb-2 shadow-[0_0_15px_rgba(245,158,11,0.1)] overflow-hidden">
+        <div className="w-12 h-12 rounded-full bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center shrink-0 mb-2 shadow-sm overflow-hidden">
           {(isAdminArea && managingHomestay?.logo_url) || (!isAdminArea && currentHomestay?.logo_url) ? (
             <Image 
               src={(isAdminArea && managingHomestay ? managingHomestay.logo_url : currentHomestay?.logo_url) || ''} 
@@ -86,17 +86,17 @@ export function Sidebar() {
               className="w-full h-full object-cover" 
             />
           ) : (
-            <Mountain className="w-6 h-6 text-[#F2EEE3]" strokeWidth={1.5} />
+            <Mountain className="w-6 h-6 text-[#5146D8]" strokeWidth={1.5} />
           )}
         </div>
         <div>
-          <h1 className="text-sm font-semibold tracking-[0.15em] text-[#F5F1E8] leading-tight uppercase">
+          <h1 className="text-sm font-semibold tracking-[0.15em] text-[#24213A] leading-tight uppercase">
             {isAdminArea && managingHomestay ? managingHomestay.name : displayName}
           </h1>
-          <h2 className="text-xs font-medium tracking-[0.2em] text-[#C7C3BA] mt-0.5 uppercase">
+          <h2 className="text-xs font-medium tracking-[0.2em] text-[#77758F] mt-0.5 uppercase">
             {isAdminArea && managingHomestay ? "Managing" : displaySubtitle}
           </h2>
-          <p className="text-[10px] text-[#96928A] mt-2 tracking-wider">
+          <p className="text-[10px] text-[#8F8CA4] mt-2 tracking-wider">
             {isAdminArea && managingHomestay ? managingHomestay.location : displayLocation}
           </p>
         </div>
@@ -110,10 +110,10 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-300",
+                "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#5146D8]/40",
                 isActive 
-                  ? "bg-[rgba(245,158,11,0.1)] text-[#F2EEE3] border border-[rgba(245,158,11,0.2)] shadow-[inset_0_0_12px_rgba(245,158,11,0.1)]" 
-                  : "text-[#96928A] hover:bg-[rgba(255,255,255,0.03)] hover:text-[#C7C3BA] border border-transparent"
+                  ? "bg-[#F0EEFF] text-[#5146D8] font-semibold shadow-sm" 
+                  : "text-[#77758F] hover:bg-[#F7F7FC] hover:text-[#24213A]"
               )}
             >
               <item.icon className="h-4 w-4" strokeWidth={isActive ? 2 : 1.5} />
@@ -124,14 +124,14 @@ export function Sidebar() {
         
         {!isAdminArea && userProfile?.role === 'super_admin' && (
           <>
-            <div className="h-px bg-[rgba(255,255,255,0.05)] my-2 mx-4" />
+            <div className="h-px bg-[#E8E7F2] my-2 mx-4" />
             <Link
               href="/admin"
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-300",
+                "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#5146D8]/40",
                 pathname.startsWith('/admin')
-                  ? "bg-[rgba(245,158,11,0.1)] text-[#F2EEE3] border border-[rgba(245,158,11,0.2)] shadow-[inset_0_0_12px_rgba(245,158,11,0.1)]" 
-                  : "text-[#96928A] hover:bg-[rgba(255,255,255,0.03)] hover:text-[#C7C3BA] border border-transparent"
+                  ? "bg-[#F0EEFF] text-[#5146D8] font-semibold shadow-sm" 
+                  : "text-[#77758F] hover:bg-[#F7F7FC] hover:text-[#24213A]"
               )}
             >
               <ShieldCheck className="h-4 w-4" strokeWidth={pathname.startsWith('/admin') ? 2 : 1.5} />

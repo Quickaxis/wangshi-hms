@@ -29,6 +29,7 @@ import {
 } from "@/app/actions/booking-requests";
 import { DbBookingRequest } from "@/lib/types";
 import { formatISTCompactDate } from "@/lib/dateUtils";
+import { cn } from "@/lib/utils";
 
 interface BookingRequestsViewProps {
   homestayId?: string;
@@ -141,120 +142,121 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
   return (
     <div className="flex flex-col space-y-4">
       {/* Filter & Search Bar */}
-      <GlassPanel className="p-3 md:p-4 rounded-[20px] bg-white md:glass-panel-secondary border border-gray-100 md:border-[rgba(255,255,255,0.05)] flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3 md:p-4 rounded-[20px] bg-[#FFFFFF] border border-[#E8E7F2] shadow-sm flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-gray-400 md:text-[#96928A]" />
+          <Search className="w-4 h-4 text-[#77758F]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by guest name, phone, or reference..."
-            className="w-full bg-transparent text-xs font-medium text-gray-900 md:text-[#F5F1E8] placeholder-gray-400 outline-none"
+            className="w-full bg-transparent text-xs font-medium text-[#24213A] placeholder-[#8F8CA4] outline-none"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-gray-50 md:bg-[rgba(0,0,0,0.2)] border border-gray-200 md:border-[rgba(255,255,255,0.08)] rounded-xl px-2 py-1">
-            <Filter className="w-3.5 h-3.5 text-gray-400 md:text-[#96928A]" />
+          <div className="flex items-center gap-1 bg-[#F7F7FC] border border-[#E8E7F2] rounded-xl px-2.5 py-1">
+            <Filter className="w-3.5 h-3.5 text-[#77758F]" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-[11px] md:text-xs font-medium text-gray-700 md:text-[#F5F1E8] outline-none cursor-pointer"
+              className="bg-transparent text-[11px] md:text-xs font-medium text-[#24213A] outline-none cursor-pointer"
             >
-              <option value="pending" className="bg-[#1C1A18] text-[#F5F1E8]">Pending ({pendingCount})</option>
-              <option value="all" className="bg-[#1C1A18] text-[#F5F1E8]">All Requests ({requests.length})</option>
-              <option value="approved" className="bg-[#1C1A18] text-[#F5F1E8]">Approved</option>
-              <option value="rejected" className="bg-[#1C1A18] text-[#F5F1E8]">Declined</option>
+              <option value="pending" className="bg-[#FFFFFF] text-[#24213A]">Pending ({pendingCount})</option>
+              <option value="all" className="bg-[#FFFFFF] text-[#24213A]">All Requests ({requests.length})</option>
+              <option value="approved" className="bg-[#FFFFFF] text-[#24213A]">Approved</option>
+              <option value="rejected" className="bg-[#FFFFFF] text-[#24213A]">Declined</option>
             </select>
           </div>
 
           <button
             onClick={loadRequests}
             disabled={isLoading}
-            className="p-1.5 rounded-lg border border-gray-200 md:border-[rgba(255,255,255,0.08)] hover:bg-gray-100 md:hover:bg-[rgba(255,255,255,0.05)] text-gray-500 md:text-[#96928A] transition-colors"
+            className="p-1.5 rounded-lg border border-[#E8E7F2] hover:bg-[#F0EEFF] text-[#77758F] hover:text-[#5146D8] transition-colors cursor-pointer"
             title="Refresh requests"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
           </button>
         </div>
-      </GlassPanel>
+      </div>
 
       {/* Requests List */}
       {isLoading && requests.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 gap-2">
-          <Loader2 className="w-6 h-6 text-[#F59E0B] animate-spin" />
-          <span className="text-gray-500 md:text-[#96928A] text-xs">Loading website booking requests...</span>
+          <Loader2 className="w-6 h-6 text-[#5146D8] animate-spin" />
+          <span className="text-[#77758F] text-xs">Loading website booking requests...</span>
         </div>
       ) : filteredRequests.length === 0 ? (
-        <div className="bg-white md:glass-panel-secondary border border-gray-100 md:border-[rgba(255,255,255,0.05)] rounded-[20px] p-8 flex flex-col items-center justify-center text-center">
-          <Clock className="w-8 h-8 text-gray-300 md:text-[#96928A] mb-2" />
-          <div className="text-gray-700 md:text-[#F5F1E8] font-bold text-sm">No {statusFilter !== 'all' ? statusFilter : ''} booking requests found</div>
-          <div className="text-xs text-gray-400 md:text-[#96928A] mt-1">Website booking submissions will appear here automatically in real time.</div>
+        <div className="bg-[#FFFFFF] border border-[#E8E7F2] rounded-[24px] p-10 flex flex-col items-center justify-center text-center shadow-sm">
+          <Clock className="w-10 h-10 text-[#77758F]/40 mb-3" />
+          <div className="text-[#24213A] font-bold text-base">No {statusFilter !== 'all' ? statusFilter : ''} booking requests found</div>
+          <div className="text-xs text-[#77758F] mt-1 max-w-sm">Website booking submissions will appear here automatically in real time.</div>
         </div>
       ) : (
         <>
           {/* Mobile Card View */}
-          <div className="grid grid-cols-1 md:hidden gap-4">
+          <div className="grid grid-cols-1 md:hidden gap-3">
             {filteredRequests.map((req) => {
               const isProcessing = actionLoadingId === req.id;
               return (
                 <div 
                   key={req.id} 
-                  className="p-4 rounded-[20px] bg-white border border-gray-100 shadow-sm flex flex-col justify-between gap-3"
+                  className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[#E8E7F2] shadow-sm flex flex-col justify-between gap-3"
                 >
                   <div>
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <span className="text-[10px] font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        <span className="text-[10px] font-mono font-bold text-[#5146D8] bg-[#F0EEFF] px-2 py-0.5 rounded border border-[#E0DEF8]">
                           REQ-{req.id.slice(0, 8).toUpperCase()}
                         </span>
-                        <h4 className="text-sm font-bold text-gray-900 mt-1">
+                        <h4 className="text-sm font-bold text-[#24213A] mt-1">
                           {req.guest_name}
                         </h4>
                       </div>
                       <span
-                        className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                        className={cn(
+                          "text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
                           req.status === "pending"
-                            ? "bg-amber-50 text-amber-600 border-amber-200"
+                            ? "bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]"
                             : req.status === "approved"
-                            ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                            : "bg-rose-50 text-rose-600 border-rose-200"
-                        }`}
+                            ? "bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]"
+                            : "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
+                        )}
                       >
                         {req.status}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 bg-gray-50 rounded-xl p-2.5 text-xs text-gray-700">
+                    <div className="grid grid-cols-2 gap-2 bg-[#F7F7FC] rounded-xl p-2.5 text-xs text-[#24213A] border border-[#E8E7F2]">
                       <div>
-                        <div className="text-[10px] text-gray-400 uppercase font-semibold">Stay Dates</div>
-                        <div className="font-medium mt-0.5">
+                        <div className="text-[9px] text-[#77758F] uppercase font-semibold">Stay Dates</div>
+                        <div className="font-medium mt-0.5 text-[#24213A]">
                           {formatISTCompactDate(req.check_in)} → {formatISTCompactDate(req.check_out)}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-[10px] text-gray-400 uppercase font-semibold">Room & Guests</div>
-                        <div className="font-medium mt-0.5 truncate">
+                        <div className="text-[9px] text-[#77758F] uppercase font-semibold">Room & Guests</div>
+                        <div className="font-medium mt-0.5 truncate text-[#24213A]">
                           {req.rooms?.name || "Room"} • {req.number_of_guests} G
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-2 flex items-center justify-between text-xs text-gray-600">
-                      <div className="flex items-center gap-1 font-mono">
-                        <Phone className="w-3 h-3 text-gray-400" />
+                    <div className="mt-2 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1 font-mono text-[#77758F]">
+                        <Phone className="w-3 h-3 text-[#77758F]" />
                         <span>{req.guest_phone}</span>
                       </div>
-                      <div className="font-bold text-gray-900">
+                      <div className="font-bold text-[#5146D8] text-sm">
                         ₹{(req.estimated_total || 0).toLocaleString("en-IN")}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-2 pt-2 border-t border-[#E8E7F2]">
                     <button
                       onClick={() => setSelectedRequest(req)}
-                      className="flex-1 py-1.5 px-3 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex-1 py-2 px-3 rounded-xl border border-[#E8E7F2] bg-[#FFFFFF] hover:bg-[#F7F7FC] text-xs font-semibold text-[#24213A] transition-colors cursor-pointer shadow-sm"
                     >
                       Details
                     </button>
@@ -263,14 +265,14 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
                         <button
                           onClick={() => handleReject(req.id)}
                           disabled={isProcessing}
-                          className="py-1.5 px-3 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition-colors"
+                          className="py-2 px-3.5 rounded-xl border border-[#FECACA] bg-[#FEF2F2] text-xs font-semibold text-[#DC2626] hover:bg-[#FEE2E2] transition-colors cursor-pointer"
                         >
                           Decline
                         </button>
                         <button
                           onClick={() => handleApprove(req.id)}
                           disabled={isProcessing}
-                          className="py-1.5 px-3 rounded-lg bg-[#F59E0B] text-xs font-bold text-black hover:bg-[#D97706] transition-colors flex items-center justify-center gap-1"
+                          className="py-2 px-4 rounded-xl bg-[#5146D8] text-xs font-bold text-white hover:bg-[#4338CA] transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-sm"
                         >
                           {isProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Approve"}
                         </button>
@@ -284,10 +286,10 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
 
           {/* Desktop Table View */}
           <div className="hidden md:block w-full overflow-x-auto hide-scrollbar">
-            <GlassPanel className="p-0 rounded-[24px] overflow-hidden border border-[rgba(255,255,255,0.05)]">
+            <div className="p-0 rounded-[24px] overflow-hidden border border-[#E8E7F2] bg-[#FFFFFF] shadow-sm">
               <table className="w-full text-left border-collapse min-w-[900px]">
                 <thead>
-                  <tr className="border-b border-[rgba(255,255,255,0.05)] text-[10px] uppercase tracking-widest text-[#96928A] bg-[rgba(255,255,255,0.01)]">
+                  <tr className="border-b border-[#E8E7F2] text-[10px] uppercase tracking-widest text-[#77758F] bg-[#F7F7FC]/70">
                     <th className="px-6 py-4 font-semibold">Request Ref</th>
                     <th className="px-6 py-4 font-semibold">Guest</th>
                     <th className="px-6 py-4 font-semibold">Room Requested</th>
@@ -297,43 +299,43 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
                     <th className="px-6 py-4 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm divide-y divide-[rgba(255,255,255,0.03)]">
+                <tbody className="text-sm divide-y divide-[#E8E7F2]">
                   {filteredRequests.map((req) => {
                     const isProcessing = actionLoadingId === req.id;
                     return (
                       <tr 
                         key={req.id}
-                        className="hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+                        className="hover:bg-[#F7F7FC] transition-colors"
                       >
                         <td className="px-6 py-4">
-                          <span className="text-[11px] font-mono font-bold text-[#F59E0B] bg-[rgba(245,158,11,0.1)] px-2 py-0.5 rounded border border-[rgba(245,158,11,0.2)]">
+                          <span className="text-[11px] font-mono font-bold text-[#5146D8] bg-[#F0EEFF] px-2 py-0.5 rounded border border-[#E0DEF8]">
                             REQ-{req.id.slice(0, 8).toUpperCase()}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="font-semibold text-[#F5F1E8]">{req.guest_name}</div>
-                          <div className="text-xs text-[#96928A] font-mono mt-0.5">{req.guest_phone}</div>
+                          <div className="font-semibold text-[#24213A]">{req.guest_name}</div>
+                          <div className="text-xs text-[#77758F] font-mono mt-0.5">{req.guest_phone}</div>
                         </td>
-                        <td className="px-6 py-4 text-[#F5F1E8]">
+                        <td className="px-6 py-4 text-[#24213A]">
                           <div className="font-medium">{req.rooms?.name || "Room"}</div>
-                          <div className="text-xs text-[#96928A]">{req.number_of_guests} guest(s)</div>
+                          <div className="text-xs text-[#77758F]">{req.number_of_guests} guest(s)</div>
                         </td>
-                        <td className="px-6 py-4 text-[#C7C3BA] text-xs">
+                        <td className="px-6 py-4 text-[#24213A] text-xs">
                           <div>{formatISTCompactDate(req.check_in)}</div>
-                          <div className="text-[#96928A]">to {formatISTCompactDate(req.check_out)}</div>
+                          <div className="text-[#77758F]">to {formatISTCompactDate(req.check_out)}</div>
                         </td>
-                        <td className="px-6 py-4 text-[#F5F1E8] font-bold">
+                        <td className="px-6 py-4 text-[#24213A] font-bold">
                           ₹{(req.estimated_total || 0).toLocaleString("en-IN")}
-                          <div className="text-[10px] text-[#96928A] font-normal">Pay at Property</div>
+                          <div className="text-[10px] text-[#77758F] font-normal">Pay at Property</div>
                         </td>
                         <td className="px-6 py-4">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                               req.status === "pending"
-                                ? "bg-[rgba(245,158,11,0.1)] text-[#F59E0B] border-[rgba(245,158,11,0.2)]"
+                                ? "bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]"
                                 : req.status === "approved"
-                                ? "bg-[rgba(16,185,129,0.1)] text-[#10B981] border-[rgba(16,185,129,0.2)]"
-                                : "bg-[rgba(244,63,94,0.1)] text-[#F43F5E] border-[rgba(244,63,94,0.2)]"
+                                ? "bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]"
+                                : "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
                             }`}
                           >
                             {req.status}
@@ -343,7 +345,7 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => setSelectedRequest(req)}
-                              className="p-1.5 rounded-lg border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#C7C3BA] transition-colors"
+                              className="p-1.5 rounded-lg border border-[#E8E7F2] hover:bg-[#F0EEFF] text-[#77758F] hover:text-[#5146D8] transition-colors cursor-pointer"
                               title="View details"
                             >
                               <Eye className="w-4 h-4" />
@@ -353,14 +355,14 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
                                 <button
                                   onClick={() => handleReject(req.id)}
                                   disabled={isProcessing}
-                                  className="px-2.5 py-1 rounded-lg border border-[rgba(244,63,94,0.3)] bg-[rgba(244,63,94,0.1)] text-xs font-semibold text-[#F43F5E] hover:bg-[rgba(244,63,94,0.2)] transition-colors"
+                                  className="px-2.5 py-1 rounded-lg border border-[#FECACA] bg-[#FEF2F2] text-xs font-semibold text-[#DC2626] hover:bg-[#FEE2E2] transition-colors cursor-pointer"
                                 >
                                   Decline
                                 </button>
                                 <button
                                   onClick={() => handleApprove(req.id)}
                                   disabled={isProcessing}
-                                  className="px-3 py-1 rounded-lg bg-[#F59E0B] text-xs font-bold text-black hover:bg-[#D97706] transition-colors flex items-center gap-1"
+                                  className="px-3 py-1 rounded-lg bg-[#5146D8] text-xs font-bold text-white hover:bg-[#4338CA] transition-colors flex items-center gap-1 cursor-pointer shadow-sm"
                                 >
                                   {isProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Approve & Confirm"}
                                 </button>
@@ -373,7 +375,7 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
                   })}
                 </tbody>
               </table>
-            </GlassPanel>
+            </div>
           </div>
         </>
       )}
@@ -385,83 +387,83 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
           onClose={() => setSelectedRequest(null)}
           title="Booking Request Details"
         >
-          <div className="space-y-4 text-sm text-[#F5F1E8]">
-            <div className="flex justify-between items-center pb-3 border-b border-[rgba(255,255,255,0.08)]">
+          <div className="space-y-4 text-sm text-[#24213A]">
+            <div className="flex justify-between items-center pb-3 border-b border-[#E8E7F2]">
               <div>
-                <span className="text-xs font-mono font-bold text-[#F59E0B]">
+                <span className="text-xs font-mono font-bold text-[#5146D8]">
                   REQ-{selectedRequest.id.slice(0, 8).toUpperCase()}
                 </span>
-                <div className="text-xs text-[#96928A] mt-0.5">
+                <div className="text-xs text-[#77758F] mt-0.5">
                   Submitted: {new Date(selectedRequest.created_at).toLocaleString("en-IN")}
                 </div>
               </div>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
                   selectedRequest.status === "pending"
-                    ? "bg-[rgba(245,158,11,0.1)] text-[#F59E0B] border-[rgba(245,158,11,0.2)]"
+                    ? "bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]"
                     : selectedRequest.status === "approved"
-                    ? "bg-[rgba(16,185,129,0.1)] text-[#10B981] border-[rgba(16,185,129,0.2)]"
-                    : "bg-[rgba(244,63,94,0.1)] text-[#F43F5E] border-[rgba(244,63,94,0.2)]"
+                    ? "bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]"
+                    : "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
                 }`}
               >
                 {selectedRequest.status}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[rgba(255,255,255,0.02)] p-3 rounded-xl border border-[rgba(255,255,255,0.05)]">
-                <div className="text-xs text-[#96928A] uppercase font-semibold mb-1">Guest Contact</div>
-                <div className="font-bold">{selectedRequest.guest_name}</div>
-                <div className="text-xs text-[#C7C3BA] font-mono mt-1 flex items-center gap-1.5">
-                  <Phone className="w-3 h-3 text-[#96928A]" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="bg-[#F7F7FC] p-3 rounded-xl border border-[#E8E7F2]">
+                <div className="text-xs text-[#77758F] uppercase font-semibold mb-1">Guest Contact</div>
+                <div className="font-bold text-[#24213A]">{selectedRequest.guest_name}</div>
+                <div className="text-xs text-[#77758F] font-mono mt-1 flex items-center gap-1.5">
+                  <Phone className="w-3 h-3 text-[#77758F]" />
                   {selectedRequest.guest_phone}
                 </div>
                 {selectedRequest.guest_email && (
-                  <div className="text-xs text-[#C7C3BA] mt-1 flex items-center gap-1.5">
-                    <Mail className="w-3 h-3 text-[#96928A]" />
+                  <div className="text-xs text-[#77758F] mt-1 flex items-center gap-1.5">
+                    <Mail className="w-3 h-3 text-[#77758F]" />
                     {selectedRequest.guest_email}
                   </div>
                 )}
               </div>
 
-              <div className="bg-[rgba(255,255,255,0.02)] p-3 rounded-xl border border-[rgba(255,255,255,0.05)]">
-                <div className="text-xs text-[#96928A] uppercase font-semibold mb-1">Reservation</div>
-                <div className="font-bold">{selectedRequest.rooms?.name || "Room"}</div>
-                <div className="text-xs text-[#C7C3BA] mt-1">
+              <div className="bg-[#F7F7FC] p-3 rounded-xl border border-[#E8E7F2]">
+                <div className="text-xs text-[#77758F] uppercase font-semibold mb-1">Reservation</div>
+                <div className="font-bold text-[#24213A]">{selectedRequest.rooms?.name || "Room"}</div>
+                <div className="text-xs text-[#24213A] mt-1">
                   {formatISTCompactDate(selectedRequest.check_in)} → {formatISTCompactDate(selectedRequest.check_out)}
                 </div>
-                <div className="text-xs text-[#96928A] mt-1">
+                <div className="text-xs text-[#77758F] mt-1">
                   {selectedRequest.number_of_guests} guest(s)
                 </div>
               </div>
             </div>
 
-            <div className="bg-[rgba(255,255,255,0.02)] p-3 rounded-xl border border-[rgba(255,255,255,0.05)] flex justify-between items-center">
+            <div className="bg-[#F7F7FC] p-3 rounded-xl border border-[#E8E7F2] flex justify-between items-center">
               <div>
-                <div className="text-xs text-[#96928A] uppercase font-semibold">Payment Terms</div>
-                <div className="text-xs text-[#C7C3BA] mt-0.5">Pay at Property (Check-in)</div>
+                <div className="text-xs text-[#77758F] uppercase font-semibold">Payment Terms</div>
+                <div className="text-xs text-[#77758F] mt-0.5">Pay at Property (Check-in)</div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-[#96928A] uppercase font-semibold">Estimated Amount</div>
-                <div className="text-base font-bold text-[#F5F1E8]">
+                <div className="text-xs text-[#77758F] uppercase font-semibold">Estimated Amount</div>
+                <div className="text-base font-bold text-[#5146D8]">
                   ₹{(selectedRequest.estimated_total || 0).toLocaleString("en-IN")}
                 </div>
               </div>
             </div>
 
             {selectedRequest.notes && (
-              <div className="bg-[rgba(255,255,255,0.02)] p-3 rounded-xl border border-[rgba(255,255,255,0.05)]">
-                <div className="text-xs text-[#96928A] uppercase font-semibold mb-1">Notes / Preferences</div>
-                <div className="text-xs text-[#C7C3BA] whitespace-pre-wrap">{selectedRequest.notes}</div>
+              <div className="bg-[#F7F7FC] p-3 rounded-xl border border-[#E8E7F2]">
+                <div className="text-xs text-[#77758F] uppercase font-semibold mb-1">Notes / Preferences</div>
+                <div className="text-xs text-[#24213A] whitespace-pre-wrap">{selectedRequest.notes}</div>
               </div>
             )}
 
             {selectedRequest.status === "pending" && (
-              <div className="flex justify-end gap-3 pt-3 border-t border-[rgba(255,255,255,0.08)]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#E8E7F2]">
                 <button
                   onClick={() => handleReject(selectedRequest.id)}
                   disabled={actionLoadingId === selectedRequest.id}
-                  className="px-4 py-2 rounded-xl border border-[rgba(244,63,94,0.3)] bg-[rgba(244,63,94,0.1)] text-xs font-semibold text-[#F43F5E] hover:bg-[rgba(244,63,94,0.2)] transition-colors"
+                  className="px-4 py-2.5 rounded-xl border border-[#FECACA] bg-[#FEF2F2] text-xs font-semibold text-[#DC2626] hover:bg-[#FEE2E2] transition-colors cursor-pointer"
                 >
                   Decline Request
                 </button>
@@ -469,6 +471,7 @@ export function BookingRequestsView({ homestayId, onBookingCreated }: BookingReq
                   onClick={() => handleApprove(selectedRequest.id)}
                   disabled={actionLoadingId === selectedRequest.id}
                   variant="primary"
+                  className="py-2.5"
                 >
                   {actionLoadingId === selectedRequest.id ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

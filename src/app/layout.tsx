@@ -27,7 +27,7 @@ export default function RootLayout({
       lang="en"
       className={`${poppins.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans text-primary bg-background">
+      <body className="min-h-full flex flex-col font-sans text-[#24213A] bg-background">
         <AuthProvider>
           <HMSProvider>
             <AppShellWrapper>{children}</AppShellWrapper>

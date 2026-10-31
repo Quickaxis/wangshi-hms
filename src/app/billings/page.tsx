@@ -194,12 +194,12 @@ export default function BillingsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-wide text-[#F5F1E8]">
+          <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-wide text-[#24213A]">
             Billings & Invoices
           </h1>
-          <p className="text-xs text-[#96928A] mt-1">
+          <p className="text-xs text-[#77758F] mt-1">
             Manage guest folios, itemized charges, and payment settlements for{" "}
-            <span className="text-[#F2EEE3] font-semibold">{currentHomestay?.name || "All Homestays"}</span>
+            <span className="text-[#5146D8] font-semibold">{currentHomestay?.name || "All Homestays"}</span>
           </p>
         </div>
 
@@ -210,13 +210,13 @@ export default function BillingsPage() {
             disabled={isLoading}
             className="text-xs flex items-center gap-1.5"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin text-[#F59E0B]")} />
+            <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin text-[#5146D8]")} />
             <span className="hidden sm:inline">Refresh</span>
           </GlassButton>
 
           <button
             onClick={handleCreateNewFolio}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#F59E0B] text-black hover:bg-[#FBBF24] shadow-lg shadow-[rgba(245,158,11,0.2)] transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#5146D8] text-white hover:bg-[#4338CA] shadow-md shadow-[#5146D8]/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>New Folio</span>
@@ -227,93 +227,93 @@ export default function BillingsPage() {
       {/* Financial Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Invoiced */}
-        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[rgba(255,255,255,0.08)] relative overflow-hidden group hover:border-[rgba(245,158,11,0.3)] transition-all">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[rgba(245,158,11,0.05)] rounded-full blur-xl pointer-events-none" />
+        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#8B83F6] transition-all shadow-sm">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#F0EEFF] rounded-full blur-xl pointer-events-none" />
           <div>
-            <div className="text-[10px] text-[#96928A] font-bold uppercase tracking-widest">Total Invoiced</div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#F5F1E8] mt-1">
+            <div className="text-[10px] text-[#77758F] font-bold uppercase tracking-widest">Total Invoiced</div>
+            <div className="text-xl sm:text-2xl font-bold font-mono text-[#24213A] mt-1">
               ₹{metrics.totalInvoiced.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[11px] text-[#96928A] mt-0.5">
-              Across <strong className="text-[#F2EEE3]">{metrics.count}</strong> guest folios
+            <div className="text-[11px] text-[#77758F] mt-0.5">
+              Across <strong className="text-[#24213A]">{metrics.count}</strong> guest folios
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.25)] flex items-center justify-center text-[#F59E0B] shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center text-[#5146D8] shrink-0">
             <Receipt className="w-5 h-5" />
           </div>
         </GlassPanel>
 
         {/* Amount Collected */}
-        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[rgba(255,255,255,0.08)] relative overflow-hidden group hover:border-[rgba(79,231,123,0.3)] transition-all">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[rgba(79,231,123,0.05)] rounded-full blur-xl pointer-events-none" />
+        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#A7F3D0] transition-all shadow-sm">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#ECFDF5] rounded-full blur-xl pointer-events-none" />
           <div>
-            <div className="text-[10px] text-[#96928A] font-bold uppercase tracking-widest">Amount Collected</div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#4FE77B] mt-1">
+            <div className="text-[10px] text-[#77758F] font-bold uppercase tracking-widest">Amount Collected</div>
+            <div className="text-xl sm:text-2xl font-bold font-mono text-[#059669] mt-1">
               ₹{metrics.totalCollected.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[11px] text-[#96928A] mt-0.5">
-              <strong className="text-[#4FE77B]">{metrics.paidCount}</strong> fully settled folios
+            <div className="text-[11px] text-[#77758F] mt-0.5">
+              <strong className="text-[#059669]">{metrics.paidCount}</strong> fully settled folios
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[rgba(79,231,123,0.15)] border border-[rgba(79,231,123,0.25)] flex items-center justify-center text-[#4FE77B] shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#059669] shrink-0">
             <CheckCircle className="w-5 h-5" />
           </div>
         </GlassPanel>
 
         {/* Balance Due */}
-        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[rgba(255,255,255,0.08)] relative overflow-hidden group hover:border-[rgba(255,105,120,0.3)] transition-all">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[rgba(255,105,120,0.05)] rounded-full blur-xl pointer-events-none" />
+        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#FECACA] transition-all shadow-sm">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#FEF2F2] rounded-full blur-xl pointer-events-none" />
           <div>
-            <div className="text-[10px] text-[#96928A] font-bold uppercase tracking-widest">Balance Due</div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#FF6978] mt-1">
+            <div className="text-[10px] text-[#77758F] font-bold uppercase tracking-widest">Balance Due</div>
+            <div className="text-xl sm:text-2xl font-bold font-mono text-[#DC2626] mt-1">
               ₹{metrics.totalDue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[11px] text-[#96928A] mt-0.5">
+            <div className="text-[11px] text-[#77758F] mt-0.5">
               Pending front-desk collection
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[rgba(255,105,120,0.15)] border border-[rgba(255,105,120,0.25)] flex items-center justify-center text-[#FF6978] shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#DC2626] shrink-0">
             <AlertCircle className="w-5 h-5" />
           </div>
         </GlassPanel>
 
         {/* Settlement Efficiency */}
-        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[rgba(255,255,255,0.08)] relative overflow-hidden group hover:border-[rgba(255,255,255,0.2)] transition-all">
+        <GlassPanel className="p-4 sm:p-5 rounded-2xl flex items-center justify-between border border-[#E8E7F2] relative overflow-hidden group hover:border-[#8B83F6] transition-all shadow-sm">
           <div>
-            <div className="text-[10px] text-[#96928A] font-bold uppercase tracking-widest">Settlement Rate</div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#F5F1E8] mt-1">
+            <div className="text-[10px] text-[#77758F] font-bold uppercase tracking-widest">Settlement Rate</div>
+            <div className="text-xl sm:text-2xl font-bold font-mono text-[#24213A] mt-1">
               {metrics.efficiency}%
             </div>
-            <div className="w-32 h-1.5 bg-[rgba(255,255,255,0.08)] rounded-full mt-1.5 overflow-hidden">
+            <div className="w-32 h-1.5 bg-[#E8E7F2] rounded-full mt-1.5 overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-[#F59E0B] to-[#4FE77B] rounded-full" 
+                className="h-full bg-gradient-to-r from-[#8B83F6] to-[#5146D8] rounded-full" 
                 style={{ width: `${metrics.efficiency}%` }}
               />
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-[#F5F1E8] shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center text-[#5146D8] shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
         </GlassPanel>
       </div>
 
       {/* Filter and Search Bar */}
-      <GlassPanel className="p-4 rounded-2xl border border-[rgba(255,255,255,0.08)]">
+      <GlassPanel className="p-4 rounded-2xl border border-[#E8E7F2] shadow-sm">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-[#96928A] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#77758F] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by invoice #, guest name, contact phone, or room..."
-              className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl pl-9 pr-8 py-2 text-xs text-[#F5F1E8] placeholder-[#78736B] focus:border-[#F59E0B] outline-none transition-all"
+              className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl pl-9 pr-8 py-2 text-xs text-[#24213A] placeholder-[#8F8CA4] focus:border-[#5146D8] focus:ring-2 focus:ring-[#5146D8]/10 outline-none transition-all shadow-sm"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#96928A] hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77758F] hover:text-[#24213A]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -322,11 +322,11 @@ export default function BillingsPage() {
 
           {/* Sort Selector */}
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[10px] text-[#96928A] font-bold uppercase tracking-wider hidden sm:inline">Sort:</span>
+            <span className="text-[10px] text-[#77758F] font-bold uppercase tracking-wider hidden sm:inline">Sort:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl px-2.5 py-2 text-xs text-[#C7C3BA] focus:border-[#F59E0B] outline-none cursor-pointer"
+              className="bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl px-2.5 py-2 text-xs text-[#24213A] focus:border-[#5146D8] outline-none cursor-pointer shadow-sm"
             >
               <option value="date_desc">Latest Date</option>
               <option value="amount_desc">Amount (High to Low)</option>
@@ -350,14 +350,14 @@ export default function BillingsPage() {
                 className={cn(
                   "px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer",
                   statusFilter === st.id
-                    ? "bg-[#F59E0B] text-black font-black shadow-md shadow-[rgba(245,158,11,0.2)]"
-                    : "bg-[rgba(255,255,255,0.03)] text-[#96928A] hover:text-[#C7C3BA] hover:bg-[rgba(255,255,255,0.06)]"
+                    ? "bg-[#5146D8] text-white font-black shadow-md shadow-[#5146D8]/20"
+                    : "bg-[#F0EEFF] text-[#77758F] hover:text-[#5146D8] hover:bg-[#E5E3FA]"
                 )}
               >
                 <span>{st.label}</span>
                 <span className={cn(
                   "px-1.5 py-0.2 rounded-full text-[9px]",
-                  statusFilter === st.id ? "bg-black/20 text-black" : "bg-white/5 text-[#96928A]"
+                  statusFilter === st.id ? "bg-white/20 text-white" : "bg-white text-[#77758F]"
                 )}>
                   {tabCounts[st.id] || 0}
                 </span>
@@ -368,22 +368,22 @@ export default function BillingsPage() {
       </GlassPanel>
 
       {/* Invoices List / Table */}
-      <GlassPanel className="p-0 rounded-2xl overflow-hidden border border-[rgba(255,255,255,0.08)] shadow-2xl">
+      <GlassPanel className="p-0 rounded-2xl overflow-hidden border border-[#E8E7F2] shadow-sm">
         {/* Mobile View (Cards) */}
-        <div className="block md:hidden divide-y divide-[rgba(255,255,255,0.05)]">
+        <div className="block md:hidden divide-y divide-[#E8E7F2]">
           {isLoading ? (
-            <div className="p-10 text-center text-xs text-[#96928A]">
-              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#F59E0B]" />
+            <div className="p-10 text-center text-xs text-[#77758F]">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#5146D8]" />
               Loading invoices...
             </div>
           ) : filteredInvoices.length === 0 ? (
-            <div className="p-10 text-center text-xs text-[#96928A] space-y-2">
-              <Receipt className="w-8 h-8 mx-auto opacity-30 text-[#F5F1E8]" />
+            <div className="p-10 text-center text-xs text-[#77758F] space-y-2">
+              <Receipt className="w-8 h-8 mx-auto opacity-30 text-[#8B83F6]" />
               <p>No invoices match your search or filter.</p>
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="text-[11px] text-[#F59E0B] underline"
+                  className="text-[11px] text-[#5146D8] underline"
                 >
                   Clear search query
                 </button>
@@ -391,13 +391,13 @@ export default function BillingsPage() {
             </div>
           ) : (
             filteredInvoices.map((inv) => (
-              <div key={inv.id} className="p-4 space-y-3 hover:bg-[rgba(255,255,255,0.015)] transition-colors">
+              <div key={inv.id} className="p-4 space-y-3 hover:bg-[#F7F7FC]/60 transition-colors">
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="font-mono text-xs font-bold text-[#F5F1E8]">
+                    <div className="font-mono text-xs font-bold text-[#5146D8]">
                       {inv.invoice_number}
                     </div>
-                    <div className="text-[11px] text-[#96928A] mt-0.5">
+                    <div className="text-[11px] text-[#77758F] mt-0.5">
                       {formatISTCompactDate(inv.invoice_date)} • {inv.guest_name}
                     </div>
                   </div>
@@ -405,49 +405,49 @@ export default function BillingsPage() {
                   <span
                     className={cn(
                       "px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border",
-                      inv.status === "paid" && "bg-[rgba(79,231,123,0.15)] border-[rgba(79,231,123,0.3)] text-[#4FE77B]",
-                      inv.status === "partially_paid" && "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]",
-                      inv.status === "unpaid" && "bg-[rgba(255,105,120,0.15)] border-[rgba(255,105,120,0.3)] text-[#FF6978]",
-                      inv.status === "cancelled" && "bg-[rgba(255,255,255,0.05)] border-[rgba(255,255,255,0.1)] text-[#96928A]"
+                      inv.status === "paid" && "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]",
+                      inv.status === "partially_paid" && "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]",
+                      inv.status === "unpaid" && "bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]",
+                      inv.status === "cancelled" && "bg-[#F7F7FC] border-[#E8E7F2] text-[#77758F]"
                     )}
                   >
                     {inv.status.replace("_", " ")}
                   </span>
                 </div>
 
-                <div className="text-xs text-[#C7C3BA] flex items-center justify-between">
-                  <span>{inv.room_name || "Room"}</span>
-                  <span className="text-[11px] text-[#96928A]">
+                <div className="text-xs text-[#24213A] flex items-center justify-between">
+                  <span className="font-medium">{inv.room_name || "Room"}</span>
+                  <span className="text-[11px] text-[#77758F]">
                     {formatISTCompactDate(inv.check_in)} → {formatISTCompactDate(inv.check_out)}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 bg-[rgba(255,255,255,0.02)] p-2.5 rounded-xl border border-[rgba(255,255,255,0.05)] text-xs">
+                <div className="grid grid-cols-3 gap-2 bg-[#F7F7FC] p-2.5 rounded-xl border border-[#E8E7F2] text-xs">
                   <div>
-                    <div className="text-[9px] text-[#96928A] uppercase font-bold">Total</div>
-                    <div className="font-mono font-bold text-[#F5F1E8]">₹{Number(inv.grand_total).toLocaleString("en-IN")}</div>
+                    <div className="text-[9px] text-[#77758F] uppercase font-bold">Total</div>
+                    <div className="font-mono font-bold text-[#24213A]">₹{Number(inv.grand_total).toLocaleString("en-IN")}</div>
                   </div>
                   <div>
-                    <div className="text-[9px] text-[#96928A] uppercase font-bold">Paid</div>
-                    <div className="font-mono font-bold text-[#4FE77B]">₹{Number(inv.amount_paid).toLocaleString("en-IN")}</div>
+                    <div className="text-[9px] text-[#77758F] uppercase font-bold">Paid</div>
+                    <div className="font-mono font-bold text-[#059669]">₹{Number(inv.amount_paid).toLocaleString("en-IN")}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[9px] text-[#96928A] uppercase font-bold">Due</div>
-                    <div className="font-mono font-bold text-[#FF6978]">₹{Number(inv.balance_due).toLocaleString("en-IN")}</div>
+                    <div className="text-[9px] text-[#77758F] uppercase font-bold">Due</div>
+                    <div className="font-mono font-bold text-[#DC2626]">₹{Number(inv.balance_due).toLocaleString("en-IN")}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     onClick={() => handleOpenPreview(inv)}
-                    className="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 bg-[#5B131E]/30 text-[#FFB3B3] hover:bg-[#5B131E]/50 border border-[#5B131E]/40 transition-colors cursor-pointer"
+                    className="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] text-[#5146D8] border border-[#E0DEF8] transition-colors cursor-pointer font-medium"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Print PDF</span>
                   </button>
                   <button
                     onClick={() => handleOpenEdit(inv)}
-                    className="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] text-[#F5F1E8] transition-colors cursor-pointer"
+                    className="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 bg-[#FFFFFF] hover:bg-[#F7F7FC] border border-[#E8E7F2] text-[#24213A] transition-colors cursor-pointer font-medium"
                   >
                     <Edit className="w-3.5 h-3.5" />
                     <span>Edit Folio</span>
@@ -462,7 +462,7 @@ export default function BillingsPage() {
         <div className="hidden md:block w-full overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[950px]">
             <thead>
-              <tr className="border-b border-[rgba(255,255,255,0.06)] text-[10px] uppercase tracking-widest text-[#96928A] bg-[rgba(255,255,255,0.015)]">
+              <tr className="border-b border-[#E8E7F2] text-[10px] uppercase tracking-widest text-[#77758F] bg-[#F7F7FC]">
                 <th className="px-6 py-4 font-bold">Invoice No. & Date</th>
                 <th className="px-6 py-4 font-bold">Guest Details</th>
                 <th className="px-6 py-4 font-bold">Stay / Accommodation</th>
@@ -473,28 +473,28 @@ export default function BillingsPage() {
                 <th className="px-6 py-4 font-bold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-[rgba(255,255,255,0.03)]">
+            <tbody className="text-sm divide-y divide-[#E8E7F2]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-20 text-center text-[#96928A]">
+                  <td colSpan={8} className="px-6 py-20 text-center text-[#77758F]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-6 h-6 text-[#F59E0B] animate-spin" />
+                      <Loader2 className="w-6 h-6 text-[#5146D8] animate-spin" />
                       <span>Loading guest invoices...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-20 text-center text-[#96928A]">
+                  <td colSpan={8} className="px-6 py-20 text-center text-[#77758F]">
                     <div className="max-w-md mx-auto space-y-2">
-                      <Receipt className="w-8 h-8 mx-auto opacity-30 text-[#F5F1E8]" />
-                      <p className="text-sm font-semibold text-[#F5F1E8]">No invoices match your criteria</p>
-                      <p className="text-xs text-[#96928A]">
+                      <Receipt className="w-8 h-8 mx-auto opacity-30 text-[#8B83F6]" />
+                      <p className="text-sm font-semibold text-[#24213A]">No invoices match your criteria</p>
+                      <p className="text-xs text-[#77758F]">
                         {searchQuery ? "Try refining your search terms or filters." : "No invoices found for this homestay. Generate a folio from Bookings or create one directly."}
                       </p>
                       <button
                         onClick={handleCreateNewFolio}
-                        className="mt-3 px-4 py-2 rounded-full text-xs font-semibold bg-[#F59E0B] text-black hover:bg-[#FBBF24] inline-flex items-center gap-1.5 cursor-pointer shadow-md"
+                        className="mt-3 px-4 py-2 rounded-full text-xs font-semibold bg-[#5146D8] text-white hover:bg-[#4338CA] inline-flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#5146D8]/20"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Create Guest Folio</span>
@@ -506,26 +506,26 @@ export default function BillingsPage() {
                 filteredInvoices.map((inv) => (
                   <tr
                     key={inv.id}
-                    className="group hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+                    className="group hover:bg-[#F7F7FC]/70 transition-colors"
                   >
                     {/* Invoice No & Date */}
                     <td className="px-6 py-4">
-                      <div className="font-mono text-xs font-bold text-[#F5F1E8] group-hover:text-[#F59E0B] transition-colors">
+                      <div className="font-mono text-xs font-bold text-[#5146D8] group-hover:text-[#4338CA] transition-colors">
                         {inv.invoice_number}
                       </div>
-                      <div className="text-[11px] text-[#96928A] mt-0.5 flex items-center gap-1">
-                        <Calendar className="w-3 h-3 opacity-60" />
+                      <div className="text-[11px] text-[#77758F] mt-0.5 flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-[#5146D8]" />
                         <span>{formatISTCompactDate(inv.invoice_date)}</span>
                       </div>
                     </td>
 
                     {/* Guest Details */}
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-[#F5F1E8]">
+                      <div className="font-semibold text-[#24213A]">
                         {inv.guest_name}
                       </div>
                       {inv.guest_phone && (
-                        <div className="text-[11px] text-[#96928A] mt-0.5 flex items-center gap-1">
+                        <div className="text-[11px] text-[#77758F] mt-0.5 flex items-center gap-1">
                           <Phone className="w-2.5 h-2.5 opacity-60" />
                           <span>{inv.guest_phone}</span>
                         </div>
@@ -534,28 +534,28 @@ export default function BillingsPage() {
 
                     {/* Stay & Room */}
                     <td className="px-6 py-4">
-                      <div className="font-medium text-[#F2EEE3] flex items-center gap-1.5">
-                        <BedDouble className="w-3.5 h-3.5 text-[#F59E0B]" />
+                      <div className="font-medium text-[#24213A] flex items-center gap-1.5">
+                        <BedDouble className="w-3.5 h-3.5 text-[#5146D8]" />
                         <span>{inv.room_name || "Room"}</span>
                       </div>
-                      <div className="text-[11px] text-[#96928A] mt-0.5">
+                      <div className="text-[11px] text-[#77758F] mt-0.5">
                         {formatISTCompactDate(inv.check_in)} → {formatISTCompactDate(inv.check_out)}
                       </div>
                     </td>
 
                     {/* Grand Total */}
-                    <td className="px-6 py-4 text-right font-mono font-bold text-[#F5F1E8]">
+                    <td className="px-6 py-4 text-right font-mono font-bold text-[#24213A]">
                       ₹{Number(inv.grand_total).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
 
                     {/* Amount Paid */}
-                    <td className="px-6 py-4 text-right font-mono font-medium text-[#4FE77B]">
+                    <td className="px-6 py-4 text-right font-mono font-medium text-[#059669]">
                       ₹{Number(inv.amount_paid).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
 
                     {/* Balance Due */}
                     <td className="px-6 py-4 text-right font-mono font-bold">
-                      <span className={Number(inv.balance_due) > 0 ? "text-[#FF6978]" : "text-[#96928A]"}>
+                      <span className={Number(inv.balance_due) > 0 ? "text-[#DC2626]" : "text-[#77758F]"}>
                         ₹{Number(inv.balance_due).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </span>
                     </td>
@@ -565,18 +565,18 @@ export default function BillingsPage() {
                       <span
                         className={cn(
                           "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border",
-                          inv.status === "paid" && "bg-[rgba(79,231,123,0.15)] border-[rgba(79,231,123,0.3)] text-[#4FE77B]",
-                          inv.status === "partially_paid" && "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[#F59E0B]",
-                          inv.status === "unpaid" && "bg-[rgba(255,105,120,0.15)] border-[rgba(255,105,120,0.3)] text-[#FF6978]",
-                          inv.status === "cancelled" && "bg-[rgba(255,255,255,0.05)] border-[rgba(255,255,255,0.1)] text-[#96928A]"
+                          inv.status === "paid" && "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]",
+                          inv.status === "partially_paid" && "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]",
+                          inv.status === "unpaid" && "bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]",
+                          inv.status === "cancelled" && "bg-[#F7F7FC] border-[#E8E7F2] text-[#77758F]"
                         )}
                       >
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full",
-                          inv.status === "paid" && "bg-[#4FE77B]",
+                          inv.status === "paid" && "bg-[#10B981]",
                           inv.status === "partially_paid" && "bg-[#F59E0B]",
-                          inv.status === "unpaid" && "bg-[#FF6978]",
-                          inv.status === "cancelled" && "bg-[#96928A]"
+                          inv.status === "unpaid" && "bg-[#EF4444]",
+                          inv.status === "cancelled" && "bg-[#77758F]"
                         )} />
                         <span>{inv.status.replace("_", " ")}</span>
                       </span>
@@ -587,15 +587,15 @@ export default function BillingsPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenPreview(inv)}
-                          title="Print / Save Luxury A4 Folio"
-                          className="p-2 rounded-xl bg-[#5B131E]/20 hover:bg-[#5B131E]/40 border border-[#5B131E]/40 text-[#FFB3B3] hover:text-white transition-all cursor-pointer active:scale-95"
+                          title="Print / Save Folio PDF"
+                          className="p-2 rounded-xl bg-[#F0EEFF] hover:bg-[#E0DEF8] border border-[#E0DEF8] text-[#5146D8] transition-all cursor-pointer active:scale-95"
                         >
                           <Printer className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleOpenEdit(inv)}
                           title="Edit Line Items & Settle Payments"
-                          className="p-2 rounded-xl bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.09)] border border-[rgba(255,255,255,0.06)] text-[#C7C3BA] hover:text-white transition-all cursor-pointer active:scale-95"
+                          className="p-2 rounded-xl bg-[#FFFFFF] hover:bg-[#F7F7FC] border border-[#E8E7F2] text-[#24213A] transition-all cursor-pointer active:scale-95 shadow-sm"
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>

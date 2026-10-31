@@ -109,29 +109,29 @@ function LoginContent() {
 
   return (
     <div className="w-full max-w-md relative z-10 w-full px-4 sm:px-0">
-      <div className="bg-[rgba(25,22,18,0.96)] border border-[rgba(255,255,255,0.08)] p-8 sm:p-12 rounded-[32px] flex flex-col items-center text-center shadow-[0_30px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-        <div className="w-20 h-20 rounded-2xl bg-[rgba(245,160,0,0.1)] border border-[rgba(245,160,0,0.2)] flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(245,160,0,0.1)]">
-          <svg className="w-10 h-10 text-[#f5a000]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-8 sm:p-12 rounded-[32px] flex flex-col items-center text-center shadow-[0_20px_50px_rgba(36,33,58,0.06)]">
+        <div className="w-20 h-20 rounded-2xl bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center mb-6 shadow-sm">
+          <svg className="w-10 h-10 text-[#5146D8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
         </div>
         
-        <h1 className="text-3xl font-bold text-[#f5f2eb] mb-2 tracking-wide">
+        <h1 className="text-3xl font-bold text-[#24213A] mb-2 tracking-wide">
           HOMESTAY SYSTEM
         </h1>
-        <p className="text-[#aaa39a] text-sm mb-8 tracking-wider">
+        <p className="text-[#77758F] text-sm mb-8 tracking-wider">
           Partner Management System
         </p>
 
         {currentError && (
-          <div className="w-full mb-6 p-4 rounded-xl bg-[rgba(255,105,120,0.1)] border border-[rgba(255,105,120,0.2)]">
-            <p className="text-[#FF6978] text-sm font-medium">{currentError}</p>
+          <div className="w-full mb-6 p-4 rounded-xl bg-[#FEF2F2] border border-[#FECACA]">
+            <p className="text-[#DC2626] text-sm font-medium">{currentError}</p>
           </div>
         )}
 
         {successMsg && (
-          <div className="w-full mb-6 p-4 rounded-xl bg-[rgba(79,231,123,0.1)] border border-[rgba(79,231,123,0.2)]">
-            <p className="text-[#4FE77B] text-sm font-medium">{successMsg}</p>
+          <div className="w-full mb-6 p-4 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0]">
+            <p className="text-[#059669] text-sm font-medium">{successMsg}</p>
           </div>
         )}
 
@@ -143,7 +143,7 @@ function LoginContent() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Partner Email"
               disabled={isLoading}
-              className="w-full bg-[#181512] border border-[rgba(255,255,255,0.12)] rounded-xl px-4 py-3.5 text-[#f5f2eb] placeholder-[#aaa39a] focus:outline-none focus:border-[#f5a000] focus:ring-1 focus:ring-[#f5a000] transition-all"
+              className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl px-4 py-3.5 text-[#24213A] placeholder-[#8F8CA4] focus:outline-none focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8] transition-all"
             />
           </div>
           
@@ -155,12 +155,12 @@ function LoginContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 disabled={isLoading}
-                className="w-full bg-[#181512] border border-[rgba(255,255,255,0.12)] rounded-xl pl-4 pr-12 py-3.5 text-[#f5f2eb] placeholder-[#aaa39a] focus:outline-none focus:border-[#f5a000] focus:ring-1 focus:ring-[#f5a000] transition-all"
+                className="w-full bg-[#FFFFFF] border border-[#E8E7F2] rounded-xl pl-4 pr-12 py-3.5 text-[#24213A] placeholder-[#8F8CA4] focus:outline-none focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8] transition-all"
               />
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-[14px] text-[#aaa39a] hover:text-[#f5f2eb] transition-colors focus:outline-none"
+                className="absolute right-4 top-[14px] text-[#77758F] hover:text-[#24213A] transition-colors focus:outline-none"
               >
                 {showPassword ? (
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -181,7 +181,7 @@ function LoginContent() {
                     setErrorMsg(null);
                     setSuccessMsg(null);
                   }}
-                  className="text-xs text-[#f5a000] hover:text-[#d97706] transition-colors"
+                  className="text-xs text-[#5146D8] hover:text-[#4338CA] transition-colors"
                 >
                   Forgot password?
                 </button>
@@ -192,12 +192,12 @@ function LoginContent() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-2 relative group overflow-hidden rounded-xl bg-[#f5a000] hover:bg-[#d97706] transition-all duration-300 flex items-center justify-center py-4 px-6 focus:outline-none focus:ring-2 focus:ring-[#f5a000] focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full mt-2 relative group overflow-hidden rounded-xl bg-[#5146D8] hover:bg-[#4338CA] transition-all duration-300 flex items-center justify-center py-4 px-6 focus:outline-none focus:ring-2 focus:ring-[#5146D8] focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-[#0b0907] border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <span className="text-[#0b0907] font-bold tracking-wide">
+              <span className="text-white font-bold tracking-wide">
                 {isResetMode ? "Send Reset Link" : "Sign In"}
               </span>
             )}
@@ -212,13 +212,13 @@ function LoginContent() {
               setErrorMsg(null);
               setSuccessMsg(null);
             }}
-            className="mt-6 text-sm text-[#96928A] hover:text-[#F5F1E8] transition-colors"
+            className="mt-6 text-sm text-[#77758F] hover:text-[#24213A] transition-colors"
           >
             Back to login
           </button>
         )}
 
-        <p className="mt-8 text-xs text-[#aaa39a] tracking-wider">
+        <p className="mt-8 text-xs text-[#77758F] tracking-wider">
           Authorized partners only.
         </p>
       </div>
@@ -228,11 +228,11 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-[#0b0907] relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-[#F7F7FC] relative overflow-hidden">
       {/* Background ambient light */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] bg-[#f5a000] opacity-[0.04] blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] bg-[#5146D8] opacity-[0.05] blur-[120px] rounded-full pointer-events-none"></div>
       
-      <Suspense fallback={<div className="w-10 h-10 border-2 border-[#f5a000] border-t-transparent rounded-full animate-spin"></div>}>
+      <Suspense fallback={<div className="w-10 h-10 border-2 border-[#5146D8] border-t-transparent rounded-full animate-spin"></div>}>
         <LoginContent />
       </Suspense>
     </div>
