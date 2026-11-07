@@ -495,10 +495,31 @@ export async function saveRoomConfigAction(input: RoomConfigInput) {
     if (!input.nightly_rate || input.nightly_rate <= 0) return { success: false, error: "Price per night must be greater than 0." };
     if (!input.max_guests || input.max_guests <= 0) return { success: false, error: "Maximum capacity must be at least 1." };
 
+    const normalizedRoomNumber = input.room_number.trim();
+
+    // Tenant-scoped uniqueness validation: check if room number already exists in this homestay
+    let dupQuery = adminClient
+      .from("rooms")
+      .select("id, name, room_number")
+      .eq("homestay_id", targetHomestayId)
+      .eq("room_number", normalizedRoomNumber);
+
+    if (input.id) {
+      dupQuery = dupQuery.neq("id", input.id);
+    }
+
+    const { data: duplicateRoom } = await dupQuery.maybeSingle();
+    if (duplicateRoom) {
+      return {
+        success: false,
+        error: `Room number "${normalizedRoomNumber}" already exists in this homestay ("${duplicateRoom.name}"). Please use a unique room number.`
+      };
+    }
+
     // Common room payload that matches existing schema
     const roomPayload: Record<string, any> = {
       homestay_id: targetHomestayId,
-      room_number: input.room_number.trim(),
+      room_number: normalizedRoomNumber,
       name: input.name.trim(),
       description: input.description?.trim() || null,
       nightly_rate: Math.round(Number(input.nightly_rate)),
@@ -542,6 +563,29 @@ export async function saveRoomConfigAction(input: RoomConfigInput) {
       }
 
       if (updateError) {
+        if (
+          (updateError as any).code === "23505" ||
+          updateError.message.includes("rooms_room_number_key") ||
+          updateError.message.includes("duplicate key")
+        ) {
+          const { data: otherRoom } = await adminClient
+            .from("rooms")
+            .select("id, homestay_id, homestays(name)")
+            .eq("room_number", normalizedRoomNumber)
+            .maybeSingle();
+
+          if (otherRoom && otherRoom.homestay_id !== targetHomestayId) {
+            const otherHomestayName = (otherRoom.homestays as any)?.name || "another homestay";
+            return {
+              success: false,
+              error: `Room number "${normalizedRoomNumber}" is currently in use by ${otherHomestayName}. A database migration (migration_rooms_per_homestay_unique.sql) is required to allow identical room numbers across different homestays.`
+            };
+          }
+          return {
+            success: false,
+            error: `Room number "${normalizedRoomNumber}" already exists in this homestay. Please use a unique room number.`
+          };
+        }
         return { success: false, error: updateError.message };
       }
 
@@ -570,6 +614,29 @@ export async function saveRoomConfigAction(input: RoomConfigInput) {
       }
 
       if (insertError) {
+        if (
+          (insertError as any).code === "23505" ||
+          insertError.message.includes("rooms_room_number_key") ||
+          insertError.message.includes("duplicate key")
+        ) {
+          const { data: otherRoom } = await adminClient
+            .from("rooms")
+            .select("id, homestay_id, homestays(name)")
+            .eq("room_number", normalizedRoomNumber)
+            .maybeSingle();
+
+          if (otherRoom && otherRoom.homestay_id !== targetHomestayId) {
+            const otherHomestayName = (otherRoom.homestays as any)?.name || "another homestay";
+            return {
+              success: false,
+              error: `Room number "${normalizedRoomNumber}" is currently in use by ${otherHomestayName}. A database migration (migration_rooms_per_homestay_unique.sql) is required to allow identical room numbers across different homestays.`
+            };
+          }
+          return {
+            success: false,
+            error: `Room number "${normalizedRoomNumber}" already exists in this homestay. Please use a unique room number.`
+          };
+        }
         return { success: false, error: insertError.message };
       }
 

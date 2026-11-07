@@ -284,11 +284,32 @@ export async function addRoomAction(data: Partial<DbRoom>): Promise<AdminActionR
     const { supabase, authorized } = await requireSuperAdmin();
     if (!authorized) return { success: false, error: "Unauthorized" };
 
+    if (!data.homestay_id) return { success: false, error: "Homestay ID is required." };
+    if (!data.room_number?.trim()) return { success: false, error: "Room number is required." };
+    if (!data.name?.trim()) return { success: false, error: "Room name is required." };
+
+    const normalizedRoomNumber = data.room_number.trim();
+
+    // Check for duplicate room number within the same homestay
+    const { data: duplicateRoom } = await supabase
+      .from("rooms")
+      .select("id, name")
+      .eq("homestay_id", data.homestay_id)
+      .eq("room_number", normalizedRoomNumber)
+      .maybeSingle();
+
+    if (duplicateRoom) {
+      return {
+        success: false,
+        error: `Room number "${normalizedRoomNumber}" already exists in this homestay ("${duplicateRoom.name}"). Please use a unique room number.`
+      };
+    }
+
     const { error } = await supabase.from("rooms").insert([
       {
         homestay_id: data.homestay_id,
-        room_number: data.room_number,
-        name: data.name,
+        room_number: normalizedRoomNumber,
+        name: data.name.trim(),
         description: data.description || null,
         bathroom_type: data.bathroom_type || "Attached toilet & bathroom",
         max_guests: data.max_guests,
@@ -299,7 +320,33 @@ export async function addRoomAction(data: Partial<DbRoom>): Promise<AdminActionR
       }
     ]);
 
-    if (error) throw error;
+    if (error) {
+      if (
+        (error as any).code === "23505" ||
+        error.message.includes("rooms_room_number_key") ||
+        error.message.includes("duplicate key")
+      ) {
+        const { data: otherRoom } = await supabase
+          .from("rooms")
+          .select("id, homestay_id, homestays(name)")
+          .eq("room_number", normalizedRoomNumber)
+          .maybeSingle();
+
+        if (otherRoom && otherRoom.homestay_id !== data.homestay_id) {
+          const otherHomestayName = (otherRoom.homestays as any)?.name || "another homestay";
+          return {
+            success: false,
+            error: `Room number "${normalizedRoomNumber}" is currently in use by ${otherHomestayName}. A database migration (migration_rooms_per_homestay_unique.sql) is required to allow identical room numbers across different homestays.`
+          };
+        }
+
+        return {
+          success: false,
+          error: `Room number "${normalizedRoomNumber}" already exists in this homestay. Please use a unique room number.`
+        };
+      }
+      throw error;
+    }
     revalidatePath("/admin/homestays");
     revalidatePath("/admin/rooms");
     revalidatePath("/rooms");
@@ -316,9 +363,39 @@ export async function updateRoomAction(id: string, data: Partial<DbRoom>): Promi
     const { supabase, authorized } = await requireSuperAdmin();
     if (!authorized) return { success: false, error: "Unauthorized" };
 
+    let targetHomestayId = data.homestay_id;
+    if (data.room_number) {
+      const normalizedRoomNumber = data.room_number.trim();
+      if (!targetHomestayId) {
+        const { data: currentRoom } = await supabase
+          .from("rooms")
+          .select("homestay_id")
+          .eq("id", id)
+          .single();
+        targetHomestayId = currentRoom?.homestay_id;
+      }
+
+      if (targetHomestayId) {
+        const { data: duplicateRoom } = await supabase
+          .from("rooms")
+          .select("id, name")
+          .eq("homestay_id", targetHomestayId)
+          .eq("room_number", normalizedRoomNumber)
+          .neq("id", id)
+          .maybeSingle();
+
+        if (duplicateRoom) {
+          return {
+            success: false,
+            error: `Room number "${normalizedRoomNumber}" already exists in this homestay ("${duplicateRoom.name}"). Please use a unique room number.`
+          };
+        }
+      }
+    }
+
     const updateData: Record<string, any> = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.room_number !== undefined) updateData.room_number = data.room_number;
+    if (data.name !== undefined) updateData.name = data.name.trim();
+    if (data.room_number !== undefined) updateData.room_number = data.room_number.trim();
     if (data.description !== undefined) updateData.description = data.description;
     if (data.max_guests !== undefined) updateData.max_guests = data.max_guests;
     if (data.nightly_rate !== undefined) updateData.nightly_rate = data.nightly_rate;
@@ -332,7 +409,34 @@ export async function updateRoomAction(id: string, data: Partial<DbRoom>): Promi
       .update(updateData)
       .eq("id", id);
 
-    if (error) throw error;
+    if (error) {
+      if (
+        (error as any).code === "23505" ||
+        error.message.includes("rooms_room_number_key") ||
+        error.message.includes("duplicate key")
+      ) {
+        const numToCheck = (data.room_number || "").trim();
+        const { data: otherRoom } = await supabase
+          .from("rooms")
+          .select("id, homestay_id, homestays(name)")
+          .eq("room_number", numToCheck)
+          .maybeSingle();
+
+        if (otherRoom && targetHomestayId && otherRoom.homestay_id !== targetHomestayId) {
+          const otherHomestayName = (otherRoom.homestays as any)?.name || "another homestay";
+          return {
+            success: false,
+            error: `Room number "${numToCheck}" is currently in use by ${otherHomestayName}. A database migration (migration_rooms_per_homestay_unique.sql) is required to allow identical room numbers across different homestays.`
+          };
+        }
+
+        return {
+          success: false,
+          error: `Room number "${numToCheck}" already exists in this homestay. Please use a unique room number.`
+        };
+      }
+      throw error;
+    }
     revalidatePath("/admin/homestays");
     revalidatePath("/admin/rooms");
     revalidatePath("/rooms");

@@ -171,6 +171,18 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!currentHomestay || !editingRoom) return;
 
+    const normalizedNum = editingRoom.room_number?.trim();
+    if (normalizedNum) {
+      const isDuplicate = rooms.some(r => 
+        r.room_number?.trim().toLowerCase() === normalizedNum.toLowerCase() && 
+        r.id !== editingRoom.id
+      );
+      if (isDuplicate) {
+        showToast("error", `Room number "${normalizedNum}" already exists in this homestay. Please use a unique room number.`);
+        return;
+      }
+    }
+
     setIsSavingRoom(true);
     try {
       const res = await saveRoomConfigAction({
