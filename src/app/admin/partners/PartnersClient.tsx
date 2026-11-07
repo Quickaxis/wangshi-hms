@@ -125,7 +125,7 @@ export function PartnersClient({ initialPartners, homestayId }: { initialPartner
       <div className="flex justify-end mb-6">
         <button
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(245,158,11,0.2)] text-[#F59E0B] hover:bg-[rgba(245,158,11,0.3)] transition-colors text-sm font-semibold tracking-wide border border-[rgba(245,158,11,0.4)]"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white shadow-sm transition-colors text-sm font-semibold tracking-wide border border-[#B45309]"
         >
           <Plus className="w-4 h-4" /> Add Partner
         </button>
@@ -133,21 +133,21 @@ export function PartnersClient({ initialPartners, homestayId }: { initialPartner
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredPartners.length === 0 ? (
-          <div className="col-span-full text-center py-10 text-[#96928A]">
+          <div className="col-span-full text-center py-10 text-[#77758F]">
             No partners found.
           </div>
         ) : (
           filteredPartners.map((partner) => (
-            <GlassPanel key={partner.id} className={`p-5 rounded-2xl flex flex-col gap-4 relative ${!partner.is_active ? 'opacity-60' : ''}`}>
+            <GlassPanel key={partner.id} className={`p-5 rounded-2xl flex flex-col gap-4 relative bg-white border border-[#E8E6F2] shadow-sm ${!partner.is_active ? 'opacity-70' : ''}`}>
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center shrink-0 border border-[rgba(255,255,255,0.1)]">
-                    <Users className="w-5 h-5 text-[#C7C3BA]" />
+                  <div className="w-10 h-10 rounded-full bg-[#F0EEFF] flex items-center justify-center shrink-0 border border-[#E0DEF8]">
+                    <Users className="w-5 h-5 text-[#5146D8]" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-[#F5F1E8]">{partner.name}</h4>
+                    <h4 className="text-sm font-bold text-[#24213A]">{partner.name}</h4>
                     <div className="flex items-center gap-1.5 mt-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${partner.role === 'super_admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-[#F59E0B]/20 text-[#F59E0B]'}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${partner.role === 'super_admin' ? 'bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8]' : 'bg-amber-50 text-amber-800 border border-amber-200'}`}>
                         {partner.role}
                       </span>
                     </div>
@@ -156,30 +156,30 @@ export function PartnersClient({ initialPartners, homestayId }: { initialPartner
                 <div className="flex gap-1.5">
                   <button 
                     onClick={() => handleOpenResetModal(partner)} 
-                    className="p-1.5 rounded-lg hover:bg-[rgba(255,255,255,0.1)] text-[#96928A] hover:text-white transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-[#F6F5FC] text-[#77758F] hover:text-[#24213A] border border-transparent hover:border-[#E8E6F2] transition-colors"
                     title="Reset Password"
                   >
                     <KeyRound className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleOpenModal(partner)} className="p-1.5 rounded-lg hover:bg-[rgba(255,255,255,0.1)] text-[#96928A] hover:text-white transition-colors">
+                  <button onClick={() => handleOpenModal(partner)} className="p-1.5 rounded-lg hover:bg-[#F6F5FC] text-[#77758F] hover:text-[#24213A] border border-transparent hover:border-[#E8E6F2] transition-colors" title="Edit Partner">
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={() => handleToggleActive(partner)} 
-                    className="p-1.5 rounded-lg hover:bg-[rgba(255,255,255,0.1)] text-[#96928A] hover:text-white transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-[#F6F5FC] text-[#77758F] hover:text-[#24213A] border border-transparent hover:border-[#E8E6F2] transition-colors"
                     title={partner.is_active ? "Disable" : "Reactivate"}
                   >
-                    {partner.is_active ? <Ban className="w-4 h-4 text-red-400" /> : <CheckCircle2 className="w-4 h-4 text-green-400" />}
+                    {partner.is_active ? <Ban className="w-4 h-4 text-rose-500" /> : <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
                   </button>
                 </div>
               </div>
 
               <div className="space-y-2 mt-2">
-                <div className="flex items-center gap-2 text-xs text-[#96928A]">
-                  <Mail className="w-3.5 h-3.5" /> <span>{partner.email}</span>
+                <div className="flex items-center gap-2 text-xs text-[#55536A]">
+                  <Mail className="w-3.5 h-3.5 text-[#77758F] shrink-0" /> <span>{partner.email}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-[#96928A]">
-                  <Building2 className="w-3.5 h-3.5" /> <span>{partner.role === 'super_admin' ? 'All Homestays' : (partner.homestay?.name || 'Unassigned')}</span>
+                <div className="flex items-center gap-2 text-xs text-[#55536A]">
+                  <Building2 className="w-3.5 h-3.5 text-[#77758F] shrink-0" /> <span>{partner.role === 'super_admin' ? 'All Homestays' : (partner.homestay?.name || 'Unassigned')}</span>
                 </div>
               </div>
             </GlassPanel>
@@ -189,61 +189,61 @@ export function PartnersClient({ initialPartners, homestayId }: { initialPartner
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <GlassPanel className="w-full max-w-md p-6 rounded-2xl relative border border-[rgba(255,255,255,0.1)] max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-[#F5F1E8] mb-4">{editingId ? "Edit Partner" : "Add Partner"}</h3>
+          <GlassPanel className="w-full max-w-md p-6 rounded-2xl relative bg-white border border-[#E8E6F2] shadow-xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-[#24213A] mb-4">{editingId ? "Edit Partner" : "Add Partner"}</h3>
             
-            {error && <div className="mb-4 text-red-400 text-xs bg-red-400/10 p-3 rounded-lg">{error}</div>}
+            {error && <div className="mb-4 text-rose-600 text-xs bg-rose-50 border border-rose-200 p-3 rounded-lg">{error}</div>}
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#96928A] uppercase tracking-wider mb-1.5">Full Name *</label>
+                <label className="block text-xs font-semibold text-[#686579] uppercase tracking-wider mb-1.5">Full Name *</label>
                 <input
                   required
                   type="text"
                   value={formData.name || ''}
                   onChange={e => setFormData({...formData, name: e.target.value})}
-                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-2.5 text-sm text-[#F5F1E8] outline-none focus:border-[#F59E0B]"
+                  className="w-full bg-white border border-[#E8E6F2] rounded-xl px-4 py-2.5 text-sm text-[#24213A] placeholder-[#9D9AA8] outline-none focus:border-[#5146D8] transition-colors shadow-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#96928A] uppercase tracking-wider mb-1.5">Email *</label>
+                <label className="block text-xs font-semibold text-[#686579] uppercase tracking-wider mb-1.5">Email *</label>
                 <input
                   required
                   type="email"
                   value={formData.email || ''}
                   onChange={e => setFormData({...formData, email: e.target.value})}
-                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-2.5 text-sm text-[#F5F1E8] outline-none focus:border-[#F59E0B]"
+                  className="w-full bg-white border border-[#E8E6F2] rounded-xl px-4 py-2.5 text-sm text-[#24213A] placeholder-[#9D9AA8] outline-none focus:border-[#5146D8] transition-colors shadow-sm"
                 />
               </div>
 
               {!editingId && (
                 <>
                   <div className="relative">
-                    <label className="block text-xs font-semibold text-[#96928A] uppercase tracking-wider mb-1.5">Password *</label>
+                    <label className="block text-xs font-semibold text-[#686579] uppercase tracking-wider mb-1.5">Password *</label>
                     <input
                       required
                       type={showPassword ? "text" : "password"}
                       value={formData.password || ''}
                       onChange={e => setFormData({...formData, password: e.target.value})}
-                      className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-2.5 text-sm text-[#F5F1E8] outline-none focus:border-[#F59E0B] pr-10"
+                      className="w-full bg-white border border-[#E8E6F2] rounded-xl px-4 py-2.5 text-sm text-[#24213A] placeholder-[#9D9AA8] outline-none focus:border-[#5146D8] transition-colors shadow-sm pr-10"
                     />
                     <button 
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-[28px] text-[#96928A] hover:text-[#F5F1E8]"
+                      className="absolute right-3 top-[28px] text-[#77758F] hover:text-[#24213A]"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   <div className="relative">
-                    <label className="block text-xs font-semibold text-[#96928A] uppercase tracking-wider mb-1.5">Confirm Password *</label>
+                    <label className="block text-xs font-semibold text-[#686579] uppercase tracking-wider mb-1.5">Confirm Password *</label>
                     <input
                       required
                       type={showPassword ? "text" : "password"}
                       value={formData.confirmPassword || ''}
                       onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                      className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-2.5 text-sm text-[#F5F1E8] outline-none focus:border-[#F59E0B] pr-10"
+                      className="w-full bg-white border border-[#E8E6F2] rounded-xl px-4 py-2.5 text-sm text-[#24213A] placeholder-[#9D9AA8] outline-none focus:border-[#5146D8] transition-colors shadow-sm pr-10"
                     />
                   </div>
                 </>
@@ -251,15 +251,15 @@ export function PartnersClient({ initialPartners, homestayId }: { initialPartner
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#96928A] uppercase tracking-wider mb-1.5">Role *</label>
+                  <label className="block text-xs font-semibold text-[#686579] uppercase tracking-wider mb-1.5">Role *</label>
                   <select
                     required
-                    disabled={!!editingId} // prevent role switching after creation for safety, or leave enabled if desired.
+                    disabled={!!editingId}
                     value={formData.role || 'partner'}
                     onChange={e => setFormData({...formData, role: e.target.value})}
-                    className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-2.5 text-sm text-[#F5F1E8] outline-none focus:border-[#F59E0B] disabled:opacity-50"
+                    className="w-full bg-white border border-[#E8E6F2] rounded-xl px-4 py-2.5 text-sm text-[#24213A] outline-none focus:border-[#5146D8] disabled:opacity-50 transition-colors shadow-sm"
                   >
-                    <option value="partner" className="text-black">Partner</option>
+                    <option value="partner" className="text-[#24213A]">Partner</option>
                   </select>
                 </div>
               </div>
@@ -270,23 +270,23 @@ export function PartnersClient({ initialPartners, homestayId }: { initialPartner
                   id="isActive"
                   checked={formData.is_active || false}
                   onChange={e => setFormData({...formData, is_active: e.target.checked})}
-                  className="w-4 h-4 bg-transparent border-[rgba(255,255,255,0.2)] rounded text-[#F59E0B] focus:ring-0 focus:ring-offset-0"
+                  className="w-4 h-4 bg-white border-[#E8E6F2] rounded text-[#5146D8] focus:ring-0 focus:ring-offset-0"
                 />
-                <label htmlFor="isActive" className="text-sm text-[#C7C3BA]">Active Account</label>
+                <label htmlFor="isActive" className="text-sm font-medium text-[#24213A] cursor-pointer">Active Account</label>
               </div>
 
-              <div className="flex gap-3 justify-end pt-4 mt-6 border-t border-[rgba(255,255,255,0.05)]">
+              <div className="flex gap-3 justify-end pt-4 mt-6 border-t border-[#E8E6F2]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-[#C7C3BA] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+                  className="px-4 py-2 rounded-xl text-sm font-semibold text-[#55536A] hover:bg-[#F6F5FC] border border-[#E8E6F2] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-6 py-2 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-black text-sm font-bold transition-colors disabled:opacity-50"
+                  className="px-6 py-2 rounded-xl bg-[#5146D8] hover:bg-[#4338CA] text-white text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
                 >
                   {isLoading ? 'Saving...' : 'Save'}
                 </button>
@@ -298,42 +298,42 @@ export function PartnersClient({ initialPartners, homestayId }: { initialPartner
 
       {isResetModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <GlassPanel className="w-full max-w-sm p-6 rounded-2xl relative border border-[rgba(255,255,255,0.1)]">
-            <h3 className="text-lg font-bold text-[#F5F1E8] mb-4">Reset Password</h3>
+          <GlassPanel className="w-full max-w-sm p-6 rounded-2xl relative bg-white border border-[#E8E6F2] shadow-xl">
+            <h3 className="text-lg font-bold text-[#24213A] mb-4">Reset Password</h3>
             
-            {error && <div className="mb-4 text-red-400 text-xs bg-red-400/10 p-3 rounded-lg">{error}</div>}
+            {error && <div className="mb-4 text-rose-600 text-xs bg-rose-50 border border-rose-200 p-3 rounded-lg">{error}</div>}
             
             <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
               <div className="relative">
-                <label className="block text-xs font-semibold text-[#96928A] uppercase tracking-wider mb-1.5">New Password *</label>
+                <label className="block text-xs font-semibold text-[#686579] uppercase tracking-wider mb-1.5">New Password *</label>
                 <input
                   required
                   type={showPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
-                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-2.5 text-sm text-[#F5F1E8] outline-none focus:border-[#F59E0B] pr-10"
+                  className="w-full bg-white border border-[#E8E6F2] rounded-xl px-4 py-2.5 text-sm text-[#24213A] placeholder-[#9D9AA8] outline-none focus:border-[#5146D8] pr-10 transition-colors shadow-sm"
                 />
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-[28px] text-[#96928A] hover:text-[#F5F1E8]"
+                  className="absolute right-3 top-[28px] text-[#77758F] hover:text-[#24213A]"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
 
-              <div className="flex gap-3 justify-end pt-4 mt-6 border-t border-[rgba(255,255,255,0.05)]">
+              <div className="flex gap-3 justify-end pt-4 mt-6 border-t border-[#E8E6F2]">
                 <button
                   type="button"
                   onClick={() => setIsResetModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-[#C7C3BA] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+                  className="px-4 py-2 rounded-xl text-sm font-semibold text-[#55536A] hover:bg-[#F6F5FC] border border-[#E8E6F2] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-6 py-2 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-black text-sm font-bold transition-colors disabled:opacity-50"
+                  className="px-6 py-2 rounded-xl bg-[#5146D8] hover:bg-[#4338CA] text-white text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
                 >
                   {isLoading ? 'Resetting...' : 'Reset'}
                 </button>

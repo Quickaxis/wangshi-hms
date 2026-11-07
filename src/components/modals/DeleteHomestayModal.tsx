@@ -100,78 +100,78 @@ function DeleteHomestayModalContent({
     >
       <div className="space-y-5 text-sm">
         {/* Warning Banner */}
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300">
-          <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800">
+          <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <h4 className="font-semibold text-red-200">Destructive & Irreversible Action</h4>
-            <p className="text-xs text-red-300/90 leading-relaxed">
-              This will permanently delete <strong className="text-white font-bold">{homestay.name}</strong> from the database. 
+            <h4 className="font-semibold text-rose-900">Destructive & Irreversible Action</h4>
+            <p className="text-xs text-rose-700 leading-relaxed">
+              This will permanently delete <strong className="text-rose-950 font-bold">{homestay.name}</strong> from the database. 
               This action cannot be undone.
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs">
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
             {error}
           </div>
         )}
 
         {/* Dependent Records Inspection */}
         <div>
-          <h5 className="text-xs font-semibold text-[#96928A] uppercase tracking-wider mb-2.5">
+          <h5 className="text-xs font-semibold text-[#686579] uppercase tracking-wider mb-2.5">
             Dependent Property Records
           </h5>
 
           {isLoadingSummary ? (
-            <div className="flex items-center justify-center py-6 text-[#96928A] gap-2 text-xs">
-              <Loader2 className="w-4 h-4 animate-spin text-[#F59E0B]" />
+            <div className="flex items-center justify-center py-6 text-[#77758F] gap-2 text-xs">
+              <Loader2 className="w-4 h-4 animate-spin text-[#5146D8]" />
               <span>Inspecting database relationships...</span>
             </div>
           ) : summary ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] flex items-center gap-2.5">
-                <BedDouble className="w-4 h-4 text-[#F59E0B] shrink-0" />
+              <div className="p-3 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2] flex items-center gap-2.5">
+                <BedDouble className="w-4 h-4 text-[#5146D8] shrink-0" />
                 <div>
-                  <div className="text-xs font-bold text-[#F5F1E8]">{summary.roomsCount}</div>
-                  <div className="text-[10px] text-[#96928A]">Rooms</div>
+                  <div className="text-xs font-bold text-[#24213A]">{summary.roomsCount}</div>
+                  <div className="text-[10px] text-[#77758F]">Rooms</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] flex items-center gap-2.5">
-                <CalendarCheck className="w-4 h-4 text-[#4FE77B] shrink-0" />
+              <div className="p-3 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2] flex items-center gap-2.5">
+                <CalendarCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                 <div>
-                  <div className="text-xs font-bold text-[#F5F1E8]">
+                  <div className="text-xs font-bold text-[#24213A]">
                     {summary.bookingsCount}
                     {summary.activeBookingsCount > 0 && (
-                      <span className="text-[10px] text-[#4FE77B] ml-1">({summary.activeBookingsCount} active)</span>
+                      <span className="text-[10px] text-emerald-600 font-semibold ml-1">({summary.activeBookingsCount} active)</span>
                     )}
                   </div>
-                  <div className="text-[10px] text-[#96928A]">Bookings</div>
+                  <div className="text-[10px] text-[#77758F]">Bookings</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] flex items-center gap-2.5">
-                <Users className="w-4 h-4 text-[#C7C3BA] shrink-0" />
+              <div className="p-3 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2] flex items-center gap-2.5">
+                <Users className="w-4 h-4 text-[#77758F] shrink-0" />
                 <div>
-                  <div className="text-xs font-bold text-[#F5F1E8]">{summary.guestsCount}</div>
-                  <div className="text-[10px] text-[#96928A]">Guests</div>
+                  <div className="text-xs font-bold text-[#24213A]">{summary.guestsCount}</div>
+                  <div className="text-[10px] text-[#77758F]">Guests</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] flex items-center gap-2.5">
-                <UserCheck className="w-4 h-4 text-[#F59E0B] shrink-0" />
+              <div className="p-3 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2] flex items-center gap-2.5">
+                <UserCheck className="w-4 h-4 text-[#D97706] shrink-0" />
                 <div>
-                  <div className="text-xs font-bold text-[#F5F1E8]">{summary.partnersCount}</div>
-                  <div className="text-[10px] text-[#96928A]">Staff Partners</div>
+                  <div className="text-xs font-bold text-[#24213A]">{summary.partnersCount}</div>
+                  <div className="text-[10px] text-[#77758F]">Staff Partners</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-[#C7C3BA] shrink-0" />
+              <div className="p-3 rounded-xl bg-[#F6F5FC] border border-[#E8E6F2] flex items-center gap-2.5">
+                <Mail className="w-4 h-4 text-[#77758F] shrink-0" />
                 <div>
-                  <div className="text-xs font-bold text-[#F5F1E8]">{summary.requestsCount}</div>
-                  <div className="text-[10px] text-[#96928A]">Requests</div>
+                  <div className="text-xs font-bold text-[#24213A]">{summary.requestsCount}</div>
+                  <div className="text-[10px] text-[#77758F]">Requests</div>
                 </div>
               </div>
             </div>
@@ -180,19 +180,19 @@ function DeleteHomestayModalContent({
 
         {/* Historical booking cascade warning */}
         {hasBookings && (
-          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 space-y-2">
+          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2">
             <p>
               This homestay contains <strong>{summary?.bookingsCount} historical booking record(s)</strong>. Permanent deletion will permanently erase these bookings and guest histories.
             </p>
-            <p className="text-[11px] text-[#C7C3BA]">
+            <p className="text-[11px] text-amber-800">
               If you only want to take this property offline, you can use <strong>Deactivate</strong> instead.
             </p>
-            <label className="flex items-center gap-2.5 pt-1 text-xs text-[#F5F1E8] font-medium cursor-pointer">
+            <label className="flex items-center gap-2.5 pt-1 text-xs text-[#24213A] font-medium cursor-pointer">
               <input
                 type="checkbox"
                 checked={cascadeConfirmed}
                 onChange={(e) => setCascadeConfirmed(e.target.checked)}
-                className="w-4 h-4 rounded bg-transparent border-[rgba(255,255,255,0.2)] text-red-500 focus:ring-0"
+                className="w-4 h-4 rounded bg-white border-[#E8E6F2] text-rose-600 focus:ring-0"
               />
               <span>I confirm permanent deletion of all booking records and dependent data</span>
             </label>
@@ -200,10 +200,10 @@ function DeleteHomestayModalContent({
         )}
 
         {/* Name Typing Confirmation */}
-        <div className="space-y-2 pt-1 border-t border-[rgba(255,255,255,0.06)]">
-          <label className="block text-xs font-medium text-[#C7C3BA]">
+        <div className="space-y-2 pt-1 border-t border-[#E8E6F2]">
+          <label className="block text-xs font-medium text-[#686579]">
             To confirm deletion, please type the property name:
-            <span className="block mt-1 font-bold text-[#F5F1E8] select-all bg-[rgba(255,255,255,0.05)] px-2.5 py-1 rounded-lg border border-[rgba(255,255,255,0.08)]">
+            <span className="block mt-1 font-bold text-[#24213A] select-all bg-[#F6F5FC] px-2.5 py-1 rounded-lg border border-[#E8E6F2]">
               {homestay.name}
             </span>
           </label>
@@ -212,7 +212,7 @@ function DeleteHomestayModalContent({
             value={typedName}
             onChange={(e) => setTypedName(e.target.value)}
             placeholder={`Type "${homestay.name}"`}
-            className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-2.5 text-sm text-[#F5F1E8] outline-none focus:border-red-400 transition-colors"
+            className="w-full bg-white border border-[#E8E6F2] rounded-xl px-4 py-2.5 text-sm text-[#24213A] placeholder-[#9D9AA8] outline-none focus:border-rose-500 transition-colors shadow-sm"
             autoFocus
           />
         </div>

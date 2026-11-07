@@ -56,39 +56,43 @@ export default async function HomestayManagePage({ params }: { params: Promise<{
         
         {/* Header */}
         <div>
-          <Link href="/admin/homestays" className="inline-flex items-center gap-2 text-sm text-[#96928A] hover:text-[#F59E0B] transition-colors mb-4">
+          <Link href="/admin/homestays" className="inline-flex items-center gap-2 text-sm text-[#77758F] hover:text-[#5146D8] font-medium transition-colors mb-4">
             <span className="text-lg leading-none">&larr;</span> Back to Homestays
           </Link>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#F5F1E8] tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#24213A] tracking-tight">
                 {homestay.name}
               </h1>
-              <p className="text-[#96928A] text-sm mt-1">Homestay Overview</p>
+              <p className="text-[#77758F] text-sm mt-1">Homestay Overview</p>
             </div>
-            <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${homestay.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+            <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${homestay.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
               {homestay.is_active ? 'Active' : 'Inactive'}
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          <GlassPanel className="p-6 rounded-2xl flex flex-col gap-4">
-            <h3 className="text-lg font-bold text-[#F5F1E8] border-b border-[rgba(255,255,255,0.05)] pb-3">
+          <GlassPanel className="p-6 rounded-2xl flex flex-col gap-4 bg-white border border-[#E8E6F2] shadow-sm">
+            <h3 className="text-lg font-bold text-[#24213A] border-b border-[#E8E6F2] pb-3">
               Details
             </h3>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 text-[#96928A]">
-                <MapPin className="w-5 h-5 text-[#F59E0B]" />
-                <span>{homestay.location}</span>
-              </div>
-              <div className="flex items-center gap-3 text-[#96928A]">
-                <Phone className="w-5 h-5 text-[#F59E0B]" />
-                <span>{homestay.phone}</span>
-              </div>
+              {homestay.location && (
+                <div className="flex items-center gap-3 text-sm text-[#55536A]">
+                  <MapPin className="w-5 h-5 text-[#5146D8] shrink-0" />
+                  <span>{homestay.location}</span>
+                </div>
+              )}
+              {homestay.phone && (
+                <div className="flex items-center gap-3 text-sm text-[#55536A]">
+                  <Phone className="w-5 h-5 text-[#5146D8] shrink-0" />
+                  <span>{homestay.phone}</span>
+                </div>
+              )}
               {homestay.email && (
-                <div className="flex items-center gap-3 text-[#96928A]">
-                  <Mail className="w-5 h-5 text-[#F59E0B]" />
+                <div className="flex items-center gap-3 text-sm text-[#55536A]">
+                  <Mail className="w-5 h-5 text-[#5146D8] shrink-0" />
                   <span>{homestay.email}</span>
                 </div>
               )}
@@ -97,38 +101,38 @@ export default async function HomestayManagePage({ params }: { params: Promise<{
 
           <div className="flex flex-col gap-4">
             <div>
-              <GlassPanel className="p-6 rounded-2xl flex items-center justify-between hover:bg-[rgba(255,255,255,0.05)] transition-colors group">
+              <GlassPanel className="p-6 rounded-2xl flex items-center justify-between bg-white border border-[#E8E6F2] shadow-sm hover:border-[#5146D8]/30 transition-colors group">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[rgba(245,158,11,0.1)] flex items-center justify-center border border-[rgba(245,158,11,0.2)] group-hover:scale-110 transition-transform">
-                    <BedDouble className="w-6 h-6 text-[#F59E0B]" />
+                  <div className="w-12 h-12 rounded-full bg-[#F0EEFF] flex items-center justify-center border border-[#E0DEF8] group-hover:scale-110 transition-transform">
+                    <BedDouble className="w-6 h-6 text-[#5146D8]" />
                   </div>
                   <div>
-                    <h4 className="text-[#F5F1E8] font-bold text-lg">Rooms</h4>
-                    <p className="text-[#96928A] text-sm mb-2">Manage inventory and pricing</p>
-                    <Link href={`/admin/homestays/${homestayId}/rooms`} className="text-[#F59E0B] text-sm font-semibold hover:underline">
+                    <h4 className="text-[#24213A] font-bold text-lg">Rooms</h4>
+                    <p className="text-[#77758F] text-sm mb-2">Manage inventory and pricing</p>
+                    <Link href={`/admin/homestays/${homestayId}/rooms`} className="text-[#5146D8] text-sm font-semibold hover:underline inline-flex items-center gap-1">
                       Manage Rooms &rarr;
                     </Link>
                   </div>
                 </div>
-                <div className="text-3xl font-bold text-[#C7C3BA]">{roomsCount || 0}</div>
+                <div className="text-3xl font-bold text-[#24213A]">{roomsCount || 0}</div>
               </GlassPanel>
             </div>
 
             <div>
-              <GlassPanel className="p-6 rounded-2xl flex items-center justify-between hover:bg-[rgba(255,255,255,0.05)] transition-colors group">
+              <GlassPanel className="p-6 rounded-2xl flex items-center justify-between bg-white border border-[#E8E6F2] shadow-sm hover:border-[#5146D8]/30 transition-colors group">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[rgba(245,158,11,0.1)] flex items-center justify-center border border-[rgba(245,158,11,0.2)] group-hover:scale-110 transition-transform">
-                    <Users className="w-6 h-6 text-[#F59E0B]" />
+                  <div className="w-12 h-12 rounded-full bg-[#F0EEFF] flex items-center justify-center border border-[#E0DEF8] group-hover:scale-110 transition-transform">
+                    <Users className="w-6 h-6 text-[#5146D8]" />
                   </div>
                   <div>
-                    <h4 className="text-[#F5F1E8] font-bold text-lg">Partners</h4>
-                    <p className="text-[#96928A] text-sm mb-2">Manage staff access</p>
-                    <Link href={`/admin/homestays/${homestayId}/partners`} className="text-[#F59E0B] text-sm font-semibold hover:underline">
+                    <h4 className="text-[#24213A] font-bold text-lg">Partners</h4>
+                    <p className="text-[#77758F] text-sm mb-2">Manage staff access</p>
+                    <Link href={`/admin/homestays/${homestayId}/partners`} className="text-[#5146D8] text-sm font-semibold hover:underline inline-flex items-center gap-1">
                       Manage Partners &rarr;
                     </Link>
                   </div>
                 </div>
-                <div className="text-3xl font-bold text-[#C7C3BA]">{partnersCount || 0}</div>
+                <div className="text-3xl font-bold text-[#24213A]">{partnersCount || 0}</div>
               </GlassPanel>
             </div>
           </div>

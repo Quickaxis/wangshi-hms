@@ -22,8 +22,8 @@ export default async function AdminHomestaysPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-sm font-semibold tracking-[0.2em] text-[#C7C3BA] uppercase">Homestays</h3>
-          <p className="text-xs text-[#96928A] tracking-wider mt-1">Manage multiple homestay properties</p>
+          <h3 className="text-sm font-bold tracking-[0.2em] text-[#24213A] uppercase">Homestays</h3>
+          <p className="text-xs text-[#77758F] tracking-wider mt-1">Manage multiple homestay properties</p>
         </div>
       </div>
 

@@ -49,17 +49,17 @@ export default async function HomestayPartnersPage({ params }: { params: Promise
         
         {/* Header */}
         <div>
-          <Link href="/admin/homestays" className="inline-flex items-center gap-2 text-sm text-[#96928A] hover:text-[#F59E0B] transition-colors mb-4">
+          <Link href="/admin/homestays" className="inline-flex items-center gap-2 text-sm text-[#77758F] hover:text-[#5146D8] font-medium transition-colors mb-4">
             <span className="text-lg leading-none">&larr;</span> Back to Homestays
           </Link>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#F5F1E8] tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#24213A] tracking-tight">
                 Partners - {homestay.name}
               </h1>
-              <p className="text-[#96928A] text-sm mt-1">Manage partners for this homestay</p>
+              <p className="text-[#77758F] text-sm mt-1">Manage partners for this homestay</p>
             </div>
-            <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${homestay.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+            <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${homestay.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
               {homestay.is_active ? 'Active' : 'Inactive'}
             </span>
           </div>
@@ -67,11 +67,11 @@ export default async function HomestayPartnersPage({ params }: { params: Promise
 
         <div className="space-y-12 mt-8">
           <section>
-            <div className="flex items-center gap-3 mb-6 border-b border-[rgba(255,255,255,0.05)] pb-4">
-              <div className="p-2 bg-[rgba(245,158,11,0.1)] rounded-xl">
-                <Users className="w-5 h-5 text-[#F59E0B]" />
+            <div className="flex items-center gap-3 mb-6 border-b border-[#E8E6F2] pb-4">
+              <div className="p-2 bg-[#F0EEFF] border border-[#E0DEF8] rounded-xl">
+                <Users className="w-5 h-5 text-[#5146D8]" />
               </div>
-              <h2 className="text-xl font-bold text-[#F5F1E8]">Partners</h2>
+              <h2 className="text-xl font-bold text-[#24213A]">Partners</h2>
             </div>
             <PartnersClient initialPartners={(partners as Partner[]) || []} homestayId={homestayId} />
           </section>
