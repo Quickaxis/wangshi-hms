@@ -1,5 +1,7 @@
 export type BookingStatus = "confirmed" | "checked_in" | "checked_out" | "cancelled";
 export type RoomStatus = "available" | "booked";
+export type KycStatus = "not_uploaded" | "pending" | "verified" | "rejected";
+export type IdDocumentType = "passport" | "driving_licence" | "voter_id" | "aadhaar" | "other";
 
 export interface Homestay {
   id: string;
@@ -11,6 +13,28 @@ export interface Homestay {
   logo_url?: string | null;
   is_active: boolean;
   created_at: string;
+  // Extended Operational Settings (Phase 4)
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  website?: string | null;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+  early_checkin_policy?: string | null;
+  late_checkout_policy?: string | null;
+  cancellation_policy?: string | null;
+  child_policy?: string | null;
+  currency?: string | null;
+  default_tax_rate?: number | null;
+  invoice_prefix?: string | null;
+  accepted_payment_methods?: string[] | null;
+  billing_name?: string | null;
+  gstin?: string | null;
+  billing_address?: string | null;
+  invoice_logo_url?: string | null;
+  invoice_contact_details?: string | null;
+  settings_json?: Record<string, any> | null;
 }
 
 export interface Partner {
@@ -37,6 +61,8 @@ export interface DbRoom {
   breakfast_included: boolean;
   breakfast_details: string | null;
   is_active: boolean;
+  room_type?: string | null;
+  is_archived?: boolean | null;
   created_at: string;
   updated_at: string;
   homestay?: Homestay;
@@ -51,6 +77,17 @@ export interface DbGuest {
   is_primary: boolean;
   created_at: string;
   updated_at: string;
+  homestay_id?: string;
+  // Optional KYC fields (Phase 3)
+  id_type?: IdDocumentType | string | null;
+  id_number_masked?: string | null;
+  id_front_path?: string | null;
+  id_back_path?: string | null;
+  id_front_url?: string | null;
+  id_back_url?: string | null;
+  kyc_status?: KycStatus | null;
+  kyc_notes?: string | null;
+  address?: string | null;
 }
 
 export interface DbBooking {
@@ -116,6 +153,8 @@ export interface Room {
   breakfast_included?: boolean;
   breakfast_details?: string;
   is_active?: boolean;
+  room_type?: string;
+  is_archived?: boolean;
   status: RoomStatus;
   imageUrl?: string;
   currentBooking?: CurrentBookingDetails;
