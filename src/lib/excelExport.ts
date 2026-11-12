@@ -11,7 +11,6 @@ export interface GuestRegisterExportRow {
   number_of_guests: number;
   status: string;
   source: string;
-  kyc_status: string;
 }
 
 export interface GuestRegisterBookingItem {
@@ -29,7 +28,6 @@ export interface GuestRegisterBookingItem {
     phone: string | null;
     email: string | null;
     is_primary: boolean;
-    kyc_status?: string | null;
   }>;
 }
 
@@ -45,8 +43,7 @@ export function buildGuestRegisterRows(bookings: GuestRegisterBookingItem[]): Gu
       name: "Guest",
       phone: null,
       email: null,
-      is_primary: true,
-      kyc_status: "not_uploaded"
+      is_primary: true
     }];
 
     for (const g of guestsList) {
@@ -60,7 +57,6 @@ export function buildGuestRegisterRows(bookings: GuestRegisterBookingItem[]): Gu
         number_of_guests: b.guests.length || 1,
         status: b.status.replace("_", " ").toUpperCase(),
         source: b.partner_name || "Reception",
-        kyc_status: (g.kyc_status || "not_uploaded").replace("_", " ").toUpperCase(),
       });
     }
   }
@@ -92,8 +88,7 @@ export function exportGuestRegisterToExcel(
     "Check-out Date",
     "Guests Count",
     "Booking Status",
-    "Source / Staff",
-    "KYC Status"
+    "Source / Staff"
   ];
 
   // Convert objects to rows
@@ -106,8 +101,7 @@ export function exportGuestRegisterToExcel(
     r.check_out,
     r.number_of_guests,
     r.status,
-    r.source,
-    r.kyc_status
+    r.source
   ]);
 
   // Add Metadata Header Row
@@ -132,8 +126,7 @@ export function exportGuestRegisterToExcel(
     { wch: 15 }, // Check-out
     { wch: 14 }, // Guests Count
     { wch: 16 }, // Status
-    { wch: 18 }, // Source
-    { wch: 18 }  // KYC Status
+    { wch: 18 }  // Source
   ];
   ws["!cols"] = colWidths;
 

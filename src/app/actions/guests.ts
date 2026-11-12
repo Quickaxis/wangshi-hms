@@ -368,56 +368,103 @@ export async function removeGuestIdDocumentAction(guestId: string, documentSide:
 // 4. GUEST PROFILE & STAY HISTORY (RECEPTION QUERY)
 // ============================================================================
 
-export async function getGuestProfileAndHistoryAction(guestPhone: string, homestayId?: string) {
+export async function getGuestProfileAndHistoryAction(
+  guestPhone?: string | null,
+  homestayId?: string,
+  guestEmail?: string | null
+) {
   try {
     const auth = await verifyStaffAccess();
     if (!auth.authorized || !auth.partner) {
       return { success: false, error: auth.error || "Unauthorized", data: null };
     }
 
+    const cleanPhone = guestPhone?.trim() || "";
+    const cleanEmail = guestEmail?.trim() || "";
+
+    if (!cleanPhone && !cleanEmail) {
+      return { success: false, error: "Phone number or email address required.", data: null };
+    }
+
     const adminClient = createAdminClient();
     const targetHomestayId = auth.partner.role === 'super_admin' ? (homestayId || auth.partner.homestay_id) : auth.partner.homestay_id;
 
-    if (!guestPhone?.trim()) {
-      return { success: false, error: "Phone number required.", data: null };
-    }
-
-    // Find all guests matching this phone in this homestay
-    let guestQuery = adminClient
-      .from("guests")
-      .select(`
+    const selectFields = `
+      id,
+      booking_id,
+      name,
+      phone,
+      email,
+      is_primary,
+      created_at,
+      homestay_id,
+      bookings (
         id,
-        booking_id,
-        name,
-        phone,
-        email,
-        is_primary,
+        check_in,
+        check_out,
+        status,
+        total_amount,
+        number_of_guests,
         created_at,
-        homestay_id,
-        bookings (
-          id,
-          check_in,
-          check_out,
-          status,
-          total_amount,
-          number_of_guests,
-          created_at,
-          rooms ( name, room_number )
-        )
-      `)
-      .eq("phone", guestPhone.trim());
+        rooms ( name, room_number )
+      )
+    `;
 
-    if (targetHomestayId) {
-      guestQuery = guestQuery.eq("homestay_id", targetHomestayId);
+    const allRecords: any[] = [];
+
+    if (cleanPhone) {
+      let phoneQuery = adminClient
+        .from("guests")
+        .select(selectFields)
+        .eq("phone", cleanPhone);
+
+      if (targetHomestayId) {
+        phoneQuery = phoneQuery.eq("homestay_id", targetHomestayId);
+      }
+
+      const { data: phoneRecords, error: phoneErr } = await phoneQuery;
+      if (phoneErr) {
+        return { success: false, error: phoneErr.message, data: null };
+      }
+      if (phoneRecords) allRecords.push(...phoneRecords);
     }
 
-    const { data: records, error } = await guestQuery;
+    if (cleanEmail) {
+      // Escape LIKE wildcards so email matching is strictly exact case-insensitive
+      const escapedEmail = cleanEmail.replace(/[\\%_]/g, "\\$&");
+      let emailQuery = adminClient
+        .from("guests")
+        .select(selectFields)
+        .ilike("email", escapedEmail);
 
-    if (error) {
-      return { success: false, error: error.message, data: null };
+      if (targetHomestayId) {
+        emailQuery = emailQuery.eq("homestay_id", targetHomestayId);
+      }
+
+      const { data: emailRecords, error: emailErr } = await emailQuery;
+      if (emailErr) {
+        return { success: false, error: emailErr.message, data: null };
+      }
+      if (emailRecords) allRecords.push(...emailRecords);
     }
 
-    return { success: true, data: records || [] };
+    // Deduplicate across phone and email matches by booking_id (or record id)
+    const seen = new Set<string>();
+    const dedupedRecords = allRecords.filter((rec) => {
+      const key = rec.booking_id || rec.id;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort newest stay first
+    dedupedRecords.sort((a, b) => {
+      const dateA = new Date(a.bookings?.check_in || a.created_at || 0).getTime();
+      const dateB = new Date(b.bookings?.check_in || b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+
+    return { success: true, data: dedupedRecords };
   } catch (err: any) {
     console.error("getGuestProfileAndHistoryAction error:", err);
     return { success: false, error: err?.message || "Failed to fetch stay history.", data: null };

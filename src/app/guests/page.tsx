@@ -1,27 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { GlassPanel } from "@/components/ui/GlassPanel";
 import { GlassModal } from "@/components/ui/GlassModal";
 import { 
-  User, Phone, Calendar, IndianRupee, BedDouble, Search, Loader2, 
-  ChevronDown, ChevronUp, Clock, CalendarCheck, CheckCircle2, UserCircle2, 
-  Info, Users, Download, ShieldCheck, FileText, UploadCloud, Trash2, 
-  Check, X, AlertCircle, FileCheck2, Filter, Eye
+  User, Phone, Search, Loader2, 
+  ChevronDown, ChevronUp, Clock, CalendarCheck, CheckCircle2, 
+  Users, Download
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatISTCompactDate } from "@/lib/dateUtils";
 import { useHMSContext } from "@/components/providers/HMSProvider";
 import { cn } from "@/lib/utils";
 import { exportGuestRegisterToExcel, GuestRegisterBookingItem } from "@/lib/excelExport";
-import { 
-  updateGuestKycAction, 
-  uploadGuestIdDocumentAction, 
-  removeGuestIdDocumentAction,
-  getGuestProfileAndHistoryAction,
-  getGuestDocumentSignedUrlAction
-} from "@/app/actions/guests";
-import { KycStatus, IdDocumentType } from "@/lib/types";
+import { getGuestProfileAndHistoryAction } from "@/app/actions/guests";
 
 interface Guest {
   id: string;
@@ -29,15 +20,6 @@ interface Guest {
   phone: string | null;
   email: string | null;
   is_primary: boolean;
-  kyc_status?: KycStatus | null;
-  id_type?: string | null;
-  id_number_masked?: string | null;
-  id_front_path?: string | null;
-  id_back_path?: string | null;
-  id_front_url?: string | null;
-  id_back_url?: string | null;
-  kyc_notes?: string | null;
-  address?: string | null;
 }
 
 interface BookingDirectoryItem {
@@ -64,7 +46,6 @@ export default function GuestsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [roomFilter, setRoomFilter] = useState("All");
-  const [kycFilter, setKycFilter] = useState("All");
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
   const [sortBy, setSortBy] = useState("Newest");
@@ -76,26 +57,6 @@ export default function GuestsPage() {
   const [profileGuest, setProfileGuest] = useState<Guest | null>(null);
   const [profileStayHistory, setProfileStayHistory] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-
-  // KYC Verification Modal State
-  const [kycModalGuest, setKycModalGuest] = useState<Guest | null>(null);
-  const [kycForm, setKycForm] = useState<{
-    id_type: string;
-    id_number_masked: string;
-    kyc_status: KycStatus;
-    kyc_notes: string;
-    address: string;
-  }>({
-    id_type: "aadhaar",
-    id_number_masked: "",
-    kyc_status: "not_uploaded",
-    kyc_notes: "",
-    address: ""
-  });
-  const [isSavingKyc, setIsSavingKyc] = useState(false);
-  const [isUploadingFront, setIsUploadingFront] = useState(false);
-  const [isUploadingBack, setIsUploadingBack] = useState(false);
-  const [kycToast, setKycToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Excel Export Modal State
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -121,7 +82,7 @@ export default function GuestsPage() {
           created_at,
           rooms ( name ),
           partners ( name ),
-          guests ( * )
+          guests ( id, name, phone, email, is_primary )
         `);
 
       if (selectedHomestayId) {
@@ -145,10 +106,11 @@ export default function GuestsPage() {
           room_name: item.rooms?.name || "Unknown Room",
           partner_name: item.partners?.name || "Reception",
           guests: (item.guests || []).map((g: any) => ({
-            ...g,
-            kyc_status: g.kyc_status || "not_uploaded",
-            id_front_path: g.id_front_path || g.id_front_url || null,
-            id_back_path: g.id_back_path || g.id_back_url || null,
+            id: g.id,
+            name: g.name,
+            phone: g.phone || null,
+            email: g.email || null,
+            is_primary: Boolean(g.is_primary),
           }))
         }));
         setBookings(mapped);
@@ -195,7 +157,8 @@ export default function GuestsPage() {
         const matchesRoom = b.room_name.toLowerCase().includes(q);
         const matchesGuest = b.guests.some(g => 
           g.name.toLowerCase().includes(q) || 
-          (g.phone && g.phone.includes(q))
+          (g.phone && g.phone.includes(q)) ||
+          (g.email && g.email.toLowerCase().includes(q))
         );
         return matchesRoom || matchesGuest;
       });
@@ -209,11 +172,6 @@ export default function GuestsPage() {
     // Room Filter
     if (roomFilter !== "All") {
       result = result.filter(b => b.room_name === roomFilter);
-    }
-
-    // KYC Filter
-    if (kycFilter !== "All") {
-      result = result.filter(b => b.guests.some(g => (g.kyc_status || "not_uploaded") === kycFilter));
     }
 
     // Date Range Filters
@@ -234,14 +192,14 @@ export default function GuestsPage() {
     });
 
     return result;
-  }, [bookings, searchQuery, statusFilter, roomFilter, kycFilter, startDateFilter, endDateFilter, sortBy]);
+  }, [bookings, searchQuery, statusFilter, roomFilter, startDateFilter, endDateFilter, sortBy]);
 
   const toggleExpand = (id: string) => {
     setExpandedBookingId(prev => prev === id ? null : id);
   };
 
-  const getPrimaryGuest = (guests: Guest[]) => {
-    return guests.find(g => g.is_primary) || guests[0] || { name: "Unknown", phone: null, id: "unknown" };
+  const getPrimaryGuest = (guests: Guest[]): Guest => {
+    return guests.find(g => g.is_primary) || guests[0] || { id: "unknown", name: "Unknown", phone: null, email: null, is_primary: true };
   };
 
   const getStatusColor = (status: string) => {
@@ -254,32 +212,19 @@ export default function GuestsPage() {
     }
   };
 
-  const getKycBadge = (status?: KycStatus | null) => {
-    switch(status) {
-      case "verified":
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]"><Check className="w-2.5 h-2.5" /> Verified</span>;
-      case "pending":
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]"><Clock className="w-2.5 h-2.5" /> Pending</span>;
-      case "rejected":
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]"><X className="w-2.5 h-2.5" /> Rejected</span>;
-      default:
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#F7F7FC] text-[#77758F] border border-[#E8E7F2]">Not Uploaded</span>;
-    }
-  };
-
   const calculateNights = (inDate: string, outDate: string) => {
     const diff = new Date(outDate).getTime() - new Date(inDate).getTime();
     return Math.max(1, Math.round(diff / (1000 * 60 * 60 * 24)));
   };
 
-  // Open Guest Profile Drawer & load stay history
+  // Open Guest Profile Drawer & load stay history (matching via phone or email)
   const handleOpenGuestProfile = async (guest: Guest) => {
     setProfileGuest(guest);
     setIsLoadingHistory(true);
     setProfileStayHistory([]);
     try {
-      if (guest.phone) {
-        const res = await getGuestProfileAndHistoryAction(guest.phone, currentHomestay?.id);
+      if (guest.phone || guest.email) {
+        const res = await getGuestProfileAndHistoryAction(guest.phone, currentHomestay?.id, guest.email);
         if (res.success && res.data) {
           setProfileStayHistory(res.data);
         }
@@ -288,120 +233,6 @@ export default function GuestsPage() {
       console.error("Error loading stay history:", err);
     } finally {
       setIsLoadingHistory(false);
-    }
-  };
-
-  // Open KYC Modal
-  const handleOpenKycModal = (guest: Guest) => {
-    setKycModalGuest(guest);
-    setKycForm({
-      id_type: (guest as any).id_type || "aadhaar",
-      id_number_masked: (guest as any).id_number_masked || "",
-      kyc_status: (guest.kyc_status as KycStatus) || "not_uploaded",
-      kyc_notes: (guest as any).kyc_notes || "",
-      address: (guest as any).address || ""
-    });
-    setKycToast(null);
-  };
-
-  const handleSaveKycDetails = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!kycModalGuest) return;
-    setIsSavingKyc(true);
-    setKycToast(null);
-    try {
-      const res = await updateGuestKycAction({
-        guestId: kycModalGuest.id,
-        name: kycModalGuest.name,
-        phone: kycModalGuest.phone || undefined,
-        email: kycModalGuest.email || undefined,
-        id_type: kycForm.id_type,
-        id_number_masked: kycForm.id_number_masked,
-        kyc_status: kycForm.kyc_status,
-        kyc_notes: kycForm.kyc_notes,
-        address: kycForm.address
-      });
-
-      if (res.success) {
-        setKycToast({ type: 'success', text: res.message || "KYC details updated successfully." });
-        await fetchBookings();
-        setTimeout(() => {
-          setKycModalGuest(null);
-        }, 1200);
-      } else {
-        setKycToast({ type: 'error', text: res.error || "Failed to update KYC." });
-      }
-    } catch (err: any) {
-      setKycToast({ type: 'error', text: err.message || "An unexpected error occurred." });
-    } finally {
-      setIsSavingKyc(false);
-    }
-  };
-
-  const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>, side: "front" | "back") => {
-    const file = e.target.files?.[0];
-    if (!file || !kycModalGuest) return;
-
-    if (side === "front") setIsUploadingFront(true);
-    else setIsUploadingBack(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("guestId", kycModalGuest.id);
-      formData.append("documentSide", side);
-
-      const res = await uploadGuestIdDocumentAction(formData);
-      if (res.success) {
-        setKycToast({ type: 'success', text: res.message || `${side.toUpperCase()} ID document uploaded.` });
-        if (side === "front") {
-          setKycModalGuest(prev => prev ? { ...prev, id_front_path: res.storagePath, id_front_url: res.storagePath } : null);
-        } else {
-          setKycModalGuest(prev => prev ? { ...prev, id_back_path: res.storagePath, id_back_url: res.storagePath } : null);
-        }
-        await fetchBookings();
-      } else {
-        setKycToast({ type: 'error', text: res.error || "Upload failed." });
-      }
-    } catch (err: any) {
-      setKycToast({ type: 'error', text: err.message || "Error uploading document." });
-    } finally {
-      if (side === "front") setIsUploadingFront(false);
-      else setIsUploadingBack(false);
-    }
-  };
-
-  const handleViewDocument = async (side: "front" | "back") => {
-    if (!kycModalGuest) return;
-    try {
-      const res = await getGuestDocumentSignedUrlAction(kycModalGuest.id, side);
-      if (res.success && res.signedUrl) {
-        window.open(res.signedUrl, "_blank", "noopener,noreferrer");
-      } else {
-        setKycToast({ type: 'error', text: res.error || "Unable to view document." });
-      }
-    } catch (err: any) {
-      setKycToast({ type: 'error', text: err.message || "Error generating document link." });
-    }
-  };
-
-  const handleRemoveDocument = async (side: "front" | "back") => {
-    if (!kycModalGuest) return;
-    try {
-      const res = await removeGuestIdDocumentAction(kycModalGuest.id, side);
-      if (res.success) {
-        setKycToast({ type: 'success', text: res.message || "Document removed." });
-        if (side === "front") {
-          setKycModalGuest(prev => prev ? { ...prev, id_front_path: null, id_front_url: null } : null);
-        } else {
-          setKycModalGuest(prev => prev ? { ...prev, id_back_path: null, id_back_url: null } : null);
-        }
-        await fetchBookings();
-      } else {
-        setKycToast({ type: 'error', text: res.error || "Failed to remove document." });
-      }
-    } catch (err: any) {
-      setKycToast({ type: 'error', text: err.message || "Error removing document." });
     }
   };
 
@@ -455,7 +286,7 @@ export default function GuestsPage() {
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-[#24213A]">Reception Guest Register</h2>
           <p className="text-[#77758F] mt-1 text-xs md:text-sm tracking-wide">
-            Guest directory, stay records, optional identification compliance, and verified exports.
+            Guest directory, stay records, repeat visit history, and verified exports.
           </p>
         </div>
 
@@ -513,13 +344,13 @@ export default function GuestsPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by guest name, phone, or room..."
+              placeholder="Search by guest name, phone, email, or room..."
               className="w-full bg-[#F7F7FC] border border-[#E8E6F2] rounded-xl pl-9 pr-4 py-2 text-xs text-[#24213A] placeholder-[#8F8CA4] outline-none focus:border-[#5146D8] transition-colors"
             />
           </div>
 
           {/* Quick Filters */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <select 
               value={statusFilter} 
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -539,18 +370,6 @@ export default function GuestsPage() {
             >
               <option value="All">All Rooms</option>
               {uniqueRooms.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-
-            <select 
-              value={kycFilter} 
-              onChange={(e) => setKycFilter(e.target.value)}
-              className="bg-[#F7F7FC] border border-[#E8E6F2] rounded-xl px-2.5 py-2 text-xs text-[#24213A] outline-none focus:border-[#5146D8] truncate cursor-pointer"
-            >
-              <option value="All">All KYC Status</option>
-              <option value="not_uploaded">Not Uploaded</option>
-              <option value="pending">Pending</option>
-              <option value="verified">Verified</option>
-              <option value="rejected">Rejected</option>
             </select>
 
             <select 
@@ -622,9 +441,9 @@ export default function GuestsPage() {
 
               return (
                 <div key={booking.id} className="bg-[#FFFFFF] border border-[#E8E6F2] rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-bold text-[#24213A] text-sm">{primaryGuest.name}</h4>
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-[#24213A] text-sm truncate">{primaryGuest.name}</h4>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="text-[9px] text-[#5146D8] font-bold bg-[#F0EEFF] px-2 py-0.5 rounded-full border border-[#E0DEF8]">
                           Primary
@@ -634,7 +453,7 @@ export default function GuestsPage() {
                         </span>
                       </div>
                     </div>
-                    <span className={cn("px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase border", getStatusColor(booking.status))}>
+                    <span className={cn("px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase border shrink-0", getStatusColor(booking.status))}>
                       {booking.status.replace("_", " ")}
                     </span>
                   </div>
@@ -654,23 +473,62 @@ export default function GuestsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <div>{getKycBadge(primaryGuest.kyc_status)}</div>
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#E8E6F2]/60">
+                    <div className="flex items-center gap-1.5 text-xs text-[#77758F] min-w-0">
+                      <Phone className="w-3.5 h-3.5 shrink-0 text-[#77758F]" />
+                      <span className="truncate">{primaryGuest.phone || primaryGuest.email || "No contact"}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => handleOpenGuestProfile(primaryGuest)}
-                        className="px-3 py-1.5 bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8] rounded-lg text-xs font-bold"
+                        className="px-3 py-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] text-[#5146D8] border border-[#E0DEF8] rounded-lg text-xs font-bold transition-colors cursor-pointer"
                       >
                         Profile
                       </button>
-                      <button
-                        onClick={() => handleOpenKycModal(primaryGuest)}
-                        className="px-3 py-1.5 bg-[#FFFFFF] border border-[#E8E6F2] text-[#24213A] rounded-lg text-xs font-bold"
-                      >
-                        KYC
-                      </button>
+                      {booking.guests.length > 1 && (
+                        <button
+                          onClick={() => toggleExpand(booking.id)}
+                          className="p-1.5 rounded-lg border border-[#E8E6F2] text-[#77758F] hover:bg-[#F7F7FC] transition-colors cursor-pointer"
+                          title={isExpanded ? "Collapse Guests" : "View All Guests"}
+                        >
+                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </button>
+                      )}
                     </div>
                   </div>
+
+                  {isExpanded && (
+                    <div className="pt-2 border-t border-[#E8E6F2] space-y-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#77758F] block">
+                        Guests in this reservation ({booking.guests.length})
+                      </span>
+                      <div className="space-y-1.5">
+                        {booking.guests.map((g, idx) => (
+                          <div key={g.id || idx} className="p-2.5 rounded-xl bg-[#F7F7FC] border border-[#E8E6F2] flex items-center justify-between gap-2 text-xs">
+                            <div className="min-w-0">
+                              <div className="font-bold text-[#24213A] flex items-center gap-1.5 truncate">
+                                <span className="truncate">{g.name}</span>
+                                {g.is_primary && (
+                                  <span className="text-[9px] font-bold bg-[#F0EEFF] text-[#5146D8] px-1.5 py-0.2 rounded border border-[#E0DEF8] shrink-0">
+                                    Primary
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-[#77758F] truncate">
+                                {g.phone || g.email || "No contact"}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleOpenGuestProfile(g)}
+                              className="px-2.5 py-1 rounded-lg bg-[#FFFFFF] border border-[#E0DEF8] text-[#5146D8] font-bold text-[11px] shrink-0 cursor-pointer"
+                            >
+                              Profile
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })
@@ -679,29 +537,28 @@ export default function GuestsPage() {
 
         {/* Desktop View (Table) */}
         <div className="hidden md:block w-full overflow-x-auto hide-scrollbar">
-          <table className="w-full text-left border-collapse min-w-[950px]">
+          <table className="w-full text-left border-collapse min-w-[820px]">
             <thead>
               <tr className="border-b border-[#E8E6F2] bg-[#F7F7FC] text-[10px] font-bold uppercase tracking-wider text-[#77758F]">
-                <th className="px-5 py-3.5">Guest / Contact</th>
-                <th className="px-5 py-3.5">Room</th>
-                <th className="px-5 py-3.5">Stay Dates</th>
-                <th className="px-5 py-3.5">Status</th>
-                <th className="px-5 py-3.5">KYC Status</th>
-                <th className="px-5 py-3.5">Total Amount</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
+                <th className="px-5 py-3.5 w-[28%]">Guest / Contact</th>
+                <th className="px-5 py-3.5 w-[16%]">Room</th>
+                <th className="px-5 py-3.5 w-[18%]">Stay Dates</th>
+                <th className="px-5 py-3.5 w-[13%]">Status</th>
+                <th className="px-5 py-3.5 w-[13%]">Total Amount</th>
+                <th className="px-5 py-3.5 w-[12%] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E8E6F2] text-xs">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-16 text-center text-[#77758F]">
+                  <td colSpan={6} className="px-5 py-16 text-center text-[#77758F]">
                     <Loader2 className="w-6 h-6 text-[#5146D8] animate-spin mx-auto mb-2" />
                     <span>Loading guest register...</span>
                   </td>
                 </tr>
               ) : filteredBookings.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-[#77758F]">
+                  <td colSpan={6} className="px-5 py-12 text-center text-[#77758F]">
                     No guest bookings found matching the current filters.
                   </td>
                 </tr>
@@ -719,11 +576,11 @@ export default function GuestsPage() {
                             <div className="w-9 h-9 rounded-full bg-[#F0EEFF] flex items-center justify-center shrink-0">
                               <User className="w-4 h-4 text-[#5146D8]" />
                             </div>
-                            <div>
-                              <div className="font-bold text-[#24213A]">{primaryGuest.name}</div>
-                              <div className="text-[11px] text-[#77758F] flex items-center gap-1.5 mt-0.5">
-                                <Phone className="w-3 h-3 text-[#77758F]" />
-                                <span>{primaryGuest.phone || "No phone"}</span>
+                            <div className="min-w-0">
+                              <div className="font-bold text-[#24213A] truncate">{primaryGuest.name}</div>
+                              <div className="text-[11px] text-[#77758F] flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <Phone className="w-3 h-3 text-[#77758F] shrink-0" />
+                                <span>{primaryGuest.phone || primaryGuest.email || "No contact"}</span>
                                 {booking.guests.length > 1 && (
                                   <span className="text-[10px] text-[#5146D8] font-bold ml-1">
                                     (+{booking.guests.length - 1} more)
@@ -754,10 +611,6 @@ export default function GuestsPage() {
                         </td>
 
                         <td className="px-5 py-3.5">
-                          {getKycBadge(primaryGuest.kyc_status)}
-                        </td>
-
-                        <td className="px-5 py-3.5">
                           <div className="font-bold text-[#24213A]">
                             ₹{booking.total_amount.toLocaleString("en-IN")}
                           </div>
@@ -774,13 +627,6 @@ export default function GuestsPage() {
                               Profile
                             </button>
                             <button
-                              onClick={() => handleOpenKycModal(primaryGuest)}
-                              className="px-2.5 py-1 rounded-lg bg-[#FFFFFF] hover:bg-[#F7F7FC] border border-[#E8E6F2] text-[#24213A] font-bold text-xs transition-colors cursor-pointer"
-                              title="Update ID & KYC"
-                            >
-                              KYC
-                            </button>
-                            <button
                               onClick={() => toggleExpand(booking.id)}
                               className="p-1 rounded-lg border border-[#E8E6F2] text-[#77758F] hover:bg-[#F7F7FC] transition-colors cursor-pointer"
                               title={isExpanded ? "Collapse Guests" : "View All Guests"}
@@ -794,26 +640,33 @@ export default function GuestsPage() {
                       {/* Expanded Guest List */}
                       {isExpanded && (
                         <tr className="bg-[#F7F7FC]/50">
-                          <td colSpan={7} className="px-6 py-4">
+                          <td colSpan={6} className="px-6 py-4">
                             <div className="space-y-2">
                               <span className="text-[10px] font-bold uppercase tracking-wider text-[#77758F] block">
                                 Guests in this reservation ({booking.guests.length})
                               </span>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                 {booking.guests.map((g, idx) => (
-                                  <div key={g.id || idx} className="p-3 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] flex items-center justify-between">
-                                    <div className="space-y-0.5">
+                                  <div key={g.id || idx} className="p-3 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] flex items-center justify-between gap-2">
+                                    <div className="space-y-0.5 min-w-0">
                                       <div className="font-bold text-[#24213A] flex items-center gap-1.5">
-                                        <span>{g.name}</span>
+                                        <span className="truncate">{g.name}</span>
                                         {g.is_primary && (
-                                          <span className="text-[9px] font-bold bg-[#F0EEFF] text-[#5146D8] px-1.5 py-0.2 rounded border border-[#E0DEF8]">
+                                          <span className="text-[9px] font-bold bg-[#F0EEFF] text-[#5146D8] px-1.5 py-0.2 rounded border border-[#E0DEF8] shrink-0">
                                             Primary
                                           </span>
                                         )}
                                       </div>
-                                      <div className="text-[11px] text-[#77758F]">{g.phone || "No phone"}</div>
+                                      <div className="text-[11px] text-[#77758F] truncate">
+                                        {g.phone || g.email || "No contact"}
+                                      </div>
                                     </div>
-                                    <div>{getKycBadge(g.kyc_status)}</div>
+                                    <button
+                                      onClick={() => handleOpenGuestProfile(g)}
+                                      className="px-2.5 py-1 rounded-lg bg-[#F0EEFF] hover:bg-[#E0DEF8] border border-[#E0DEF8] text-[#5146D8] font-bold text-[11px] transition-colors cursor-pointer shrink-0"
+                                    >
+                                      Profile
+                                    </button>
                                   </div>
                                 ))}
                               </div>
@@ -845,7 +698,6 @@ export default function GuestsPage() {
                 <h3 className="text-lg md:text-xl font-bold text-[#24213A]">{profileGuest.name}</h3>
                 <p className="text-xs text-[#77758F] mt-0.5">Reception Guest Folio & Stay History</p>
               </div>
-              <div>{getKycBadge(profileGuest.kyc_status)}</div>
             </div>
 
             {/* Profile Contact Card */}
@@ -859,16 +711,25 @@ export default function GuestsPage() {
                 <span className="font-bold text-[#24213A] truncate block">{profileGuest.email || "Not recorded"}</span>
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase text-[#77758F] block mb-0.5">ID Document</span>
-                <span className="font-bold text-[#24213A] uppercase">
-                  {profileGuest.id_type || "None"} {profileGuest.id_number_masked ? `(${profileGuest.id_number_masked})` : ""}
+                <span className="text-[10px] font-bold uppercase text-[#77758F] block mb-0.5">Total Visits</span>
+                <span className="font-bold text-[#5146D8]">
+                  {isLoadingHistory
+                    ? "Loading..."
+                    : `${profileStayHistory.length} ${profileStayHistory.length === 1 ? "Visit" : "Visits"}`}
                 </span>
               </div>
             </div>
 
             {/* Stay Records */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#77758F]">Stay History</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#77758F]">Stay History</h4>
+                {!isLoadingHistory && profileStayHistory.length > 0 && (
+                  <span className="text-[11px] font-bold text-[#5146D8]">
+                    {profileStayHistory.length} {profileStayHistory.length === 1 ? "stay" : "stays"} found
+                  </span>
+                )}
+              </div>
               
               {isLoadingHistory ? (
                 <div className="py-8 text-center text-[#77758F] text-xs">
@@ -877,7 +738,7 @@ export default function GuestsPage() {
                 </div>
               ) : profileStayHistory.length === 0 ? (
                 <div className="p-4 rounded-xl bg-[#FFFFFF] border border-[#E8E6F2] text-center text-xs text-[#77758F]">
-                  No prior stay records found for this phone number.
+                  No prior stay records found for this phone number or email address.
                 </div>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto hide-scrollbar">
@@ -920,250 +781,6 @@ export default function GuestsPage() {
       )}
 
       {/* ===================================================================== */}
-      {/* OPTIONAL KYC & ID VERIFICATION MODAL */}
-      {/* ===================================================================== */}
-      {kycModalGuest && (
-        <GlassModal
-          isOpen={!!kycModalGuest}
-          onClose={() => setKycModalGuest(null)}
-          title="Optional ID Document Collection"
-        >
-          <div className="p-6 md:p-8 flex flex-col gap-5 w-full max-w-xl mx-auto overflow-hidden">
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg md:text-xl font-bold text-[#24213A]">Identification & KYC</h3>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#059669] bg-[#ECFDF5] border border-[#A7F3D0] px-2 py-0.5 rounded-full">
-                  Optional
-                </span>
-              </div>
-              <p className="text-xs text-[#77758F] mt-0.5">
-                Guest: <span className="font-bold text-[#24213A]">{kycModalGuest.name}</span> ({kycModalGuest.phone || "No phone"})
-              </p>
-            </div>
-
-            {/* Privacy Alert */}
-            <div className="p-3 rounded-xl bg-[#F0EEFF] border border-[#E0DEF8] flex items-start gap-2.5 text-xs text-[#5146D8]">
-              <ShieldCheck className="w-4 h-4 shrink-0 text-[#5146D8] mt-0.5" />
-              <p className="text-[11px] text-[#24213A]">
-                Document uploads are stored in private tenant storage and are never publicly accessible or included in Excel exports. ID numbers are masked for data privacy.
-              </p>
-            </div>
-
-            {kycToast && (
-              <div className={cn(
-                "p-3 rounded-xl text-xs flex items-center gap-2 border",
-                kycToast.type === 'success' ? "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]" : "bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]"
-              )}>
-                {kycToast.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
-                <span>{kycToast.text}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSaveKycDetails} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#77758F] uppercase tracking-wider mb-1">
-                    ID Document Type
-                  </label>
-                  <select
-                    value={kycForm.id_type}
-                    onChange={(e) => setKycForm({ ...kycForm, id_type: e.target.value })}
-                    className="w-full bg-[#FFFFFF] border border-[#E8E6F2] rounded-xl px-3 py-2 text-xs md:text-sm text-[#24213A] outline-none focus:border-[#5146D8] cursor-pointer"
-                  >
-                    <option value="aadhaar">Aadhaar Card / National ID</option>
-                    <option value="passport">Passport</option>
-                    <option value="driving_licence">Driving Licence</option>
-                    <option value="voter_id">Voter ID</option>
-                    <option value="other">Other Official ID</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#77758F] uppercase tracking-wider mb-1">
-                    Document Number (Masked)
-                  </label>
-                  <input
-                    type="text"
-                    value={kycForm.id_number_masked}
-                    onChange={(e) => setKycForm({ ...kycForm, id_number_masked: e.target.value })}
-                    className="w-full bg-[#FFFFFF] border border-[#E8E6F2] rounded-xl px-3 py-2 text-xs md:text-sm text-[#24213A] outline-none focus:border-[#5146D8] font-mono"
-                    placeholder="e.g. •••• 5678"
-                  />
-                </div>
-              </div>
-
-              {/* ID Images Upload */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Front Side */}
-                <div className="p-3.5 rounded-xl border border-[#E8E6F2] bg-[#F7F7FC] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-[#24213A]">Front Side Image</span>
-                    {(kycModalGuest.id_front_path || kycModalGuest.id_front_url) && (
-                      <span className="text-[9px] font-bold uppercase text-[#059669] bg-[#ECFDF5] border border-[#A7F3D0] px-1.5 py-0.5 rounded">
-                        Uploaded
-                      </span>
-                    )}
-                  </div>
-
-                  {(kycModalGuest.id_front_path || kycModalGuest.id_front_url) ? (
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleViewDocument("front")}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8] text-xs font-bold hover:bg-[#E0DEF8] transition-colors cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> View Document
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveDocument("front")}
-                        className="p-2 rounded-lg bg-[#FFFFFF] text-[#DC2626] border border-[#FECACA] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
-                        title="Remove Document"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <input
-                        type="file"
-                        id="doc-front"
-                        accept="image/*,application/pdf"
-                        className="hidden"
-                        onChange={(e) => handleDocUpload(e, "front")}
-                        disabled={isUploadingFront}
-                      />
-                      <label
-                        htmlFor="doc-front"
-                        className="flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-lg bg-[#FFFFFF] border border-[#E8E6F2] text-xs font-bold text-[#5146D8] hover:bg-[#F0EEFF] transition-colors cursor-pointer"
-                      >
-                        {isUploadingFront ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
-                        <span>Upload Front ID</span>
-                      </label>
-                    </>
-                  )}
-                  <span className="text-[10px] text-[#77758F] block">PNG, JPEG or PDF up to 5MB</span>
-                </div>
-
-                {/* Back Side */}
-                <div className="p-3.5 rounded-xl border border-[#E8E6F2] bg-[#F7F7FC] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-[#24213A]">Back Side Image</span>
-                    {(kycModalGuest.id_back_path || kycModalGuest.id_back_url) && (
-                      <span className="text-[9px] font-bold uppercase text-[#059669] bg-[#ECFDF5] border border-[#A7F3D0] px-1.5 py-0.5 rounded">
-                        Uploaded
-                      </span>
-                    )}
-                  </div>
-
-                  {(kycModalGuest.id_back_path || kycModalGuest.id_back_url) ? (
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleViewDocument("back")}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8] text-xs font-bold hover:bg-[#E0DEF8] transition-colors cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> View Document
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveDocument("back")}
-                        className="p-2 rounded-lg bg-[#FFFFFF] text-[#DC2626] border border-[#FECACA] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
-                        title="Remove Document"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <input
-                        type="file"
-                        id="doc-back"
-                        accept="image/*,application/pdf"
-                        className="hidden"
-                        onChange={(e) => handleDocUpload(e, "back")}
-                        disabled={isUploadingBack}
-                      />
-                      <label
-                        htmlFor="doc-back"
-                        className="flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-lg bg-[#FFFFFF] border border-[#E8E6F2] text-xs font-bold text-[#5146D8] hover:bg-[#F0EEFF] transition-colors cursor-pointer"
-                      >
-                        {isUploadingBack ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
-                        <span>Upload Back ID</span>
-                      </label>
-                    </>
-                  )}
-                  <span className="text-[10px] text-[#77758F] block">PNG, JPEG or PDF up to 5MB</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#77758F] uppercase tracking-wider mb-1">
-                    Verification Status *
-                  </label>
-                  <select
-                    value={kycForm.kyc_status}
-                    onChange={(e) => setKycForm({ ...kycForm, kyc_status: e.target.value as KycStatus })}
-                    className="w-full bg-[#FFFFFF] border border-[#E8E6F2] rounded-xl px-3 py-2 text-xs md:text-sm text-[#24213A] outline-none focus:border-[#5146D8] cursor-pointer"
-                  >
-                    <option value="not_uploaded">Not Uploaded</option>
-                    <option value="pending">Pending Verification</option>
-                    <option value="verified">Verified</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#77758F] uppercase tracking-wider mb-1">
-                    Guest Residential Address
-                  </label>
-                  <input
-                    type="text"
-                    value={kycForm.address}
-                    onChange={(e) => setKycForm({ ...kycForm, address: e.target.value })}
-                    className="w-full bg-[#FFFFFF] border border-[#E8E6F2] rounded-xl px-3 py-2 text-xs md:text-sm text-[#24213A] outline-none focus:border-[#5146D8]"
-                    placeholder="City, State, Country"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#77758F] uppercase tracking-wider mb-1">
-                  Verification Notes (Optional)
-                </label>
-                <textarea
-                  rows={2}
-                  value={kycForm.kyc_notes}
-                  onChange={(e) => setKycForm({ ...kycForm, kyc_notes: e.target.value })}
-                  className="w-full bg-[#FFFFFF] border border-[#E8E6F2] rounded-xl p-2.5 text-xs text-[#24213A] outline-none focus:border-[#5146D8] resize-none"
-                  placeholder="Notes from front desk verification..."
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-[#E8E6F2]">
-                <button
-                  type="button"
-                  onClick={() => setKycModalGuest(null)}
-                  disabled={isSavingKyc}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#77758F] hover:bg-[#F7F7FC] border border-[#E8E6F2] transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSavingKyc}
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-[#5146D8] hover:bg-[#4338CA] text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                >
-                  {isSavingKyc ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</> : "Save KYC Status"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </GlassModal>
-      )}
-
-      {/* ===================================================================== */}
       {/* EXCEL EXPORT MODAL */}
       {/* ===================================================================== */}
       {isExportModalOpen && (
@@ -1176,7 +793,7 @@ export default function GuestsPage() {
             <div>
               <h3 className="text-lg md:text-xl font-bold text-[#24213A]">Export Guest Register</h3>
               <p className="text-xs text-[#77758F] mt-0.5">
-                Generate a native Microsoft Excel (.xlsx) spreadsheet formatted for official compliance.
+                Generate a native Microsoft Excel (.xlsx) spreadsheet formatted for reception records.
               </p>
             </div>
 
@@ -1266,7 +883,7 @@ export default function GuestsPage() {
 
               <div className="p-3 rounded-xl bg-[#F7F7FC] border border-[#E8E6F2] text-[11px] text-[#77758F] space-y-1">
                 <span className="font-bold text-[#24213A] block">Included Columns:</span>
-                <p>Guest Name, Phone Number, Booking Reference, Room Name, Check-in Date, Check-out Date, Guests Count, Booking Status, Source, and KYC Status.</p>
+                <p>Guest Name, Phone Number, Booking Reference, Room Name, Check-in Date, Check-out Date, Guests Count, Booking Status, and Source.</p>
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-[#E8E6F2]">

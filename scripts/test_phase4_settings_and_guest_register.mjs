@@ -110,12 +110,11 @@ const exportRows = buildGuestRegisterRows(mockBookingsForExport);
 
 assert.strictEqual(exportRows.length, 2, "Should create 2 export rows for the 2 guests");
 assert.strictEqual(exportRows[0].guest_name, "Rahul Sharma (Primary)");
-assert.strictEqual(exportRows[0].kyc_status, "VERIFIED");
 assert.strictEqual(exportRows[1].guest_name, "Pooja Sharma");
-assert.strictEqual(exportRows[1].kyc_status, "NOT UPLOADED");
 
-// Privacy verification: no private document URLs or unmasked data in export
+// Privacy & UI-only KYC removal verification: no KYC status or private document URLs in export
 const rawExportJson = JSON.stringify(exportRows);
+assert.ok(!("kyc_status" in exportRows[0]), "kyc_status must NOT appear in Guest Register Excel export");
 assert.ok(!rawExportJson.includes("secret_private_doc.jpg"), "ID document storage URLs must NEVER be exported");
 assert.ok(!rawExportJson.includes("id_front_url"), "Private storage fields must be omitted from export");
 
@@ -840,6 +839,31 @@ const validCondef = "CHECK ((kyc_status = ANY (ARRAY['not_uploaded'::text, 'pend
 assert.strictEqual(verifyKycConstraintDef(validCondef), true, "Canonical constraint definition must pass");
 
 console.log("✅ Test 10 Passed: All SQL security corrections verified (NULL USING, broad policies, partial schemas, NULL KYC data, constraint definitions).\n");
+
+// ----------------------------------------------------------------------------
+// TEST 11: Guest Register UI-Only KYC Removal & Stay History Preservation
+// ----------------------------------------------------------------------------
+console.log("Test 11: Verifying Guest Register UI KYC removal & Phone/Email Stay History...");
+const guestsPageContent = fs.readFileSync("src/app/guests/page.tsx", "utf8");
+const guestsActionsContent = fs.readFileSync("src/app/actions/guests.ts", "utf8");
+
+// Ensure no KYC UI remains on Guest Register page
+assert.ok(!/\bkyc\b/i.test(guestsPageContent), "Guest Register UI must not contain KYC labels, handlers, filters, or modals");
+assert.ok(!guestsPageContent.includes("Not Uploaded"), "Guest Register UI must not show 'Not Uploaded' badges");
+assert.ok(!guestsPageContent.includes("ID Document"), "Guest Register UI must not show 'ID Document' field");
+
+// Ensure Profile, Stay History & Phone/Email recognition are preserved
+assert.ok(guestsPageContent.includes("Guest Stay History"), "Guest Stay History modal must be preserved");
+assert.ok(guestsPageContent.includes("Profile"), "Profile button must be preserved");
+assert.ok(guestsPageContent.includes("Total Visits"), "Total Visits count must be preserved in Stay History modal");
+assert.ok(guestsPageContent.includes("getGuestProfileAndHistoryAction(guest.phone, currentHomestay?.id, guest.email)"), "Profile handler must pass both phone and email");
+
+// Ensure backend KYC actions remain untouched and repeat guest history supports both phone and email
+assert.ok(guestsActionsContent.includes("export async function updateGuestKycAction"), "Backend KYC update action must remain untouched");
+assert.ok(guestsActionsContent.includes("export async function uploadGuestIdDocumentAction"), "Backend document upload action must remain untouched");
+assert.ok(guestsActionsContent.includes('.eq("phone", cleanPhone)'), "Stay history query must match by phone");
+assert.ok(guestsActionsContent.includes('.ilike("email", escapedEmail)'), "Stay history query must match by escaped email");
+console.log("✅ Test 11 Passed: Guest Register UI is free of KYC while Profile & Phone/Email Stay History work seamlessly.\n");
 
 console.log("🎉 ALL PHASE 4 TEST SUITE ASSERTIONS PASSED WITH 100% SUCCESS!");
 
