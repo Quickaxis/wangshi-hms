@@ -1,0 +1,1098 @@
+{
+  "homestay": {
+    "id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+    "name": "Wangshi Homestay",
+    "slug": "wangshi-homestay",
+    "location": "SHERGAON ",
+    "phone": null,
+    "email": null,
+    "logo_url": "https://algorrnjotffcvtinbyy.supabase.co/storage/v1/object/public/homestay-logos/ce603bb8-c9e3-4ce1-a57e-b6c4140ea459/ce603bb8-c9e3-4ce1-a57e-b6c4140ea459-1789559097467.jpg",
+    "is_active": true,
+    "created_at": "2026-09-15T17:31:22.940675+00:00"
+  },
+  "roomsCount": 4,
+  "rooms": [
+    {
+      "id": "cabf8119-6326-4d63-994d-3de1cdc33ddc",
+      "room_number": "1",
+      "name": "Room No. 1",
+      "description": "Spacious homestay room with attached toilet & bathroom, wooden accents, and mountain view.",
+      "bathroom_type": "Attached toilet & bathroom",
+      "max_guests": 3,
+      "nightly_rate": 2500,
+      "breakfast_included": true,
+      "breakfast_details": "Complimentary breakfast for 2 persons (Bread or Maggi)",
+      "created_at": "2026-09-13T05:26:48.26931+00:00",
+      "updated_at": "2026-09-13T05:26:48.26931+00:00",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "is_active": true
+    },
+    {
+      "id": "639e42e6-6421-4333-829c-14f80aed2ebd",
+      "room_number": "2",
+      "name": "Room No. 2",
+      "description": "Comfortable double room with attached toilet & bathroom, ideal for couples or solo travelers.",
+      "bathroom_type": "Attached toilet & bathroom",
+      "max_guests": 2,
+      "nightly_rate": 2500,
+      "breakfast_included": true,
+      "breakfast_details": "Complimentary breakfast included",
+      "created_at": "2026-09-13T05:26:48.26931+00:00",
+      "updated_at": "2026-09-13T05:26:48.26931+00:00",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "is_active": true
+    },
+    {
+      "id": "1616ce19-da33-439f-8ce3-9aebceb2605a",
+      "room_number": "3",
+      "name": "Room No. 3",
+      "description": "Warm homestay room with attached toilet & bathroom, suitable for small families or groups.",
+      "bathroom_type": "Attached toilet & bathroom",
+      "max_guests": 3,
+      "nightly_rate": 2500,
+      "breakfast_included": true,
+      "breakfast_details": "Complimentary breakfast for 2 persons (Bread or Maggi)",
+      "created_at": "2026-09-13T05:26:48.26931+00:00",
+      "updated_at": "2026-09-13T05:26:48.26931+00:00",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "is_active": true
+    },
+    {
+      "id": "43f18986-9dd8-4beb-a8e4-0fe27ef686af",
+      "room_number": "4",
+      "name": "Room No. 4",
+      "description": "Budget-friendly homestay room with clean non-attached toilet & bathroom just outside the door.",
+      "bathroom_type": "Non-attached toilet & bathroom",
+      "max_guests": 3,
+      "nightly_rate": 2000,
+      "breakfast_included": true,
+      "breakfast_details": "Complimentary breakfast for 2 persons (Bread or Maggi)",
+      "created_at": "2026-09-13T05:26:48.26931+00:00",
+      "updated_at": "2026-09-13T05:26:48.26931+00:00",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "is_active": true
+    }
+  ],
+  "bookingsCount": 32,
+  "bookingsByStatus": {
+    "cancelled": 31,
+    "checked_out": 1
+  },
+  "guestsCount": 41,
+  "orphanedGuestsCount": 0,
+  "invoicesCount": 1,
+  "invoices": [
+    {
+      "id": "55196fbd-e221-4d5b-a55d-3d55b1466382",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "booking_id": "2c54ddce-1d32-4d0b-8181-edfd37763aa4",
+      "invoice_number": "INV-WAN-20261113-6763",
+      "invoice_date": "2026-11-13",
+      "status": "paid",
+      "guest_name": "Unmesh Gogoi",
+      "guest_phone": "8822095217",
+      "guest_email": null,
+      "guest_address": null,
+      "check_in": "2026-11-17",
+      "check_out": "2026-11-19",
+      "room_id": "cabf8119-6326-4d63-994d-3de1cdc33ddc",
+      "room_name": "Room No. 1",
+      "subtotal": 7080,
+      "tax_rate": 0,
+      "tax_amount": 0,
+      "discount_amount": 0,
+      "grand_total": 7080,
+      "amount_paid": 7080,
+      "balance_due": 0,
+      "notes": null,
+      "house_rules": null,
+      "created_by": "2ccc95f0-92a7-4cba-810d-b97d3cda0bbf",
+      "created_at": "2026-11-13T02:53:35.517985+00:00",
+      "updated_at": "2026-11-13T02:53:59.055747+00:00"
+    }
+  ],
+  "invoiceItemsCount": 3,
+  "invoiceItems": [
+    {
+      "id": "1a153644-1727-4445-9842-bca5e3e40139",
+      "invoice_id": "55196fbd-e221-4d5b-a55d-3d55b1466382",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "category": "room",
+      "description": "Room No. 1 – 2 Night Stay",
+      "stay_period": "2026-11-17 to 2026-11-19",
+      "quantity": 2,
+      "rate": 2500,
+      "amount": 5000,
+      "sort_order": 0,
+      "created_at": "2026-11-13T02:53:35.517985+00:00"
+    },
+    {
+      "id": "04ca6461-d8fa-4d88-a7a5-7d61b3810e8f",
+      "invoice_id": "55196fbd-e221-4d5b-a55d-3d55b1466382",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "category": "custom",
+      "description": "Tea",
+      "stay_period": null,
+      "quantity": 4,
+      "rate": 20,
+      "amount": 80,
+      "sort_order": 1,
+      "created_at": "2026-11-13T02:53:35.517985+00:00"
+    },
+    {
+      "id": "47139eee-0273-4782-b1ee-f026ef996b82",
+      "invoice_id": "55196fbd-e221-4d5b-a55d-3d55b1466382",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "category": "custom",
+      "description": "Laundry Service",
+      "stay_period": null,
+      "quantity": 1,
+      "rate": 2000,
+      "amount": 2000,
+      "sort_order": 2,
+      "created_at": "2026-11-13T02:53:35.517985+00:00"
+    }
+  ],
+  "paymentsCount": 2,
+  "payments": [
+    {
+      "id": "4ce40a84-f7a1-4e4f-a206-4dfec4a10139",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "booking_id": "2c54ddce-1d32-4d0b-8181-edfd37763aa4",
+      "amount": 5000,
+      "payment_type": "payment",
+      "payment_method": "cash",
+      "parent_payment_id": null,
+      "transaction_ref": null,
+      "notes": null,
+      "recorded_by": "2ccc95f0-92a7-4cba-810d-b97d3cda0bbf",
+      "idempotency_key": "inv-pay-55196fbd-e221-4d5b-a55d-3d55b1466382-1794538429281",
+      "created_at": "2026-11-13T02:53:48.996801+00:00",
+      "invoice_id": "55196fbd-e221-4d5b-a55d-3d55b1466382"
+    },
+    {
+      "id": "5dfb7d20-3628-455c-929a-d10b34f0250b",
+      "homestay_id": "ce603bb8-c9e3-4ce1-a57e-b6c4140ea459",
+      "booking_id": "2c54ddce-1d32-4d0b-8181-edfd37763aa4",
+      "amount": 2080,
+      "payment_type": "payment",
+      "payment_method": "cash",
+      "parent_payment_id": null,
+      "transaction_ref": null,
+      "notes": null,
+      "recorded_by": "2ccc95f0-92a7-4cba-810d-b97d3cda0bbf",
+      "idempotency_key": "inv-pay-55196fbd-e221-4d5b-a55d-3d55b1466382-1794538439632",
+      "created_at": "2026-11-13T02:53:59.055747+00:00",
+      "invoice_id": "55196fbd-e221-4d5b-a55d-3d55b1466382"
+    }
+  ],
+  "bookingRequestsAll": [
+    {
+      "id": "db6bbb72-15e0-463a-a24f-3ffe1ec978a0",
+      "homestay_id": "3356f10c-cfb7-44af-99bb-c616619bf42a",
+      "room_id": "e743e3dd-3196-47e5-8c3f-a9fa9ecaa681",
+      "booking_id": "482e2a7d-928e-4d63-886f-5f6cf54de377",
+      "check_in": "2026-10-28",
+      "check_out": "2026-10-29",
+      "number_of_guests": 2,
+      "guest_name": "QUICK AXIS",
+      "guest_phone": "8822095217",
+      "guest_email": null,
+      "notes": null,
+      "estimated_total": 1499,
+      "payment_method": "pay_at_property",
+      "status": "approved",
+      "created_at": "2026-10-27T17:21:38.438131+00:00",
+      "updated_at": "2026-10-27T17:21:38.438131+00:00"
+    }
+  ],
+  "bookingRequestsLinkedToWangshi": [],
+  "bookingsDetailed": [
+    {
+      "id": "a7f7abcc-434d-43c1-b3a1-ce4fedcfcdeb",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "3",
+      "room_name": "Room No. 3",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T06:03:00.671777+00:00",
+      "guests": [
+        {
+          "id": "44563196-11aa-42a2-b6de-aff5e3d90223",
+          "name": "oooo",
+          "phone": "9999999999",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "ec9ea509-14e1-4fba-8c59-f5bbfd6d7bb4",
+          "name": "ooo",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "17cb0bbb-0c6d-4f3e-af9a-ac71e195d222",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-17",
+      "nights": 4,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 10000,
+      "partner_name": "UG Marketing",
+      "notes": "Test Booking",
+      "created_at": "2026-09-13T06:05:53.540167+00:00",
+      "guests": [],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "c65fcd6b-0428-4521-8e45-37d68512f795",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "4",
+      "room_name": "Room No. 4",
+      "nightly_rate": 2000,
+      "total_amount": 2000,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T06:10:44.2202+00:00",
+      "guests": [
+        {
+          "id": "2cf05bee-49dd-4ad2-b25b-12ca42f34fd7",
+          "name": "Rahul pandey",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "739951e7-e2d7-4e01-b465-a1ff16246861",
+          "name": "RAJGANDHANI",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "82236762-2265-4749-97c8-cfbb2dc0e62f",
+      "status": "cancelled",
+      "check_in": "2026-09-15",
+      "check_out": "2026-09-16",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T06:12:50.331889+00:00",
+      "guests": [
+        {
+          "id": "fa6aae12-c694-48c2-ac95-407ade016405",
+          "name": "Rajesh mishra",
+          "phone": "7578923440",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "0a064075-573e-417d-a047-1f3fadcb7308",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T06:29:53.312644+00:00",
+      "guests": [
+        {
+          "id": "9e213bf2-ee88-4d41-8c65-00f4a17fb4ee",
+          "name": "Rajesh",
+          "phone": "2222222",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "3f0cd2e9-c620-4f43-8e4f-b59688202c77",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T06:38:12.512303+00:00",
+      "guests": [
+        {
+          "id": "410d75d5-0dee-4ecd-a3ec-481fd3798d5b",
+          "name": "TAMAL PAIK",
+          "phone": "75789  23400",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "1d3ba405-a801-4d86-97bd-6197cf63031f",
+      "status": "cancelled",
+      "check_in": "2026-09-15",
+      "check_out": "2026-09-17",
+      "nights": 2,
+      "room_number": "4",
+      "room_name": "Room No. 4",
+      "nightly_rate": 2000,
+      "total_amount": 4000,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T06:39:32.150615+00:00",
+      "guests": [
+        {
+          "id": "462a6f85-66f4-4fc2-a41e-7cd61e29f804",
+          "name": "Unmesh",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "ff708f57-0d50-4f63-9b56-669bf0552b4b",
+          "name": "Prachi",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "25123836-5641-4b4f-8449-b167fa86776f",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T07:05:41.591891+00:00",
+      "guests": [
+        {
+          "id": "fc30fe1a-1e46-4567-8387-e7b17405367c",
+          "name": "Unmesh",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "45ff7159-b980-41ca-8883-0a60ccb45aad",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "4",
+      "room_name": "Room No. 4",
+      "nightly_rate": 2000,
+      "total_amount": 2000,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T07:16:52.913321+00:00",
+      "guests": [
+        {
+          "id": "af478a87-0fd1-491a-9eb7-044e1f94b1fa",
+          "name": "awdawdawd",
+          "phone": "awdawdawdad ad",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "812660f3-a9cb-4e11-b789-1db0d3621bd2",
+      "status": "cancelled",
+      "check_in": "2026-09-14",
+      "check_out": "2026-09-16",
+      "nights": 2,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 5000,
+      "partner_name": "UG Marketing",
+      "notes": "Condoms at service",
+      "created_at": "2026-09-13T07:25:56.385771+00:00",
+      "guests": [
+        {
+          "id": "be0e7a03-f026-46ef-9207-47917c615a41",
+          "name": "Uttaran",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "07c67cf3-aeba-4611-bb85-dd4e1beed42d",
+          "name": "Puja",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        },
+        {
+          "id": "dab2e733-80bc-4e1c-9ea7-422f99efc0fd",
+          "name": "Ekta",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "1fc6d0b8-c4a9-487f-9ef4-af12eead3942",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-17",
+      "nights": 4,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 10000,
+      "partner_name": "UG Marketing",
+      "notes": "Test Booking",
+      "created_at": "2026-09-13T07:55:25.287403+00:00",
+      "guests": [],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "5f067bc9-11c9-4134-b878-c5aa28be3059",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "2",
+      "room_name": "Room No. 2",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T08:11:27.506774+00:00",
+      "guests": [
+        {
+          "id": "94d20567-d0ee-4af9-bd06-dd77a6ae0b34",
+          "name": "22222",
+          "phone": "22222",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "1c237fa9-fa46-4e53-bbce-d013c5972f50",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T08:15:20.940835+00:00",
+      "guests": [
+        {
+          "id": "28d7f0b5-b5a0-4357-8635-2a049b2491f0",
+          "name": "Unmesh",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "8360d4f8-fd9b-493f-98e5-e6177b022d18",
+      "status": "cancelled",
+      "check_in": "2026-09-20",
+      "check_out": "2026-09-21",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": "Test note",
+      "created_at": "2026-09-13T09:10:18.538053+00:00",
+      "guests": [],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "fa20ab92-29ab-4717-b84d-1e48474d79c5",
+      "status": "cancelled",
+      "check_in": "2026-09-25",
+      "check_out": "2026-09-30",
+      "nights": 5,
+      "room_number": "2",
+      "room_name": "Room No. 2",
+      "nightly_rate": 2500,
+      "total_amount": 12500,
+      "partner_name": "UG Marketing",
+      "notes": "Hejek",
+      "created_at": "2026-09-13T09:57:29.416783+00:00",
+      "guests": [
+        {
+          "id": "f8ea3686-aee8-4720-9027-330eda2664a2",
+          "name": "Yrjr",
+          "phone": "8474836522",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "e55065f2-51bd-4fc5-ba35-135d846ed4cd",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "3",
+      "room_name": "Room No. 3",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T14:01:37.922938+00:00",
+      "guests": [
+        {
+          "id": "83f02071-107c-453b-a377-8ccfca3c55aa",
+          "name": "TAMAL PAIK",
+          "phone": "97077 70290",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "9bbebbf9-10ff-4679-8c92-a3c667efa2b5",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "2",
+      "room_name": "Room No. 2",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T14:01:57.800746+00:00",
+      "guests": [
+        {
+          "id": "1db13727-4f12-4a74-b201-0c8d69ba0f21",
+          "name": "tamal paik",
+          "phone": "97077 70290",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "2aeb682c-fee4-479e-ac7a-ff7b83e29fbe",
+          "name": "baidehi baidya",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "2d28d1f8-7ea6-45cd-a2b3-d8a30df34065",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T15:29:14.721786+00:00",
+      "guests": [
+        {
+          "id": "3941f417-7b1e-4117-8052-215e8131cff3",
+          "name": "Dev joshi",
+          "phone": "7722789812129",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "7d29b354-d586-4981-bb80-646ec20fcb95",
+          "name": "Anushka",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "8308e192-0f59-4e01-8454-986877a76b49",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-15",
+      "nights": 2,
+      "room_number": "2",
+      "room_name": "Room No. 2",
+      "nightly_rate": 2500,
+      "total_amount": 5000,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T15:34:26.394382+00:00",
+      "guests": [
+        {
+          "id": "b26900fa-f99f-4d14-929b-98c84dbc87da",
+          "name": "RAHUL",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "b2c6f4e0-5886-4c5f-a1f6-e2c80c2541da",
+          "name": "RAJESH",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "ebb0d7a0-4c1f-4f88-b490-38033eb39e48",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "3",
+      "room_name": "Room No. 3",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T15:35:49.118453+00:00",
+      "guests": [
+        {
+          "id": "3cbb5429-8504-4394-be45-8c34f5a222e5",
+          "name": "Unmesh",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "978933be-496b-439e-a143-c11963f96fcb",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-15",
+      "nights": 2,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 5000,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T15:44:09.56816+00:00",
+      "guests": [
+        {
+          "id": "698c838d-584e-4bf1-ba16-8e1ec367400d",
+          "name": "Unmesh",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "50711bdf-43e0-48f1-895a-4c0e567a9ddf",
+          "name": "dev",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "2d36a63a-35c8-4840-b36b-f50a134d0194",
+      "status": "cancelled",
+      "check_in": "2026-09-13",
+      "check_out": "2026-09-14",
+      "nights": 1,
+      "room_number": "3",
+      "room_name": "Room No. 3",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-13T15:44:52.033541+00:00",
+      "guests": [
+        {
+          "id": "b55ae2bd-b7d6-44f9-a63f-5ef74fec8247",
+          "name": "rahul",
+          "phone": "3308121029",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "51845915-19b8-4f6c-8f95-0ae19f7262b9",
+      "status": "cancelled",
+      "check_in": "2026-09-14",
+      "check_out": "2026-09-15",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-14T11:32:32.553394+00:00",
+      "guests": [
+        {
+          "id": "a662d24f-a6d7-4a16-8267-48f440bcd650",
+          "name": "sahil sir",
+          "phone": "77447912911",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "e0be8b82-c821-4d47-8968-ca4039ec2792",
+          "name": "Sahil sir 2",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "0ea66346-1648-4e38-b9ca-dec456fef7c3",
+      "status": "cancelled",
+      "check_in": "2026-09-14",
+      "check_out": "2026-09-15",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-14T12:23:14.504141+00:00",
+      "guests": [
+        {
+          "id": "44560e02-f1bb-44b5-a91d-297f44036259",
+          "name": "ashok da",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "7acfbfb8-12ad-40e3-b28b-93f9e05b9d2a",
+          "name": "ashok da 2",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "d695585f-dc8a-435a-93f5-6207c395d15a",
+      "status": "cancelled",
+      "check_in": "2026-09-16",
+      "check_out": "2026-09-17",
+      "nights": 1,
+      "room_number": "2",
+      "room_name": "Room No. 2",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-16T01:43:50.463419+00:00",
+      "guests": [],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "89fe33fd-3246-4fdd-80f8-c6c7c851b897",
+      "status": "cancelled",
+      "check_in": "2026-09-16",
+      "check_out": "2026-09-17",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-16T01:44:23.430052+00:00",
+      "guests": [],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "99f3e234-d768-4bbb-9d8a-0b4bb3876364",
+      "status": "cancelled",
+      "check_in": "2026-09-16",
+      "check_out": "2026-09-17",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-16T01:58:42.465362+00:00",
+      "guests": [
+        {
+          "id": "24586028-ef9e-42d9-b2f5-c3ff0cd4e821",
+          "name": "aa",
+          "phone": "8220952171",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "f76f4266-7b0d-4caf-b2aa-4f542265e358",
+      "status": "cancelled",
+      "check_in": "2026-09-16",
+      "check_out": "2026-09-17",
+      "nights": 1,
+      "room_number": "2",
+      "room_name": "Room No. 2",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-09-16T01:59:31.697756+00:00",
+      "guests": [
+        {
+          "id": "862ad9ac-654e-4cba-a24c-d0d2ade7ab3e",
+          "name": "GPT 1",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "0862aec8-43bb-48b8-87b9-d54ee6890cea",
+          "name": "GPT 2 \\",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "d0c94372-9a79-4e60-a92e-0c86e5f270be",
+      "status": "checked_out",
+      "check_in": "2026-10-01",
+      "check_out": "2026-10-09",
+      "nights": 8,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 20000,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-10-01T13:41:29.187888+00:00",
+      "guests": [
+        {
+          "id": "e5c6bad8-bfc6-4afc-a9bf-fb91d0600eda",
+          "name": "Rahul",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "ddbdb0d4-1d25-4c04-91d0-3b6238eeecf6",
+          "name": "Riya",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "4f270eb0-eba4-49fd-ad92-9f71fb5dac7d",
+      "status": "cancelled",
+      "check_in": "2026-10-24",
+      "check_out": "2026-10-30",
+      "nights": 6,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 15000,
+      "partner_name": "DEV chuchi",
+      "notes": "Daily room rendi service needed",
+      "created_at": "2026-10-24T17:36:19.530546+00:00",
+      "guests": [
+        {
+          "id": "491bf1b3-f668-49ee-be28-2484076539d3",
+          "name": "Unmesh rendi",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "401e804d-7ede-4ac3-bc94-06972cb6e9e1",
+      "status": "cancelled",
+      "check_in": "2026-11-13",
+      "check_out": "2026-11-14",
+      "nights": 1,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 2500,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-11-13T02:51:43.919262+00:00",
+      "guests": [
+        {
+          "id": "eafa4347-165b-4a14-85e1-f03195366891",
+          "name": "Unmesh Gogoi",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        },
+        {
+          "id": "41be33bd-64fe-4f11-9a43-bb9460d1ecac",
+          "name": "Dev Joshi",
+          "phone": null,
+          "email": null,
+          "is_primary": false
+        }
+      ],
+      "invoices": [],
+      "payments": []
+    },
+    {
+      "id": "2c54ddce-1d32-4d0b-8181-edfd37763aa4",
+      "status": "cancelled",
+      "check_in": "2026-11-17",
+      "check_out": "2026-11-19",
+      "nights": 2,
+      "room_number": "1",
+      "room_name": "Room No. 1",
+      "nightly_rate": 2500,
+      "total_amount": 5000,
+      "partner_name": "UG Marketing",
+      "notes": null,
+      "created_at": "2026-11-13T02:52:29.548285+00:00",
+      "guests": [
+        {
+          "id": "f2e61d80-dac2-43b0-a90d-87ce923c3c1c",
+          "name": "Unmesh Gogoi",
+          "phone": "8822095217",
+          "email": null,
+          "is_primary": true
+        }
+      ],
+      "invoices": [
+        {
+          "id": "55196fbd-e221-4d5b-a55d-3d55b1466382",
+          "invoice_number": "INV-WAN-20261113-6763",
+          "status": "paid",
+          "grand_total": 7080,
+          "amount_paid": 7080,
+          "balance_due": 0
+        }
+      ],
+      "payments": [
+        {
+          "id": "4ce40a84-f7a1-4e4f-a206-4dfec4a10139",
+          "amount": 5000,
+          "payment_type": "payment",
+          "payment_method": "cash",
+          "transaction_ref": null,
+          "notes": null,
+          "created_at": "2026-11-13T02:53:48.996801+00:00"
+        },
+        {
+          "id": "5dfb7d20-3628-455c-929a-d10b34f0250b",
+          "amount": 2080,
+          "payment_type": "payment",
+          "payment_method": "cash",
+          "transaction_ref": null,
+          "notes": null,
+          "created_at": "2026-11-13T02:53:59.055747+00:00"
+        }
+      ]
+    }
+  ]
+}

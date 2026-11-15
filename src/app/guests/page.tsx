@@ -280,7 +280,7 @@ export default function GuestsPage() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto hide-scrollbar space-y-6 pb-12">
+    <div className="flex flex-col w-full space-y-6 pb-12 min-w-0">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
         <div>
@@ -536,7 +536,7 @@ export default function GuestsPage() {
         </div>
 
         {/* Desktop View (Table) */}
-        <div className="hidden md:block w-full overflow-x-auto hide-scrollbar">
+        <div className="hidden md:block w-full overflow-x-auto hms-editor-scrollbar">
           <table className="w-full text-left border-collapse min-w-[820px]">
             <thead>
               <tr className="border-b border-[#E8E6F2] bg-[#F7F7FC] text-[10px] font-bold uppercase tracking-wider text-[#77758F]">

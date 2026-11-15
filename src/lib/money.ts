@@ -112,7 +112,7 @@ export function calculateParentPaymentAllocation(
  * - Balance Due: Total Contracted Amount - Net Paid by Guest
  */
 export function calculateFinancialSummary(
-  totalBookingRupees: number,
+  totalBookingRupees: number | string,
   transactions: TransactionForCalculation[]
 ) {
   const totalContractedPaise = rupeesToPaise(totalBookingRupees);
@@ -296,5 +296,59 @@ export function reconcileStatusWithLedger(
 
   // Reflect active payments
   return paymentStatus; // 'partially_paid' | 'paid' | 'overpaid'
+}
+
+/**
+ * Extracts or determines the payment stage ('advance' | 'partial' | 'final' | 'refund' | 'reversal')
+ * from explicit fields, structured notes prefix [Advance]/[Partial]/[Final], or financial context.
+ */
+export function extractPaymentStage(payment: {
+  payment_stage?: string | null;
+  notes?: string | null;
+  payment_type?: string | null;
+  isAdvance?: boolean;
+}): 'advance' | 'partial' | 'final' | 'refund' | 'reversal' {
+  if (payment.payment_stage) {
+    const s = payment.payment_stage.toLowerCase();
+    if (s === 'advance' || s === 'partial' || s === 'final' || s === 'refund' || s === 'reversal') {
+      return s;
+    }
+  }
+
+  if (payment.payment_type === 'refund') return 'refund';
+  if (payment.payment_type === 'reversal') return 'reversal';
+
+  if (payment.notes) {
+    const match = payment.notes.match(/^\[(Advance|Partial|Final|Refund|Reversal)\]/i);
+    if (match) {
+      return match[1].toLowerCase() as 'advance' | 'partial' | 'final' | 'refund' | 'reversal';
+    }
+  }
+
+  if (payment.isAdvance) return 'advance';
+  return 'partial';
+}
+
+/**
+ * Strips the stage tag prefix from notes so user-entered notes can be displayed cleanly.
+ */
+export function stripPaymentStageTag(notes?: string | null): string {
+  if (!notes) return '';
+  return notes.replace(/^\[(Advance|Partial|Final|Refund|Reversal)\]\s*/i, '').trim();
+}
+
+/**
+ * Encodes the payment stage into the audit notes string for backward-compatible storage.
+ */
+export function formatPaymentNotesWithStage(
+  stage: 'advance' | 'partial' | 'final' | 'refund' | 'reversal',
+  userNotes?: string | null
+): string {
+  const stageCapitalized = stage.charAt(0).toUpperCase() + stage.slice(1);
+  const cleanNotes = stripPaymentStageTag(userNotes);
+  if (!cleanNotes) {
+    return `[${stageCapitalized}]`;
+  }
+  return `[${stageCapitalized}] ${cleanNotes}`;
 }
 

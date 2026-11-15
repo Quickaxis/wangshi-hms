@@ -573,6 +573,7 @@ export default function BillingsPage() {
                           inv.status === "paid" && "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]",
                           inv.status === "partially_paid" && "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]",
                           inv.status === "unpaid" && "bg-[#FEF2F2] border-[#FECACA] text-[#DC2626]",
+                          inv.status === "draft" && "bg-[#F0EEFF] border-[#E0DEF8] text-[#5146D8]",
                           inv.status === "cancelled" && "bg-[#F7F7FC] border-[#E8E7F2] text-[#77758F]"
                         )}
                       >
@@ -581,9 +582,10 @@ export default function BillingsPage() {
                           inv.status === "paid" && "bg-[#10B981]",
                           inv.status === "partially_paid" && "bg-[#F59E0B]",
                           inv.status === "unpaid" && "bg-[#EF4444]",
+                          inv.status === "draft" && "bg-[#5146D8]",
                           inv.status === "cancelled" && "bg-[#77758F]"
                         )} />
-                        <span>{inv.status.replace("_", " ")}</span>
+                        <span>{inv.status === 'draft' ? "Live Folio" : inv.status.replace("_", " ")}</span>
                       </span>
                     </td>
 

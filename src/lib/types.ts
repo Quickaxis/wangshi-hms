@@ -104,6 +104,8 @@ export interface DbBooking {
   nightly_rate: number;
   total_amount: number;
   notes: string | null;
+  group_id?: string | null;
+  is_group_lead?: boolean;
   created_at: string;
   updated_at: string;
   // Relations
@@ -191,6 +193,7 @@ export interface DbBookingRequest {
 export type PaymentType = 'payment' | 'refund' | 'reversal';
 export type PaymentMethod = 'cash' | 'upi' | 'bank_transfer' | 'card' | 'ota_payout';
 export type PaymentStatus = 'unpaid' | 'partially_paid' | 'paid' | 'overpaid' | 'refunded';
+export type PaymentStage = 'advance' | 'partial' | 'final' | 'refund' | 'reversal';
 
 export interface DbPayment {
   id: string;
@@ -199,16 +202,56 @@ export interface DbPayment {
   amount: number | string; // NUMERIC(12,2) from Postgres
   payment_type: PaymentType;
   payment_method: PaymentMethod;
+  payment_stage?: PaymentStage;
+  receipt_number?: string;
   parent_payment_id?: string | null;
   transaction_ref?: string | null;
   notes?: string | null;
   recorded_by: string;
   created_at: string;
+  invoice_id?: string | null;
+  idempotency_key?: string | null;
+  formatted_timestamp?: string;
+  formatted_date_time?: string;
   partners?: {
     id: string;
     name: string;
     email: string;
   } | null;
+}
+
+export interface PaymentReceiptData {
+  receiptNumber: string;
+  paymentId: string;
+  stage: PaymentStage;
+  amount: number | string;
+  paymentMethod: PaymentMethod;
+  transactionRef?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  formattedTimestamp: string;
+  homestay: {
+    id: string;
+    name: string;
+    location?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    logo_url?: string | null;
+  };
+  guestName: string;
+  guestPhone?: string | null;
+  guestEmail?: string | null;
+  roomName?: string | null;
+  checkIn: string;
+  checkOut: string;
+  bookingId: string;
+  groupId?: string | null;
+  totalContracted: number | string;
+  grossCollected: number | string;
+  balanceDue: number | string;
+  paymentStatus: PaymentStatus;
+  cashierName: string;
+  invoiceNumber?: string | null;
 }
 
 export interface BookingFinancialSummary {
@@ -262,6 +305,7 @@ export interface DbInvoice {
   id: string;
   homestay_id: string;
   booking_id: string;
+  group_id?: string | null;
   invoice_number: string;
   invoice_date: string; // YYYY-MM-DD
   status: InvoiceStatus;
@@ -305,6 +349,7 @@ export interface CreateInvoiceItemInput {
 
 export interface CreateInvoiceInput {
   bookingId: string;
+  groupId?: string | null;
   homestayId?: string;
   invoiceNumber?: string;
   invoiceDate?: string;

@@ -8,6 +8,8 @@ import {
   createBookingAction,
   updateBookingStatusAction,
   cancelBookingAction,
+  cancelGroupBookingAction,
+  updateGroupBookingStatusAction,
   CreateBookingInput,
   BookingActionResult,
 } from "@/app/actions/bookings";
@@ -24,6 +26,8 @@ interface HMSContextType {
   createBooking: (input: CreateBookingInput) => Promise<BookingActionResult>;
   updateBookingStatus: (bookingId: string, status: BookingStatus) => Promise<BookingActionResult>;
   cancelBooking: (bookingId: string) => Promise<BookingActionResult>;
+  cancelGroupBooking: (groupId: string) => Promise<BookingActionResult>;
+  updateGroupBookingStatus: (groupId: string, status: BookingStatus) => Promise<BookingActionResult>;
   currentISTDate: Date | null;
   userProfile: Partner | null;
   selectedHomestayId: string | null;
@@ -381,6 +385,25 @@ export function HMSProvider({
     return result;
   };
 
+  const cancelGroupBooking = async (groupId: string): Promise<BookingActionResult> => {
+    const result = await cancelGroupBookingAction(groupId);
+    if (result.success) {
+      await loadData();
+    }
+    return result;
+  };
+
+  const updateGroupBookingStatus = async (
+    groupId: string,
+    status: BookingStatus
+  ): Promise<BookingActionResult> => {
+    const result = await updateGroupBookingStatusAction(groupId, status);
+    if (result.success) {
+      await loadData();
+    }
+    return result;
+  };
+
   return (
     <HMSContext.Provider
       value={{
@@ -392,6 +415,8 @@ export function HMSProvider({
         createBooking,
         updateBookingStatus,
         cancelBooking,
+        cancelGroupBooking,
+        updateGroupBookingStatus,
         currentISTDate,
         userProfile,
         selectedHomestayId,

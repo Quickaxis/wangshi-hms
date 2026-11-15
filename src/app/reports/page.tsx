@@ -51,6 +51,8 @@ export default function ReportsPage() {
           nightly_rate,
           total_amount,
           created_at,
+          group_id,
+          is_group_lead,
           partners ( id, name ),
           rooms ( name )
         `)

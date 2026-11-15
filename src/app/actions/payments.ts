@@ -5,6 +5,8 @@ import {
   DbPayment, 
   PaymentType, 
   PaymentMethod, 
+  PaymentStage,
+  PaymentReceiptData,
   BookingFinancialSummary 
 } from "@/lib/types";
 import { 
@@ -12,14 +14,24 @@ import {
   paiseToDecimalString, 
   isValidMoneyInput, 
   calculateFinancialSummary,
-  calculateParentPaymentAllocation
+  calculateParentPaymentAllocation,
+  extractPaymentStage,
+  formatPaymentNotesWithStage,
+  stripPaymentStageTag
 } from "@/lib/money";
+import {
+  formatISTPaymentTimestamp,
+  formatISTLedgerDateTime,
+  formatReceiptNumber
+} from "@/lib/dateUtils";
 
 export interface RecordPaymentInput {
   bookingId: string;
   amount: string | number; // e.g. "2500" or "2500.50"
   paymentType: PaymentType;
   paymentMethod: PaymentMethod;
+  paymentStage?: PaymentStage;
+  receiptNumber?: string;
   parentPaymentId?: string | null;
   transactionRef?: string | null;
   notes?: string | null;
@@ -68,7 +80,7 @@ export async function recordPaymentAction(input: RecordPaymentInput): Promise<Re
     // 2. Validate booking existence and tenant permissions
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .select("id, homestay_id, total_amount, status")
+      .select("id, homestay_id, total_amount, status, group_id")
       .eq("id", input.bookingId)
       .single();
 
@@ -80,6 +92,16 @@ export async function recordPaymentAction(input: RecordPaymentInput): Promise<Re
     if (!isSuperAdmin && partner.homestay_id !== booking.homestay_id) {
       return { success: false, error: "You are not authorized to manage transactions for this homestay." };
     }
+
+    // Determine payment stage and embed into notes for seamless cross-version compatibility
+    const effectiveStage: PaymentStage = input.paymentStage || (
+      input.paymentType === 'refund' 
+        ? 'refund' 
+        : input.paymentType === 'reversal' 
+        ? 'reversal' 
+        : (booking.status === 'confirmed' ? 'advance' : 'partial')
+    );
+    const formattedNotes = formatPaymentNotesWithStage(effectiveStage, input.notes);
 
     // 3. Monetary precision validation
     if (!isValidMoneyInput(input.amount)) {
@@ -94,7 +116,7 @@ export async function recordPaymentAction(input: RecordPaymentInput): Promise<Re
 
     // 4. Type-specific business rules
     if (input.paymentType === 'refund') {
-      if (!input.notes || !input.notes.trim()) {
+      if (!input.notes || !stripPaymentStageTag(input.notes).trim()) {
         return { success: false, error: "A clear reason is required for all guest refunds." };
       }
     }
@@ -106,7 +128,7 @@ export async function recordPaymentAction(input: RecordPaymentInput): Promise<Re
           error: "Reversal entries must link to the specific payment being corrected." 
         };
       }
-      if (!input.notes || !input.notes.trim()) {
+      if (!input.notes || !stripPaymentStageTag(input.notes).trim()) {
         return { 
           success: false, 
           error: "A documented audit note is required explaining why this payment is being reversed." 
@@ -149,16 +171,36 @@ export async function recordPaymentAction(input: RecordPaymentInput): Promise<Re
       }
     }
 
+    // Check for an active invoice if invoiceId not provided explicitly
+    let targetInvoiceId = input.invoiceId || null;
+    if (!targetInvoiceId && input.paymentType === 'payment') {
+      let invQuery = supabase
+        .from("invoices")
+        .select("id")
+        .neq("status", "cancelled");
+
+      if (booking.group_id) {
+        invQuery = invQuery.or(`group_id.eq.${booking.group_id},booking_id.eq.${booking.id}`);
+      } else {
+        invQuery = invQuery.eq("booking_id", booking.id);
+      }
+
+      const { data: activeInv } = await invQuery.order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (activeInv?.id) {
+        targetInvoiceId = activeInv.id;
+      }
+    }
+
     // 5. If recording an original payment against an invoice, use the atomic record_invoice_payment RPC
-    if (input.invoiceId && input.paymentType === 'payment') {
+    if (targetInvoiceId && input.paymentType === 'payment') {
       const { data: rpcRes, error: rpcErr } = await supabase.rpc(
         "record_invoice_payment",
         {
-          p_invoice_id: input.invoiceId,
+          p_invoice_id: targetInvoiceId,
           p_amount: Number(amountDecimalString),
           p_payment_method: input.paymentMethod || 'cash',
           p_transaction_ref: input.transactionRef?.trim() || null,
-          p_notes: input.notes?.trim() || null,
+          p_notes: formattedNotes,
           p_idempotency_key: input.idempotencyKey?.trim() || null,
         }
       );
@@ -212,13 +254,13 @@ export async function recordPaymentAction(input: RecordPaymentInput): Promise<Re
       payment_method: input.paymentMethod,
       parent_payment_id: input.parentPaymentId || null,
       transaction_ref: input.transactionRef?.trim() || null,
-      notes: input.notes?.trim() || null,
+      notes: formattedNotes,
       recorded_by: partner.id,
       idempotency_key: input.idempotencyKey?.trim() || null,
     };
 
-    if (input.invoiceId) {
-      paymentPayload.invoice_id = input.invoiceId;
+    if (targetInvoiceId) {
+      paymentPayload.invoice_id = targetInvoiceId;
     }
 
     const { data: inserted, error: insertError } = await supabase
@@ -330,7 +372,7 @@ export async function getBookingPaymentsAction(bookingId: string): Promise<GetPa
     // Fetch booking
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .select("id, homestay_id, total_amount")
+      .select("id, homestay_id, total_amount, group_id, status")
       .eq("id", bookingId)
       .single();
 
@@ -343,7 +385,29 @@ export async function getBookingPaymentsAction(bookingId: string): Promise<GetPa
       return { success: false, error: "Access denied: unauthorized homestay." };
     }
 
-    // Fetch all payments for this booking
+    // Support group booking financial aggregation: if this booking is part of a group,
+    // calculate combined total contracted charges across all non-cancelled group rooms.
+    let targetBookingIds = [bookingId];
+    let effectiveTotalAmount = booking.total_amount;
+
+    if (booking.group_id) {
+      const { data: groupBookings } = await supabase
+        .from("bookings")
+        .select("id, total_amount, status")
+        .eq("group_id", booking.group_id)
+        .neq("status", "cancelled");
+
+      if (groupBookings && groupBookings.length > 0) {
+        targetBookingIds = groupBookings.map(b => b.id);
+        const groupTotalPaise = groupBookings.reduce(
+          (sum, b) => sum + rupeesToPaise(b.total_amount || 0),
+          BigInt(0)
+        );
+        effectiveTotalAmount = Number(paiseToDecimalString(groupTotalPaise));
+      }
+    }
+
+    // Fetch all payments for this booking or its group
     const { data: payments, error: paymentsError } = await supabase
       .from("payments")
       .select(`
@@ -360,12 +424,12 @@ export async function getBookingPaymentsAction(bookingId: string): Promise<GetPa
         created_at,
         partners ( id, name, email )
       `)
-      .eq("booking_id", bookingId)
+      .in("booking_id", targetBookingIds)
       .order("created_at", { ascending: true });
 
     if (paymentsError) {
       if (paymentsError.code === '42P01' || paymentsError.code === 'PGRST205' || paymentsError.message?.includes('payments')) {
-        const financialSummary = calculateFinancialSummary(booking.total_amount, []);
+        const financialSummary = calculateFinancialSummary(effectiveTotalAmount, []);
         return {
           success: true,
           summary: {
@@ -379,10 +443,21 @@ export async function getBookingPaymentsAction(bookingId: string): Promise<GetPa
       return { success: false, error: paymentsError.message };
     }
 
-    const paymentRows = (payments || []) as unknown as DbPayment[];
+    const enrichedPaymentRows: DbPayment[] = (payments || []).map((p: any) => {
+      const stage = extractPaymentStage(p);
+      const recNumber = p.receipt_number || formatReceiptNumber(p.created_at, p.id);
+      return {
+        ...p,
+        payment_stage: stage,
+        receipt_number: recNumber,
+        formatted_timestamp: formatISTPaymentTimestamp(p.created_at),
+        formatted_date_time: formatISTLedgerDateTime(p.created_at),
+      };
+    });
+
     const financialSummary = calculateFinancialSummary(
-      booking.total_amount,
-      paymentRows.map(p => ({ amount: p.amount, payment_type: p.payment_type }))
+      effectiveTotalAmount,
+      enrichedPaymentRows.map(p => ({ amount: p.amount, payment_type: p.payment_type }))
     );
 
     return {
@@ -390,7 +465,7 @@ export async function getBookingPaymentsAction(bookingId: string): Promise<GetPa
       summary: {
         bookingId: booking.id,
         ...financialSummary,
-        payments: paymentRows,
+        payments: enrichedPaymentRows,
       }
     };
 
@@ -400,5 +475,181 @@ export async function getBookingPaymentsAction(bookingId: string): Promise<GetPa
       success: false, 
       error: err instanceof Error ? err.message : "Internal server error occurred." 
     };
+  }
+}
+
+/**
+ * Server action to generate full receipt data for a payment transaction.
+ */
+export async function getPaymentReceiptDataAction(paymentId: string): Promise<{
+  success: boolean;
+  receipt?: PaymentReceiptData;
+  error?: string;
+}> {
+  try {
+    const supabase = await createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: "Authentication required to generate receipts." };
+    }
+
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("id, name, email, role, homestay_id, is_active")
+      .eq("email", user.email)
+      .single();
+
+    if (!partner || !partner.is_active) {
+      return { success: false, error: "Unauthorized access." };
+    }
+
+    // 1. Fetch payment
+    const { data: payment, error: pError } = await supabase
+      .from("payments")
+      .select(`
+        *,
+        partners ( id, name, email )
+      `)
+      .eq("id", paymentId)
+      .single();
+
+    if (pError || !payment) {
+      return { success: false, error: "Payment record not found." };
+    }
+
+    // Tenant check
+    const isSuperAdmin = partner.role === 'super_admin';
+    if (!isSuperAdmin && partner.homestay_id !== payment.homestay_id) {
+      return { success: false, error: "Unauthorized access to this receipt." };
+    }
+
+    // 2. Fetch booking, rooms, guests, homestay
+    const { data: booking, error: bError } = await supabase
+      .from("bookings")
+      .select(`
+        id,
+        homestay_id,
+        room_id,
+        group_id,
+        check_in,
+        check_out,
+        total_amount,
+        status,
+        rooms ( id, room_number, name ),
+        guests ( id, name, phone, email, is_primary ),
+        homestay:homestays ( id, name, slug, location, phone, email, logo_url )
+      `)
+      .eq("id", payment.booking_id)
+      .single();
+
+    if (bError || !booking) {
+      return { success: false, error: "Associated booking not found." };
+    }
+
+    // 3. Resolve group or single folio financial details
+    let targetBookingIds = [booking.id];
+    let totalContractedPaise = rupeesToPaise(booking.total_amount || 0);
+
+    if (booking.group_id) {
+      const { data: groupBookings } = await supabase
+        .from("bookings")
+        .select("id, total_amount, status")
+        .eq("group_id", booking.group_id)
+        .neq("status", "cancelled");
+
+      if (groupBookings && groupBookings.length > 0) {
+        targetBookingIds = groupBookings.map(b => b.id);
+        totalContractedPaise = groupBookings.reduce(
+          (sum, b) => sum + rupeesToPaise(b.total_amount || 0),
+          BigInt(0)
+        );
+      }
+    }
+
+    // 4. Fetch all payments up to this transaction
+    const { data: allPayments } = await supabase
+      .from("payments")
+      .select("id, amount, payment_type, created_at")
+      .in("booking_id", targetBookingIds)
+      .order("created_at", { ascending: true });
+
+    const priorAndCurrent = (allPayments || []).filter(
+      p => new Date(p.created_at) <= new Date(payment.created_at)
+    );
+
+    const finSummary = calculateFinancialSummary(
+      paiseToDecimalString(totalContractedPaise),
+      priorAndCurrent.map(p => ({ amount: p.amount, payment_type: p.payment_type }))
+    );
+
+    // 5. Check if linked to an invoice or if active invoice exists
+    let invoiceNumber: string | null = null;
+    if (payment.invoice_id) {
+      const { data: inv } = await supabase
+        .from("invoices")
+        .select("invoice_number")
+        .eq("id", payment.invoice_id)
+        .maybeSingle();
+      if (inv) invoiceNumber = inv.invoice_number;
+    } else {
+      let invQ = supabase.from("invoices").select("invoice_number").neq("status", "cancelled");
+      if (booking.group_id) {
+        invQ = invQ.or(`group_id.eq.${booking.group_id},booking_id.eq.${booking.id}`);
+      } else {
+        invQ = invQ.eq("booking_id", booking.id);
+      }
+      const { data: activeInv } = await invQ.order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (activeInv) invoiceNumber = activeInv.invoice_number;
+    }
+
+    const primaryGuest = (booking.guests || []).find((g: any) => g.is_primary) || booking.guests?.[0];
+    const guestName = primaryGuest?.name || "Guest";
+    const guestPhone = primaryGuest?.phone || null;
+    const guestEmail = primaryGuest?.email || null;
+    const roomName = (booking.rooms as any)?.name || (booking.rooms as any)?.room_number || "Room";
+    const cashierName = (payment.partners as any)?.name || partner.name || "Reception Desk";
+
+    const stage = extractPaymentStage(payment);
+    const recNumber = payment.receipt_number || formatReceiptNumber(payment.created_at, payment.id);
+
+    const receipt: PaymentReceiptData = {
+      receiptNumber: recNumber,
+      paymentId: payment.id,
+      stage,
+      amount: payment.amount,
+      paymentMethod: payment.payment_method,
+      transactionRef: payment.transaction_ref,
+      notes: stripPaymentStageTag(payment.notes),
+      createdAt: payment.created_at,
+      formattedTimestamp: formatISTPaymentTimestamp(payment.created_at),
+      homestay: {
+        id: (booking.homestay as any)?.id || booking.homestay_id,
+        name: (booking.homestay as any)?.name || "Homestay",
+        location: (booking.homestay as any)?.location || null,
+        phone: (booking.homestay as any)?.phone || null,
+        email: (booking.homestay as any)?.email || null,
+        logo_url: (booking.homestay as any)?.logo_url || null,
+      },
+      guestName,
+      guestPhone,
+      guestEmail,
+      roomName,
+      checkIn: booking.check_in,
+      checkOut: booking.check_out,
+      bookingId: booking.id,
+      groupId: booking.group_id || null,
+      totalContracted: finSummary.totalContracted,
+      grossCollected: finSummary.grossCollected,
+      balanceDue: finSummary.balanceDue,
+      paymentStatus: finSummary.paymentStatus,
+      cashierName,
+      invoiceNumber,
+    };
+
+    return { success: true, receipt };
+  } catch (err: any) {
+    console.error("[HMS Payment Action] Exception in getPaymentReceiptDataAction:", err);
+    return { success: false, error: err?.message || "Failed to generate receipt." };
   }
 }

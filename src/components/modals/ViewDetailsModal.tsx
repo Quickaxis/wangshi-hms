@@ -30,7 +30,7 @@ import {
 import { useHMSContext } from "../providers/HMSProvider";
 import { cn } from "@/lib/utils";
 import { DbInvoice, DbBooking } from "@/lib/types";
-import { getInvoiceByBookingIdAction } from "@/app/actions/invoices";
+import { getInvoiceByBookingIdAction, getOrCreateBookingFolioAction } from "@/app/actions/invoices";
 import { InvoiceEditorModal } from "./InvoiceEditorModal";
 
 interface ViewDetailsModalProps {
@@ -50,9 +50,10 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
 
-  // Invoicing State
+  // Invoicing & Folio State
   const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
   const [billingInvoice, setBillingInvoice] = useState<DbInvoice | null>(null);
+  const [initialBillingTab, setInitialBillingTab] = useState<"items" | "payments">("items");
 
   if (!room) return null;
 
@@ -108,10 +109,11 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
     }
   };
 
-  const handleOpenBilling = async () => {
+  const handleOpenBilling = async (tab: "items" | "payments" = "items") => {
     if (!booking) return;
+    setInitialBillingTab(tab);
     try {
-      const res = await getInvoiceByBookingIdAction(booking.id);
+      const res = await getOrCreateBookingFolioAction(booking.id);
       if (res.success && res.invoice) {
         setBillingInvoice(res.invoice);
       } else {
@@ -119,7 +121,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
       }
       setIsBillingModalOpen(true);
     } catch (err) {
-      console.error("Failed to load invoice for room booking:", err);
+      console.error("Failed to load folio for room booking:", err);
       setBillingInvoice(null);
       setIsBillingModalOpen(true);
     }
@@ -167,22 +169,22 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   Cancel Stay
                 </GlassButton>
                 <GlassButton
+                  variant="primary"
+                  onClick={() => handleOpenBilling("items")}
+                  disabled={isUpdating}
+                  className="px-3.5 py-1.5 text-xs flex items-center justify-center gap-1.5 bg-[#5146D8] hover:bg-[#4338CA] text-white border-transparent shadow-sm"
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  Guest Folio & Billing
+                </GlassButton>
+                <GlassButton
                   variant="ghost"
-                  onClick={() => setIsPaymentModalOpen(true)}
+                  onClick={() => handleOpenBilling("payments")}
                   disabled={isUpdating}
                   className="px-2.5 py-1.5 text-xs flex items-center justify-center gap-1.5 bg-[#F0EEFF] hover:bg-[#E0DEF8] border-[#E0DEF8] text-[#5146D8]"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   Record Payment
-                </GlassButton>
-                <GlassButton
-                  variant="primary"
-                  onClick={handleOpenBilling}
-                  disabled={isUpdating}
-                  className="px-2.5 py-1.5 text-xs flex items-center justify-center gap-1.5 bg-[#5146D8] hover:bg-[#4338CA] text-white border-transparent"
-                >
-                  <Receipt className="w-3.5 h-3.5" />
-                  Bill / Invoice
                 </GlassButton>
               </>
             )}
@@ -523,12 +525,13 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
         />
       )}
 
-      {/* Invoice Editor Modal */}
+      {/* Invoice / Folio Editor Modal */}
       {booking && isBillingModalOpen && (
         <InvoiceEditorModal
           isOpen={isBillingModalOpen}
           onClose={() => setIsBillingModalOpen(false)}
           existingInvoice={billingInvoice}
+          initialTab={initialBillingTab}
           booking={{
             id: booking.id,
             room_id: activeRoom.id,

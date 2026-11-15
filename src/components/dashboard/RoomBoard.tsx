@@ -141,6 +141,15 @@ export function RoomBoard() {
                 Today
               </div>
             )}
+
+            <button
+              onClick={() => setBookingRoom(availableRooms[0] || rooms[0] || null)}
+              disabled={availableRooms.length === 0}
+              className="px-3 py-1 rounded-xl text-xs font-semibold bg-[#5146D8] hover:bg-[#4338CA] text-white flex items-center gap-1 shadow-sm transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Group Booking</span>
+            </button>
           </div>
         </div>
 

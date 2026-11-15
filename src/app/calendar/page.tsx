@@ -57,6 +57,8 @@ export default function CalendarPage() {
           nightly_rate,
           total_amount,
           notes,
+          group_id,
+          is_group_lead,
           partners ( id, name ),
           guests ( id, name, phone, email, is_primary )
         `)

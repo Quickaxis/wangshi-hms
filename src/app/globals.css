@@ -68,6 +68,57 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Sleek, unobtrusive custom scrollbars for main content and modals */
+  .hms-scrollbar,
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(81, 70, 216, 0.28) transparent;
+  }
+
+  .hms-scrollbar::-webkit-scrollbar,
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .hms-scrollbar::-webkit-scrollbar-track,
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .hms-scrollbar::-webkit-scrollbar-thumb,
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(81, 70, 216, 0.28);
+    border-radius: 9999px;
+  }
+
+  .hms-scrollbar::-webkit-scrollbar-thumb:hover,
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(81, 70, 216, 0.55);
+  }
+
+  /* Enhanced, visible draggable scrollbar for HMS Guest Folio editor & document preview */
+  .hms-editor-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(81, 70, 216, 0.38) rgba(81, 70, 216, 0.04);
+  }
+  .hms-editor-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .hms-editor-scrollbar::-webkit-scrollbar-track {
+    background: rgba(81, 70, 216, 0.04);
+    border-radius: 9999px;
+  }
+  .hms-editor-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(81, 70, 216, 0.35);
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+  .hms-editor-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(81, 70, 216, 0.65);
+  }
 }
 
 /* ==========================================================================
@@ -109,7 +160,9 @@ select {
 /* Screen mode: hide dedicated print portal completely */
 @media screen {
   #hms-invoice-print-root,
-  .hms-print-only {
+  .hms-print-only,
+  #hms-receipt-print-root,
+  .hms-receipt-print-only {
     display: none !important;
   }
 }
@@ -198,6 +251,26 @@ select {
 
   /* Remove all transforms, fixed positioning and scroll traps on any ancestor */
   body.hms-printing-invoice * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* When printing a payment receipt via portal: hide all screen-only UI elements */
+  body:has(#hms-receipt-print-root) > *:not(#hms-receipt-print-root),
+  body.hms-printing-receipt > *:not(#hms-receipt-print-root) {
+    display: none !important;
+  }
+
+  #hms-receipt-print-root,
+  .hms-receipt-print-only {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  body.hms-printing-receipt * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

@@ -85,6 +85,51 @@ export function formatISTDateTime(date: Date | string): string {
 }
 
 /**
+ * Exact server timestamp for payment receipts and audit ledgers:
+ * e.g. "15 Nov 2026, 08:42:35 AM IST"
+ */
+export function formatISTPaymentTimestamp(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const dateStr = formatISTCompactDate(d);
+  const timeStr = formatInIST(d, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).toUpperCase();
+  return `${dateStr}, ${timeStr} IST`;
+}
+
+/**
+ * Formats date and time for concise ledger view:
+ * e.g. "15 Nov 2026 · 08:42 AM"
+ */
+export function formatISTLedgerDateTime(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const dateStr = formatISTCompactDate(d);
+  const timeStr = formatInIST(d, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).toUpperCase();
+  return `${dateStr} · ${timeStr}`;
+}
+
+/**
+ * Generates a formal, standardized receipt number:
+ * e.g. "REC-20261115-A4F79C12"
+ */
+export function formatReceiptNumber(date: Date | string, paymentId?: string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const dateStr = getISTDateString(d).replace(/-/g, "");
+  const idPart = (paymentId || "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(0, 8)
+    .toUpperCase() || "00000000";
+  return `REC-${dateStr}-${idPart.padEnd(8, "0")}`;
+}
+
+/**
  * yyyy-MM-dd (for internal state like selectedDate)
  */
 export function getISTDateString(date?: Date | string): string {

@@ -7,15 +7,26 @@ import {
   CreateInvoiceInput, 
   UpdateInvoiceInput, 
   InvoiceStatus,
-  PaymentMethod
+  PaymentMethod,
+  PaymentStage,
+  InvoiceItemCategory,
+  DbPayment
 } from "@/lib/types";
 import { 
   calculateInvoiceTotals, 
   paiseToDecimalString, 
   rupeesToPaise,
   reconcileStatusWithLedger,
-  isValidMoneyInput 
+  isValidMoneyInput,
+  extractPaymentStage,
+  formatPaymentNotesWithStage,
+  stripPaymentStageTag
 } from "@/lib/money";
+import {
+  formatISTPaymentTimestamp,
+  formatISTLedgerDateTime,
+  formatReceiptNumber
+} from "@/lib/dateUtils";
 import { recordPaymentAction } from "@/app/actions/payments";
 
 export interface InvoiceActionResult {
@@ -149,7 +160,15 @@ export async function getInvoicesAction(homestayIdFilter?: string): Promise<GetI
           // Strictly attribute payment ONLY if it has an explicit invoice_id
           if (p.invoice_id) {
             if (!paymentsByInvoice[p.invoice_id]) paymentsByInvoice[p.invoice_id] = [];
-            paymentsByInvoice[p.invoice_id].push(p);
+            const stage = extractPaymentStage(p);
+            const recNumber = p.receipt_number || formatReceiptNumber(p.created_at, p.id);
+            paymentsByInvoice[p.invoice_id].push({
+              ...p,
+              payment_stage: stage,
+              receipt_number: recNumber,
+              formatted_timestamp: formatISTPaymentTimestamp(p.created_at),
+              formatted_date_time: formatISTLedgerDateTime(p.created_at),
+            });
           }
           // Note: Payments with invoice_id IS NULL are unallocated booking-level payments
           // and are NOT silently credited to any individual invoice.
@@ -235,12 +254,19 @@ export async function getInvoiceByIdAction(invoiceId: string): Promise<InvoiceAc
       return { success: false, error: "Unauthorized access to this invoice." };
     }
 
-    // Fetch payments for this booking
-    const { data: payments, error: paymentsErr } = await supabase
+    // Fetch payments explicitly attributed to this invoice or linked booking
+    let paymentQuery = supabase
       .from("payments")
       .select("*, partners(id, name, email)")
-      .eq("booking_id", invoice.booking_id)
       .order("created_at", { ascending: true });
+
+    if (invoice.group_id) {
+      paymentQuery = paymentQuery.or(`invoice_id.eq.${invoice.id},booking_id.eq.${invoice.booking_id}`);
+    } else {
+      paymentQuery = paymentQuery.or(`invoice_id.eq.${invoice.id},booking_id.eq.${invoice.booking_id}`);
+    }
+
+    const { data: payments, error: paymentsErr } = await paymentQuery;
 
     if (paymentsErr) {
       console.error("Failed to fetch payment ledger for invoice:", paymentsErr);
@@ -249,7 +275,19 @@ export async function getInvoiceByIdAction(invoiceId: string): Promise<InvoiceAc
 
     const allPayments = payments || [];
     // Only payments explicitly attributed to THIS invoice
-    const invoicePayments = allPayments.filter((p: any) => p.invoice_id === invoice.id);
+    const rawInvoicePayments = allPayments.filter((p: any) => p.invoice_id === invoice.id);
+
+    const invoicePayments: DbPayment[] = rawInvoicePayments.map((p: any) => {
+      const stage = extractPaymentStage(p);
+      const recNumber = p.receipt_number || formatReceiptNumber(p.created_at, p.id);
+      return {
+        ...p,
+        payment_stage: stage,
+        receipt_number: recNumber,
+        formatted_timestamp: formatISTPaymentTimestamp(p.created_at),
+        formatted_date_time: formatISTLedgerDateTime(p.created_at),
+      };
+    });
 
     const totals = calculateInvoiceTotals(
       invoice.items || [],
@@ -279,7 +317,7 @@ export async function getInvoiceByIdAction(invoiceId: string): Promise<InvoiceAc
 }
 
 /**
- * Check if an active invoice already exists for a booking.
+ * Check if an active invoice already exists for a booking or its group.
  */
 export async function getInvoiceByBookingIdAction(bookingId: string): Promise<InvoiceActionResult> {
   try {
@@ -288,7 +326,14 @@ export async function getInvoiceByBookingIdAction(bookingId: string): Promise<In
       return { success: false, error: authErr || "Authentication failed." };
     }
 
-    const { data: invoice, error } = await supabase
+    // Fetch booking to inspect homestay and potential group_id
+    const { data: targetBooking } = await supabase
+      .from("bookings")
+      .select("id, homestay_id, group_id")
+      .eq("id", bookingId)
+      .maybeSingle();
+
+    let invQuery = supabase
       .from("invoices")
       .select(`
         *,
@@ -305,8 +350,15 @@ export async function getInvoiceByBookingIdAction(bookingId: string): Promise<In
         ),
         homestay:homestays(*)
       `)
-      .eq("booking_id", bookingId)
-      .neq("status", "cancelled")
+      .neq("status", "cancelled");
+
+    if (targetBooking?.group_id) {
+      invQuery = invQuery.or(`group_id.eq.${targetBooking.group_id},booking_id.eq.${bookingId}`);
+    } else {
+      invQuery = invQuery.eq("booking_id", bookingId);
+    }
+
+    const { data: invoice, error } = await invQuery
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -364,6 +416,724 @@ export async function getInvoiceByBookingIdAction(bookingId: string): Promise<In
 }
 
 /**
+ * Check if an active consolidated invoice exists for a group.
+ */
+export async function getInvoiceByGroupIdAction(groupId: string): Promise<InvoiceActionResult> {
+  try {
+    const { error: authErr, supabase, partner } = await getAuthenticatedPartner();
+    if (authErr || !supabase || !partner) {
+      return { success: false, error: authErr || "Authentication failed." };
+    }
+
+    const { data: invoice, error } = await supabase
+      .from("invoices")
+      .select(`
+        *,
+        items:invoice_items(*),
+        bookings:bookings(
+          id,
+          room_id,
+          check_in,
+          check_out,
+          status,
+          total_amount,
+          rooms(id, room_number, name),
+          guests(id, name, phone, email, is_primary)
+        ),
+        homestay:homestays(*)
+      `)
+      .eq("group_id", groupId)
+      .neq("status", "cancelled")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!invoice) {
+      return { success: true, invoice: undefined };
+    }
+
+    const isSuperAdmin = partner.role === 'super_admin';
+    if (!isSuperAdmin && partner.homestay_id !== invoice.homestay_id) {
+      return { success: false, error: "Unauthorized access to this homestay's invoices." };
+    }
+
+    const { data: payments, error: paymentsErr } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("invoice_id", invoice.id);
+
+    if (paymentsErr) {
+      return { success: false, error: `Failed to load payments: ${paymentsErr.message}` };
+    }
+
+    const invoicePayments = payments || [];
+    const totals = calculateInvoiceTotals(
+      invoice.items || [],
+      invoice.tax_rate,
+      invoice.discount_amount,
+      invoicePayments
+    );
+
+    const reconciledStatus = reconcileStatusWithLedger(invoice.status, totals.paymentStatus);
+
+    return {
+      success: true,
+      invoice: {
+        ...invoice,
+        amount_paid: totals.amountPaid,
+        balance_due: totals.balanceDue,
+        status: reconciledStatus,
+        payments: invoicePayments
+      }
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to query group invoice." };
+  }
+}
+
+/**
+ * Automatically get or initialize a Live Guest Folio for any booking.
+ * 
+ * CORE PMS PRINCIPLE: ONE BOOKING = ONE LIVE GUEST FOLIO.
+ * 
+ * - If an active folio/invoice already exists for this booking or group, returns it immediately.
+ * - If no folio exists yet, automatically constructs and initializes the live folio in status 'draft'
+ *   with all booked room nights, rates, and guest details.
+ * - Auto-links any unallocated pre-arrival advance payments on this booking or group.
+ * - Multi-room groups automatically share a single consolidated group folio.
+ */
+export async function getOrCreateBookingFolioAction(bookingId: string): Promise<InvoiceActionResult> {
+  try {
+    const { error: authErr, supabase, partner } = await getAuthenticatedPartner();
+    if (authErr || !supabase || !partner) {
+      return { success: false, error: authErr || "Authentication failed." };
+    }
+
+    // 1. Fetch referenced booking
+    const { data: booking, error: bookingErr } = await supabase
+      .from("bookings")
+      .select(`
+        id,
+        homestay_id,
+        room_id,
+        group_id,
+        is_group_lead,
+        check_in,
+        check_out,
+        nightly_rate,
+        total_amount,
+        status,
+        rooms(id, room_number, name, nightly_rate),
+        homestay:homestays(id, name, slug),
+        guests(id, name, phone, email, is_primary)
+      `)
+      .eq("id", bookingId)
+      .single();
+
+    if (bookingErr || !booking) {
+      return { success: false, error: "Referenced booking does not exist." };
+    }
+
+    const isSuperAdmin = partner.role === 'super_admin';
+    if (!isSuperAdmin && partner.homestay_id !== booking.homestay_id) {
+      return { success: false, error: "Unauthorized access to this homestay's bookings." };
+    }
+
+    // 2. Check if an active invoice already exists for this booking or group
+    if (booking.group_id) {
+      const existingGroupInv = await getInvoiceByGroupIdAction(booking.group_id);
+      if (existingGroupInv.success && existingGroupInv.invoice) {
+        return existingGroupInv;
+      }
+    }
+
+    const existingBookingInv = await getInvoiceByBookingIdAction(booking.id);
+    if (existingBookingInv.success && existingBookingInv.invoice) {
+      return existingBookingInv;
+    }
+
+    // 3. No active invoice exists: initialize the Live Folio automatically
+    let itemsPayload: Array<{
+      category: any;
+      description: string;
+      stay_period: string;
+      quantity: number;
+      rate: number;
+      amount: number;
+      sort_order: number;
+    }> = [];
+
+    let leadBookingId = booking.id;
+    let minCheckIn = booking.check_in;
+    let maxCheckOut = booking.check_out;
+
+    if (booking.group_id) {
+      // Group booking: fetch all active rooms in the group
+      const { data: groupBookings } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          room_id,
+          check_in,
+          check_out,
+          nightly_rate,
+          total_amount,
+          is_group_lead,
+          rooms(id, room_number, name, nightly_rate)
+        `)
+        .eq("group_id", booking.group_id)
+        .neq("status", "cancelled")
+        .order("created_at", { ascending: true });
+
+      const allRooms = groupBookings && groupBookings.length > 0 ? groupBookings : [booking];
+      const leadRoom = allRooms.find(r => r.is_group_lead) || allRooms[0];
+      leadBookingId = leadRoom.id;
+
+      itemsPayload = allRooms.map((b: any, idx: number) => {
+        const checkInDate = new Date(b.check_in);
+        const checkOutDate = new Date(b.check_out);
+        const nights = Math.max(1, Math.round((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)));
+        const bRoom = Array.isArray(b.rooms) ? b.rooms[0] : b.rooms;
+        const rName = bRoom?.name || bRoom?.room_number || `Room ${idx + 1}`;
+        const rate = Number(b.nightly_rate) || Number(bRoom?.nightly_rate) || 0;
+        const amount = Number(b.total_amount) || Number((nights * rate).toFixed(2));
+
+        if (b.check_in < minCheckIn) minCheckIn = b.check_in;
+        if (b.check_out > maxCheckOut) maxCheckOut = b.check_out;
+
+        return {
+          category: 'room',
+          description: `Room: ${rName} (${b.check_in} to ${b.check_out})`,
+          stay_period: `[${b.check_in}, ${b.check_out})`,
+          quantity: nights,
+          rate: rate,
+          amount: amount,
+          sort_order: idx
+        };
+      });
+    } else {
+      // Single room booking
+      const checkInDate = new Date(booking.check_in);
+      const checkOutDate = new Date(booking.check_out);
+      const nights = Math.max(1, Math.round((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)));
+      const singleRoom = Array.isArray(booking.rooms) ? (booking.rooms as any)[0] : (booking.rooms as any);
+      const rName = singleRoom?.name || singleRoom?.room_number || "Room";
+      const rate = Number(booking.nightly_rate) || Number(singleRoom?.nightly_rate) || 0;
+      const amount = Number(booking.total_amount) || Number((nights * rate).toFixed(2));
+
+      itemsPayload = [{
+        category: 'room',
+        description: `Room: ${rName} (${booking.check_in} to ${booking.check_out})`,
+        stay_period: `[${booking.check_in}, ${booking.check_out})`,
+        quantity: nights,
+        rate: rate,
+        amount: amount,
+        sort_order: 0
+      }];
+    }
+
+    // Resolve primary guest info
+    const guestList = (booking.guests as any[]) || [];
+    const primaryGuest = guestList.find(g => g.is_primary) || guestList[0];
+    const guestName = primaryGuest?.name?.trim() || "Guest";
+    const guestPhone = primaryGuest?.phone?.trim() || null;
+    const guestEmail = primaryGuest?.email?.trim() || null;
+    const leadRoomObj = Array.isArray(booking.rooms) ? (booking.rooms as any)[0] : (booking.rooms as any);
+    const rName = leadRoomObj?.name || leadRoomObj?.room_number || "Room";
+
+    // Create the live folio with status 'draft'
+    const createRes = await createInvoiceAction({
+      bookingId: leadBookingId,
+      groupId: booking.group_id || undefined,
+      guestName,
+      guestPhone,
+      guestEmail,
+      checkIn: minCheckIn,
+      checkOut: maxCheckOut,
+      roomId: booking.room_id,
+      roomName: rName,
+      invoiceDate: new Date().toISOString().split('T')[0],
+      status: 'draft',
+      taxRate: 0,
+      discountAmount: 0,
+      items: itemsPayload,
+      notes: 'Live Guest Folio',
+      houseRules: 'Standard Homestay House Rules Apply.'
+    });
+
+    if (!createRes.success || !createRes.invoiceId) {
+      return createRes;
+    }
+
+    return await getInvoiceByIdAction(createRes.invoiceId);
+  } catch (err: any) {
+    console.error("[HMS Invoices] getOrCreateBookingFolioAction exception:", err);
+    return { success: false, error: err.message || "Failed to initialize guest folio." };
+  }
+}
+
+/**
+ * Add an individual charge directly to the live folio.
+ * Immediately persists to invoice_items and recalculates folio balance and totals.
+ */
+export async function addFolioChargeAction(input: {
+  invoiceId: string;
+  category: any;
+  description: string;
+  quantity: number;
+  rate: number;
+  stayPeriod?: string | null;
+}): Promise<InvoiceActionResult> {
+  try {
+    const { error: authErr, supabase, partner } = await getAuthenticatedPartner();
+    if (authErr || !supabase || !partner) {
+      return { success: false, error: authErr || "Authentication failed." };
+    }
+
+    if (!input.description || !input.description.trim()) {
+      return { success: false, error: "Charge description cannot be empty." };
+    }
+
+    if (input.category === 'room') {
+      return { 
+        success: false, 
+        error: "Room charges cannot be added as direct folio charges. Room modifications must be handled through Booking Management." 
+      };
+    }
+
+    const qty = Number(input.quantity);
+    if (isNaN(qty) || qty < 1) {
+      return { success: false, error: "Quantity must be at least 1." };
+    }
+
+    const rate = Number(input.rate);
+    if (isNaN(rate) || rate < 0) {
+      return { success: false, error: "Rate cannot be negative." };
+    }
+
+    const itemAmount = Number((qty * rate).toFixed(2));
+
+    // Fetch existing invoice
+    const { data: invoice, error: invErr } = await supabase
+      .from("invoices")
+      .select("*, items:invoice_items(*)")
+      .eq("id", input.invoiceId)
+      .single();
+
+    if (invErr || !invoice) {
+      return { success: false, error: "Folio / Invoice does not exist." };
+    }
+
+    const isSuperAdmin = partner.role === 'super_admin';
+    if (!isSuperAdmin && partner.homestay_id !== invoice.homestay_id) {
+      return { success: false, error: "Unauthorized access to this homestay's folio." };
+    }
+
+    if (invoice.status === 'cancelled') {
+      return { success: false, error: "Cannot add charges to a cancelled folio." };
+    }
+
+    const nextSortOrder = (invoice.items?.length || 0) + 1;
+
+    // Insert new item
+    const { error: insertErr } = await supabase
+      .from("invoice_items")
+      .insert({
+        invoice_id: input.invoiceId,
+        homestay_id: invoice.homestay_id,
+        category: input.category || 'custom',
+        description: input.description.trim(),
+        stay_period: input.stayPeriod || null,
+        quantity: qty,
+        rate: rate,
+        amount: itemAmount,
+        sort_order: nextSortOrder
+      });
+
+    if (insertErr) {
+      return { success: false, error: `Failed to add charge: ${insertErr.message}` };
+    }
+
+    // Re-fetch all items for this invoice to recalculate totals
+    const { data: updatedItems } = await supabase
+      .from("invoice_items")
+      .select("amount")
+      .eq("invoice_id", input.invoiceId);
+
+    const newSubtotal = (updatedItems || []).reduce((sum, it) => sum + Number(it.amount), 0);
+    const taxRate = Number(invoice.tax_rate) || 0;
+    const newTaxAmount = Number(((newSubtotal * taxRate) / 100).toFixed(2));
+    const flatDiscount = Number(invoice.discount_amount) || 0;
+    const newGrandTotal = Math.max(0, Number((newSubtotal + newTaxAmount - flatDiscount).toFixed(2)));
+
+    // Update invoice header totals
+    await supabase
+      .from("invoices")
+      .update({
+        subtotal: newSubtotal,
+        tax_amount: newTaxAmount,
+        grand_total: newGrandTotal,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", input.invoiceId);
+
+    // Reconcile status and balance with ledger
+    await supabase.rpc("reconcile_invoice_summary", { p_invoice_id: input.invoiceId });
+
+    return await getInvoiceByIdAction(input.invoiceId);
+  } catch (err: any) {
+    console.error("[HMS Invoices] addFolioChargeAction exception:", err);
+    return { success: false, error: err.message || "Failed to add charge to folio." };
+  }
+}
+
+/**
+ * Remove an additional charge from the live folio.
+ * Validates that removing the item does not reduce grand_total below payments already collected.
+ */
+export async function removeFolioChargeAction(input: {
+  invoiceId: string;
+  itemId: string;
+}): Promise<InvoiceActionResult> {
+  try {
+    const { error: authErr, supabase, partner } = await getAuthenticatedPartner();
+    if (authErr || !supabase || !partner) {
+      return { success: false, error: authErr || "Authentication failed." };
+    }
+
+    const { data: invoice, error: invErr } = await supabase
+      .from("invoices")
+      .select("*, items:invoice_items(*)")
+      .eq("id", input.invoiceId)
+      .single();
+
+    if (invErr || !invoice) {
+      return { success: false, error: "Folio / Invoice does not exist." };
+    }
+
+    const isSuperAdmin = partner.role === 'super_admin';
+    if (!isSuperAdmin && partner.homestay_id !== invoice.homestay_id) {
+      return { success: false, error: "Unauthorized access to this homestay's folio." };
+    }
+
+    if (invoice.status === 'cancelled') {
+      return { success: false, error: "Cannot modify a cancelled folio." };
+    }
+
+    const itemToRemove = (invoice.items || []).find((it: any) => it.id === input.itemId);
+    if (!itemToRemove) {
+      return { success: false, error: "The specified charge does not exist on this folio." };
+    }
+
+    if (itemToRemove.category === 'room') {
+      return {
+        success: false,
+        error: "Contractual room charges cannot be removed from the folio. Room reservation changes must be managed through Booking Management."
+      };
+    }
+
+    // Safety check: Cannot remove charge if doing so makes grand_total < amount_paid
+    const currentSubtotal = Number(invoice.subtotal) || 0;
+    const itemAmount = Number(itemToRemove.amount) || 0;
+    const newSubtotal = Math.max(0, currentSubtotal - itemAmount);
+    const taxRate = Number(invoice.tax_rate) || 0;
+    const newTaxAmount = Number(((newSubtotal * taxRate) / 100).toFixed(2));
+    const flatDiscount = Number(invoice.discount_amount) || 0;
+    const newGrandTotal = Math.max(0, Number((newSubtotal + newTaxAmount - flatDiscount).toFixed(2)));
+    const currentPaid = Number(invoice.amount_paid) || 0;
+
+    if (newGrandTotal < currentPaid) {
+      return {
+        success: false,
+        error: `Cannot remove charge: The new folio total (₹${newGrandTotal}) would be less than payments already collected (₹${currentPaid}). Please process a refund or adjustment first.`
+      };
+    }
+
+    // Delete item
+    const { error: delErr } = await supabase
+      .from("invoice_items")
+      .delete()
+      .eq("id", input.itemId)
+      .eq("invoice_id", input.invoiceId);
+
+    if (delErr) {
+      return { success: false, error: `Failed to remove charge: ${delErr.message}` };
+    }
+
+    // Update invoice header totals
+    await supabase
+      .from("invoices")
+      .update({
+        subtotal: newSubtotal,
+        tax_amount: newTaxAmount,
+        grand_total: newGrandTotal,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", input.invoiceId);
+
+    // Reconcile status and balance with ledger
+    await supabase.rpc("reconcile_invoice_summary", { p_invoice_id: input.invoiceId });
+
+    return await getInvoiceByIdAction(input.invoiceId);
+  } catch (err: any) {
+    console.error("[HMS Invoices] removeFolioChargeAction exception:", err);
+    return { success: false, error: err.message || "Failed to remove charge from folio." };
+  }
+}
+
+/**
+ * Update an existing additional service charge on the live folio.
+ * Validates that:
+ * 1. Contractual room charges (category === 'room') cannot be modified from the folio.
+ * 2. New grand total >= amount paid (cannot reduce grand total below recorded payments).
+ * 3. Immediately recalculates subtotal, tax, grand total, and balance due.
+ */
+export async function updateFolioChargeAction(input: {
+  invoiceId: string;
+  itemId: string;
+  category?: InvoiceItemCategory;
+  description?: string;
+  quantity?: number;
+  rate?: number;
+  stayPeriod?: string | null;
+  isComplimentary?: boolean;
+  reason?: string;
+}): Promise<InvoiceActionResult> {
+  try {
+    const { error: authErr, supabase, partner } = await getAuthenticatedPartner();
+    if (authErr || !supabase || !partner) {
+      return { success: false, error: authErr || "Authentication failed." };
+    }
+
+    const { data: invoice, error: invErr } = await supabase
+      .from("invoices")
+      .select("*, items:invoice_items(*)")
+      .eq("id", input.invoiceId)
+      .single();
+
+    if (invErr || !invoice) {
+      return { success: false, error: "Folio / Invoice does not exist." };
+    }
+
+    const isSuperAdmin = partner.role === 'super_admin';
+    if (!isSuperAdmin && partner.homestay_id !== invoice.homestay_id) {
+      return { success: false, error: "Unauthorized access to this homestay's folio." };
+    }
+
+    if (invoice.status === 'cancelled') {
+      return { success: false, error: "Cannot modify a cancelled folio." };
+    }
+
+    const itemToUpdate = (invoice.items || []).find((it: any) => it.id === input.itemId);
+    if (!itemToUpdate) {
+      return { success: false, error: "The specified charge does not exist on this folio." };
+    }
+
+    // Role authorization check for room rate adjustments
+    const isAuthorized = ['admin', 'staff', 'super_admin'].includes(partner.role);
+    if (itemToUpdate.category === 'room' && !isAuthorized) {
+      return {
+        success: false,
+        error: "Only authorized staff or administrators may adjust room rates."
+      };
+    }
+
+    if (itemToUpdate.category === 'room' && input.category && input.category !== 'room') {
+      return {
+        success: false,
+        error: "Cannot change the category of a room charge."
+      };
+    }
+
+    if (itemToUpdate.category !== 'room' && input.category === 'room') {
+      return {
+        success: false,
+        error: "Cannot change an additional service into a room charge."
+      };
+    }
+
+    const newDescription = input.description !== undefined ? input.description.trim() : itemToUpdate.description;
+    if (!newDescription) {
+      return { success: false, error: "Charge description cannot be empty." };
+    }
+
+    const newCategory = input.category || itemToUpdate.category;
+    const newQty = input.quantity !== undefined ? Number(input.quantity) : Number(itemToUpdate.quantity);
+    if (isNaN(newQty) || newQty < 1) {
+      return { success: false, error: "Quantity must be at least 1." };
+    }
+
+    const isComp = input.isComplimentary !== undefined ? input.isComplimentary : !!itemToUpdate.is_complimentary;
+    const newRate = isComp ? 0 : (input.rate !== undefined ? Number(input.rate) : Number(itemToUpdate.rate));
+    if (isNaN(newRate) || newRate < 0) {
+      return { success: false, error: "Rate cannot be negative." };
+    }
+
+    const newItemAmount = Number((newQty * newRate).toFixed(2));
+
+    // Calculate new totals across all items
+    const otherItems = (invoice.items || []).filter((it: any) => it.id !== input.itemId);
+    const otherItemsSum = otherItems.reduce((sum: number, it: any) => sum + Number(it.amount || 0), 0);
+    const newSubtotal = Number((otherItemsSum + newItemAmount).toFixed(2));
+    const taxRate = Number(invoice.tax_rate) || 0;
+    const newTaxAmount = Number(((newSubtotal * taxRate) / 100).toFixed(2));
+    const flatDiscount = Number(invoice.discount_amount) || 0;
+    const newGrandTotal = Math.max(0, Number((newSubtotal + newTaxAmount - flatDiscount).toFixed(2)));
+    const currentPaid = Number(invoice.amount_paid) || 0;
+
+    // Financial integrity check: Grand total cannot fall below recorded payments
+    if (newGrandTotal < currentPaid) {
+      return {
+        success: false,
+        error: `Cannot modify charge: The new folio total (₹${newGrandTotal}) would be less than payments already collected (₹${currentPaid}). Please process a refund or adjustment first.`
+      };
+    }
+
+    // Audit logging for room charge rate adjustments or service edits
+    let updatedNotes = invoice.notes || "";
+    if (itemToUpdate.category === 'room') {
+      const isRateOrQtyChanged = (newRate !== Number(itemToUpdate.rate)) || (newQty !== Number(itemToUpdate.quantity)) || (newDescription !== itemToUpdate.description);
+      if (isRateOrQtyChanged) {
+        const staffName = partner.name || partner.email || "Staff";
+        const staffRole = partner.role || "staff";
+        const timestamp = formatISTLedgerDateTime(new Date().toISOString());
+        const reasonText = input.reason?.trim() ? ` • Reason: ${input.reason.trim()}` : "";
+        const auditEntry = `[Room Charge Adjustment - ${timestamp} by ${staffName} (${staffRole})]: "${itemToUpdate.description}" adjusted from ₹${itemToUpdate.rate} × ${itemToUpdate.quantity} (₹${itemToUpdate.amount}) to ₹${newRate} × ${newQty} (₹${newItemAmount})${reasonText}`;
+        updatedNotes = updatedNotes ? `${updatedNotes}\n\n${auditEntry}` : auditEntry;
+      }
+    } else if (input.reason?.trim()) {
+      const staffName = partner.name || partner.email || "Staff";
+      const staffRole = partner.role || "staff";
+      const timestamp = formatISTLedgerDateTime(new Date().toISOString());
+      const auditEntry = `[Service Adjustment - ${timestamp} by ${staffName} (${staffRole})]: "${itemToUpdate.description}" adjusted to ₹${newRate} × ${newQty} (₹${newItemAmount}) • Reason: ${input.reason.trim()}`;
+      updatedNotes = updatedNotes ? `${updatedNotes}\n\n${auditEntry}` : auditEntry;
+    }
+
+    // Build update payload for invoice_items
+    const updatePayload: Record<string, any> = {
+      category: newCategory,
+      description: newDescription,
+      stay_period: input.stayPeriod !== undefined ? input.stayPeriod : itemToUpdate.stay_period,
+      quantity: newQty,
+      rate: newRate,
+      amount: newItemAmount,
+    };
+
+    // Only include is_complimentary if explicitly specified for an additional service
+    if (itemToUpdate.category !== 'room' && input.isComplimentary !== undefined) {
+      updatePayload.is_complimentary = isComp;
+    }
+
+    let { error: updateErr } = await supabase
+      .from("invoice_items")
+      .update(updatePayload)
+      .eq("id", input.itemId)
+      .eq("invoice_id", input.invoiceId);
+
+    // Schema cache resiliency: If column is_complimentary is not found in schema cache,
+    // gracefully retry update without is_complimentary
+    if (updateErr && (updateErr.message?.includes("is_complimentary") || updateErr.code === "PGRST204" || updateErr.code === "42703")) {
+      const fallbackPayload = { ...updatePayload };
+      delete fallbackPayload.is_complimentary;
+      const retryRes = await supabase
+        .from("invoice_items")
+        .update(fallbackPayload)
+        .eq("id", input.itemId)
+        .eq("invoice_id", input.invoiceId);
+      updateErr = retryRes.error;
+    }
+
+    if (updateErr) {
+      return { success: false, error: `Failed to update charge: ${updateErr.message}` };
+    }
+
+    // Update invoice header totals and audit notes
+    await supabase
+      .from("invoices")
+      .update({
+        subtotal: newSubtotal,
+        tax_amount: newTaxAmount,
+        grand_total: newGrandTotal,
+        notes: updatedNotes,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", input.invoiceId);
+
+    // Reconcile status and balance with ledger
+    await supabase.rpc("reconcile_invoice_summary", { p_invoice_id: input.invoiceId });
+
+    return await getInvoiceByIdAction(input.invoiceId);
+  } catch (err: any) {
+    console.error("[HMS Invoices] updateFolioChargeAction exception:", err);
+    return { success: false, error: err.message || "Failed to update charge on folio." };
+  }
+}
+
+/**
+ * Finalize / Issue the formal tax invoice from the live guest folio.
+ * Marks the folio as officially issued or paid for check-out.
+ */
+export async function finalizeFolioInvoiceAction(invoiceId: string): Promise<InvoiceActionResult> {
+  try {
+    const { error: authErr, supabase, partner } = await getAuthenticatedPartner();
+    if (authErr || !supabase || !partner) {
+      return { success: false, error: authErr || "Authentication failed." };
+    }
+
+    const { data: invoice, error: invErr } = await supabase
+      .from("invoices")
+      .select("*")
+      .eq("id", invoiceId)
+      .single();
+
+    if (invErr || !invoice) {
+      return { success: false, error: "Folio / Invoice does not exist." };
+    }
+
+    const isSuperAdmin = partner.role === 'super_admin';
+    if (!isSuperAdmin && partner.homestay_id !== invoice.homestay_id) {
+      return { success: false, error: "Unauthorized access to this homestay's folio." };
+    }
+
+    if (invoice.status === 'cancelled') {
+      return { success: false, error: "Cannot finalize a cancelled folio." };
+    }
+
+    // Determine target status based on current balance
+    const balanceDue = Number(invoice.balance_due) || 0;
+    const amountPaid = Number(invoice.amount_paid) || 0;
+    let targetStatus = 'issued';
+    if (balanceDue <= 0.00 && amountPaid > 0.00) {
+      targetStatus = 'paid';
+    } else if (amountPaid > 0.00) {
+      targetStatus = 'partially_paid';
+    }
+
+    const { error: updateErr } = await supabase
+      .from("invoices")
+      .update({
+        status: targetStatus,
+        invoice_date: new Date().toISOString().split('T')[0],
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", invoiceId);
+
+    if (updateErr) {
+      return { success: false, error: `Failed to finalize invoice: ${updateErr.message}` };
+    }
+
+    return await getInvoiceByIdAction(invoiceId);
+  } catch (err: any) {
+    console.error("[HMS Invoices] finalizeFolioInvoiceAction exception:", err);
+    return { success: false, error: err.message || "Failed to finalize folio." };
+  }
+}
+
+/**
  * Create a new invoice prefilled from booking and guest details.
  */
 export async function createInvoiceAction(input: CreateInvoiceInput): Promise<InvoiceActionResult> {
@@ -380,6 +1150,7 @@ export async function createInvoiceAction(input: CreateInvoiceInput): Promise<In
         id,
         homestay_id,
         room_id,
+        group_id,
         check_in,
         check_out,
         total_amount,
@@ -399,19 +1170,27 @@ export async function createInvoiceAction(input: CreateInvoiceInput): Promise<In
       return { success: false, error: "You are not authorized to create invoices for this homestay." };
     }
 
+    const effectiveGroupId = input.groupId || booking.group_id;
+
     // 2. Prevent duplicate active invoices unless explicitly allowed
     if (!input.allowDuplicate) {
-      const { data: existingActive } = await supabase
+      let dupQuery = supabase
         .from("invoices")
         .select("id, invoice_number")
-        .eq("booking_id", input.bookingId)
-        .neq("status", "cancelled")
-        .maybeSingle();
+        .neq("status", "cancelled");
+
+      if (effectiveGroupId) {
+        dupQuery = dupQuery.or(`group_id.eq.${effectiveGroupId},booking_id.eq.${input.bookingId}`);
+      } else {
+        dupQuery = dupQuery.eq("booking_id", input.bookingId);
+      }
+
+      const { data: existingActive } = await dupQuery.limit(1).maybeSingle();
 
       if (existingActive) {
         return { 
           success: false, 
-          error: `An active invoice (${existingActive.invoice_number}) already exists for this booking. You can edit or view the existing invoice instead.` 
+          error: `An active consolidated invoice (${existingActive.invoice_number}) already exists for this booking/group. You can edit or view the existing invoice instead.` 
         };
       }
     }
@@ -514,6 +1293,42 @@ export async function createInvoiceAction(input: CreateInvoiceInput): Promise<In
         success: false, 
         error: rpcErr?.code ? `[${rpcErr.code}] ${rpcErr.message}` : (rpcErr?.message || "Failed to create invoice.") 
       };
+    }
+
+    // 5. Auto-link any unallocated advance payments on this booking or group
+    try {
+      let targetBookingIds = [booking.id];
+      if (effectiveGroupId) {
+        const { data: groupBookings } = await supabase
+          .from("bookings")
+          .select("id")
+          .eq("group_id", effectiveGroupId)
+          .neq("status", "cancelled");
+        if (groupBookings && groupBookings.length > 0) {
+          targetBookingIds = groupBookings.map(b => b.id);
+        }
+      }
+
+      const { data: unallocatedPayments } = await supabase
+        .from("payments")
+        .select("id")
+        .in("booking_id", targetBookingIds)
+        .is("invoice_id", null);
+
+      if (unallocatedPayments && unallocatedPayments.length > 0) {
+        const unallocatedIds = unallocatedPayments.map(p => p.id);
+        await supabase
+          .from("payments")
+          .update({ invoice_id: createdInvoiceId })
+          .in("id", unallocatedIds);
+
+        // Authoritatively sync invoice balance and status
+        await supabase.rpc("reconcile_invoice_summary", {
+          p_invoice_id: createdInvoiceId
+        });
+      }
+    } catch (linkErr) {
+      console.warn("[HMS Invoices] Advance payment linking error on invoice creation:", linkErr);
     }
 
     const fullInvoiceResult = await getInvoiceByIdAction(createdInvoiceId as string);
@@ -626,62 +1441,114 @@ export async function updateInvoiceAction(input: UpdateInvoiceInput): Promise<In
     // Existing flat discount = total discount stored on invoice header minus itemized discounts
     const existingFlatDiscount = Math.max(0, (Number(existingInvoice.discount_amount) || 0) - existingItemDiscount);
 
-    // 5. If payments exist on this invoice, financial fields (line items, rates, taxes, discounts)
-    // are strictly immutable to maintain ledger integrity. Only non-financial guest/stay metadata
-    // may be safely updated on public.invoices.
+    // 5. Replace blanket financial lock:
+    // Allow charge changes with financial validation: newGrandTotal >= netPaymentsReceived.
+    // If payments exist on this invoice, grand total cannot fall below collected payments.
     if (hasPayments) {
-      const hasFinancialChange = hasFinancialModifications(
-        input,
-        existingInvoice,
-        currentItems,
-        existingFlatDiscount
-      );
-
-      if (hasFinancialChange) {
-        return {
-          success: false,
-          error: "Financial records are locked because payments have been recorded for this invoice. Line items, taxes, and discounts cannot be modified."
-        };
-      }
-
-      // Check contract field modifications (invoice number, issue date, room, stay dates)
-      const hasContractModifications =
-        (input.invoiceNumber !== undefined && input.invoiceNumber.trim() !== (existingInvoice.invoice_number || '').trim()) ||
-        (input.invoiceDate !== undefined && input.invoiceDate !== existingInvoice.invoice_date) ||
-        (input.checkIn !== undefined && input.checkIn !== existingInvoice.check_in) ||
-        (input.checkOut !== undefined && input.checkOut !== existingInvoice.check_out) ||
-        (input.roomName !== undefined && ((input.roomName ? input.roomName.trim() : '') !== (existingInvoice.room_name || '').trim())) ||
-        (input.roomId !== undefined && input.roomId !== existingInvoice.room_id);
-
-      if (hasContractModifications) {
-        return {
-          success: false,
-          error: "Contract records are locked because payments have been recorded for this invoice. Invoice number, issue date, accommodation, and stay dates cannot be modified."
-        };
-      }
-
-      // Safe metadata-only update directly on public.invoices
-      const metadataPatch: Record<string, any> = {};
-      if (input.guestName !== undefined) metadataPatch.guest_name = input.guestName.trim();
-      if (input.guestPhone !== undefined) metadataPatch.guest_phone = input.guestPhone ? input.guestPhone.trim() : null;
-      if (input.guestEmail !== undefined) metadataPatch.guest_email = input.guestEmail ? input.guestEmail.trim() : null;
-      if (input.guestAddress !== undefined) metadataPatch.guest_address = input.guestAddress ? input.guestAddress.trim() : null;
-      if (input.notes !== undefined) metadataPatch.notes = input.notes ? input.notes.trim() : null;
-      if (input.houseRules !== undefined) metadataPatch.house_rules = input.houseRules ? input.houseRules.trim() : null;
-
-      if (Object.keys(metadataPatch).length > 0) {
-        const { error: updateErr } = await supabase
-          .from("invoices")
-          .update(metadataPatch)
-          .eq("id", existingInvoice.id);
-
-        if (updateErr) {
-          return {
-            success: false,
-            error: updateErr.message || "Failed to update invoice metadata."
-          };
+      const isPreservingItems = input.items === undefined || input.items === null;
+      if (!isPreservingItems) {
+        if (!input.items || input.items.length === 0) {
+          return { success: false, error: "An invoice must have at least one line item." };
+        }
+        for (let i = 0; i < input.items.length; i++) {
+          const it = input.items[i];
+          if (!it.description || !it.description.trim()) {
+            return { success: false, error: `Item #${i + 1} is missing a Service / Item Name.` };
+          }
+          const qty = Number(it.quantity);
+          if (isNaN(qty) || qty < 1) {
+            return { success: false, error: `Quantity must be at least 1 for "${it.description.trim()}".` };
+          }
+          const rate = Number(it.rate);
+          if (isNaN(rate) || rate < 0) {
+            return { success: false, error: `Rate cannot be negative for "${it.description.trim()}".` };
+          }
         }
       }
+
+      const itemsForCalculation = isPreservingItems ? currentItems : input.items;
+      const flatDiscount = input.discountAmount !== undefined ? input.discountAmount : existingFlatDiscount;
+      const taxRate = input.taxRate !== undefined ? input.taxRate : Number(existingInvoice.tax_rate) || 0;
+      const totals = calculateInvoiceTotals(itemsForCalculation as any, taxRate, flatDiscount, invoicePayments);
+
+      // Financial validation: newGrandTotal >= amount_paid
+      if (totals.grandTotal < Number(existingInvoice.amount_paid)) {
+        return {
+          success: false,
+          error: `Cannot update invoice: The new grand total (₹${totals.grandTotal}) cannot be less than payments already collected (₹${existingInvoice.amount_paid}). Please process a refund or adjustment first.`
+        };
+      }
+
+      // Safe update for invoices with payments
+      if (!isPreservingItems) {
+        // Delete existing items and insert new items
+        const { error: delErr } = await supabase
+          .from("invoice_items")
+          .delete()
+          .eq("invoice_id", existingInvoice.id);
+
+        if (delErr) {
+          return { success: false, error: `Failed to update line items: ${delErr.message}` };
+        }
+
+        const newItemsToInsert = (input.items || []).map((item, idx) => {
+          const qty = Number(item.quantity) || 1;
+          const rate = Number(item.rate) || 0;
+          const itemAmount = item.amount !== undefined ? Number(item.amount) : Number((qty * rate).toFixed(2));
+          return {
+            invoice_id: existingInvoice.id,
+            homestay_id: existingInvoice.homestay_id,
+            category: item.category || 'room',
+            description: item.description?.trim() || '',
+            stay_period: item.stay_period || null,
+            quantity: qty,
+            rate: rate,
+            amount: itemAmount,
+            sort_order: item.sort_order ?? idx,
+          };
+        });
+
+        const { error: insErr } = await supabase
+          .from("invoice_items")
+          .insert(newItemsToInsert);
+
+        if (insErr) {
+          return { success: false, error: `Failed to insert updated line items: ${insErr.message}` };
+        }
+      }
+
+      const targetStatus = input.status || existingInvoice.status;
+      const reconciledStatus = reconcileStatusWithLedger(targetStatus, totals.paymentStatus);
+
+      const patchData: Record<string, any> = {
+        subtotal: totals.subtotal,
+        tax_rate: taxRate,
+        tax_amount: totals.taxAmount,
+        discount_amount: flatDiscount,
+        grand_total: totals.grandTotal,
+        status: reconciledStatus,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (input.guestName !== undefined) patchData.guest_name = input.guestName.trim();
+      if (input.guestPhone !== undefined) patchData.guest_phone = input.guestPhone ? input.guestPhone.trim() : null;
+      if (input.guestEmail !== undefined) patchData.guest_email = input.guestEmail ? input.guestEmail.trim() : null;
+      if (input.guestAddress !== undefined) patchData.guest_address = input.guestAddress ? input.guestAddress.trim() : null;
+      if (input.notes !== undefined) patchData.notes = input.notes ? input.notes.trim() : null;
+      if (input.houseRules !== undefined) patchData.house_rules = input.houseRules ? input.houseRules.trim() : null;
+      if (input.invoiceDate !== undefined) patchData.invoice_date = input.invoiceDate;
+
+      const { error: updateInvErr } = await supabase
+        .from("invoices")
+        .update(patchData)
+        .eq("id", existingInvoice.id);
+
+      if (updateInvErr) {
+        return { success: false, error: updateInvErr.message || "Failed to update invoice." };
+      }
+
+      // Reconcile status and balance with payment ledger
+      await supabase.rpc("reconcile_invoice_summary", { p_invoice_id: existingInvoice.id });
 
       const fullUpdatedResult = await getInvoiceByIdAction(input.id);
       return {
@@ -854,6 +1721,7 @@ export async function recordInvoicePaymentAction(input: {
   invoiceId: string;
   amount: string | number;
   paymentMethod: PaymentMethod;
+  paymentStage?: PaymentStage;
   transactionRef?: string | null;
   notes?: string | null;
   idempotencyKey?: string | null;
@@ -874,6 +1742,9 @@ export async function recordInvoicePaymentAction(input: {
     }
     const decimalAmount = paiseToDecimalString(paymentPaise);
 
+    const effectiveStage: PaymentStage = input.paymentStage || 'partial';
+    const formattedNotes = formatPaymentNotesWithStage(effectiveStage, input.notes);
+
     // 2. Execute atomic payment recording RPC inside single PostgreSQL transaction
     const { data: rpcRes, error: rpcErr } = await supabase.rpc(
       "record_invoice_payment",
@@ -882,7 +1753,7 @@ export async function recordInvoicePaymentAction(input: {
         p_amount: Number(decimalAmount),
         p_payment_method: input.paymentMethod || 'cash',
         p_transaction_ref: input.transactionRef?.trim() || null,
-        p_notes: input.notes?.trim() || null,
+        p_notes: formattedNotes,
         p_idempotency_key: input.idempotencyKey?.trim() || null,
       }
     );

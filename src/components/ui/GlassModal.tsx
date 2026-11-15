@@ -25,13 +25,12 @@ export function GlassModal({ isOpen, onClose, title, children, footer, className
 
   useEffect(() => {
     if (isOpen) {
+      const prevBodyOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+      return () => {
+        document.body.style.overflow = prevBodyOverflow;
+      };
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
   }, [isOpen]);
 
   if (!isOpen || !mounted) return null;
@@ -65,7 +64,7 @@ export function GlassModal({ isOpen, onClose, title, children, footer, className
         
         {/* Scrollable Content */}
         <div 
-          className="flex-1 min-h-0 overflow-y-auto bg-[#FFFFFF] overscroll-contain hide-scrollbar" 
+          className="flex-1 min-h-0 overflow-y-auto bg-[#FFFFFF] overscroll-contain hms-editor-scrollbar" 
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <div className="p-4 sm:p-6">
