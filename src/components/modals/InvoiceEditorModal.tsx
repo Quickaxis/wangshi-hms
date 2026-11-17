@@ -30,7 +30,8 @@ import { getStageBadgeDetails } from "../payments/PaymentReceiptView";
 import { createClient } from "@/lib/supabase/client";
 import { useHMSContext } from "@/components/providers/HMSProvider";
 import { InvoicePDFView } from "@/components/invoicing/InvoicePDFView";
-import { InvoicePrintPortal, triggerBrowserPrint } from "@/components/invoicing/InvoicePrintPortal";
+import { InvoicePrintPortal, triggerBrowserPrint, sanitizeInvoiceFilename } from "@/components/invoicing/InvoicePrintPortal";
+import { generateElementPdfBlob, downloadPdfBlob, sharePdfBlob } from "@/lib/pdfGenerator";
 import { 
   ArrowLeft,
   Plus, 
@@ -51,6 +52,8 @@ import {
   Sparkles,
   Check,
   Save,
+  Download,
+  Share2,
   Phone,
   Mail,
   Calendar,
@@ -215,6 +218,10 @@ export function InvoiceEditorModal({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
+
+  // PDF generation and mobile sharing states
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isSharingFolio, setIsSharingFolio] = useState(false);
 
   // Homestay branding
   const currentHomestay = useMemo(() => {
@@ -996,9 +1003,59 @@ export function InvoiceEditorModal({
     }
   };
 
-  // Handler: Print Folio Document
+  // Handler: Print Folio Document (Desktop & Browser Native)
   const handlePrint = () => {
     triggerBrowserPrint();
+  };
+
+  // Handler: Save Folio PDF directly to user's device storage (Mobile)
+  const handleSaveFolioToDevice = async () => {
+    const captureEl = document.getElementById("hms-pdf-capture-root");
+    if (!captureEl) {
+      setErrorMsg("Unable to locate folio layout for PDF generation.");
+      return;
+    }
+
+    setIsDownloadingPdf(true);
+    setErrorMsg(null);
+    try {
+      const filename = sanitizeInvoiceFilename(liveInvoice?.invoice_number || "folio");
+      const blob = await generateElementPdfBlob(captureEl);
+      downloadPdfBlob(blob, filename);
+      setSuccessMsg("Folio PDF downloaded to your device.");
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err: any) {
+      console.error("Failed to generate and download PDF:", err);
+      setErrorMsg(err?.message || "Failed to generate folio PDF.");
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
+  // Handler: Share Folio PDF via native mobile share sheet
+  const handleShareFolio = async () => {
+    const captureEl = document.getElementById("hms-pdf-capture-root");
+    if (!captureEl) {
+      setErrorMsg("Unable to locate folio layout for PDF sharing.");
+      return;
+    }
+
+    setIsSharingFolio(true);
+    setErrorMsg(null);
+    try {
+      const filename = sanitizeInvoiceFilename(liveInvoice?.invoice_number || "folio");
+      const blob = await generateElementPdfBlob(captureEl);
+      const res = await sharePdfBlob(blob, filename, `Guest Folio - ${filename}`);
+      if (res.downloadedFallback) {
+        setSuccessMsg("Folio PDF saved to device (share sheet not supported).");
+        setTimeout(() => setSuccessMsg(null), 3000);
+      }
+    } catch (err: any) {
+      console.error("Failed to share folio PDF:", err);
+      setErrorMsg(err?.message || "Failed to share folio PDF.");
+    } finally {
+      setIsSharingFolio(false);
+    }
   };
 
   // Reactive Live Invoice Document object for Right Panel preview
@@ -2432,59 +2489,90 @@ export function InvoiceEditorModal({
           {/* ============================================================== */}
           {/* MOBILE STICKY BOTTOM ACTION BAR (Below 768px / sm)             */}
           {/* ============================================================== */}
-          <div className="sm:hidden bg-white/95 backdrop-blur-md border-t border-[#E8E6F2] p-2.5 pb-[calc(0.6rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(36,33,58,0.08)] shrink-0 z-20">
+          <div className="sm:hidden bg-white/95 backdrop-blur-md border-t border-[#E8E6F2] p-2.5 pb-[calc(0.6rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(36,33,58,0.08)] shrink-0 z-20 space-y-2">
+            {/* Row 1: Close & Share Folio */}
             <div className="grid grid-cols-2 gap-2">
-              {/* Row 1: Close Button */}
               <button
                 type="button"
                 onClick={onClose}
-                className="h-9 px-3 bg-white border border-[#E8E6F2] active:bg-[#F6F5FC] text-[#24213A] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                className="h-9 px-3 bg-white border border-[#E8E6F2] active:bg-[#F6F5FC] text-[#24213A] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <X className="w-3.5 h-3.5 text-[#77758F]" />
                 <span>Close</span>
               </button>
 
-              {/* Row 1: Print Folio */}
               <button
                 type="button"
-                onClick={handlePrint}
-                className="h-9 px-3 bg-white border border-[#E8E6F2] active:bg-[#F6F5FC] text-[#24213A] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                onClick={handleShareFolio}
+                disabled={isSharingFolio || isDownloadingPdf}
+                className="h-9 px-3 bg-white border border-[#E8E6F2] active:bg-[#F6F5FC] text-[#24213A] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-60 transition-colors"
+                title="Share complete Folio PDF via native share sheet"
               >
-                <Printer className="w-3.5 h-3.5 text-[#77758F]" />
-                <span>Print Folio</span>
-              </button>
-
-              {/* Row 2: Full-Width Save Changes Button */}
-              <button
-                type="button"
-                onClick={handleSaveChanges}
-                disabled={isSavingChanges}
-                className={cn(
-                  "col-span-2 h-10 px-4 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs",
-                  justSaved
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-[#5146D8] active:bg-[#4338CA] text-white"
-                )}
-                title="Save all pending folio modifications"
-              >
-                {isSavingChanges ? (
+                {isSharingFolio ? (
                   <>
-                    <Clock className="w-4 h-4 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : justSaved ? (
-                  <>
-                    <Check className="w-4 h-4 text-emerald-600 animate-in zoom-in-75 duration-150" />
-                    <span className="font-bold">Saved</span>
+                    <Clock className="w-3.5 h-3.5 animate-spin text-[#5146D8]" />
+                    <span>Preparing...</span>
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4" />
-                    <span>Save Changes</span>
+                    <Share2 className="w-3.5 h-3.5 text-[#5146D8]" />
+                    <span>Share Folio</span>
                   </>
                 )}
               </button>
             </div>
+
+            {/* Row 2: Save Folio to Device (Full Width) */}
+            <button
+              type="button"
+              onClick={handleSaveFolioToDevice}
+              disabled={isDownloadingPdf || isSharingFolio}
+              className="w-full h-9.5 px-4 bg-white border border-[#D5D2E8] active:bg-[#F6F5FC] text-[#24213A] rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-60 transition-colors"
+              title="Download complete Folio PDF directly to device storage"
+            >
+              {isDownloadingPdf ? (
+                <>
+                  <Clock className="w-4 h-4 animate-spin text-[#5146D8]" />
+                  <span>Generating PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 text-[#5146D8]" />
+                  <span>Save Folio to Device</span>
+                </>
+              )}
+            </button>
+
+            {/* Row 3: Save Changes (Full Width, Primary Indigo) */}
+            <button
+              type="button"
+              onClick={handleSaveChanges}
+              disabled={isSavingChanges}
+              className={cn(
+                "w-full h-10 px-4 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs",
+                justSaved
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-[#5146D8] active:bg-[#4338CA] text-white"
+              )}
+              title="Save all pending folio modifications to database"
+            >
+              {isSavingChanges ? (
+                <>
+                  <Clock className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : justSaved ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600 animate-in zoom-in-75 duration-150" />
+                  <span className="font-bold">Saved</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Save Changes</span>
+                </>
+              )}
+            </button>
           </div>
 
         </div>
@@ -2790,6 +2878,37 @@ export function InvoiceEditorModal({
         receipt={selectedReceipt}
         isLoading={isLoadingReceipt}
       />
+
+      {/* Offscreen container for high-fidelity client-side PDF rendering */}
+      {liveInvoice && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            left: "-99999px",
+            top: 0,
+            width: "794px",
+            zIndex: -9999,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            id="hms-pdf-capture-root"
+            style={{
+              width: "794px",
+              background: "#ffffff",
+              padding: "0px",
+              margin: "0px",
+            }}
+          >
+            <InvoicePDFView
+              invoice={liveInvoice}
+              homestay={currentHomestay}
+              isPrintVersion={false}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Print Portal for physical print layout */}
       <InvoicePrintPortal
