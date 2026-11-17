@@ -10,8 +10,22 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "HMS - Property Management",
-  description: "Hotel Management System for Homestays",
+  title: "HOSPIRO - Hotel Management System",
+  description: "Next-Generation Property & Hotel Management System for Homestays",
+  applicationName: "HOSPIRO",
+  icons: {
+    icon: [
+      { url: "/logos/bwoserfavicon.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    apple: [
+      { url: "/logos/faviconapplogo.png", type: "image/png" },
+      { url: "/apple-icon.png", type: "image/png" },
+    ],
+    shortcut: "/logos/bwoserfavicon.png",
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 import { HMSProvider } from "@/components/providers/HMSProvider";
@@ -27,7 +41,7 @@ export default function RootLayout({
       lang="en"
       className={`${poppins.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans text-[#24213A] bg-background">
+      <body className="min-h-full flex flex-col font-sans text-[#252342] bg-background">
         <AuthProvider>
           <HMSProvider>
             <AppShellWrapper>{children}</AppShellWrapper>

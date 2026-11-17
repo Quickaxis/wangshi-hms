@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #F7F7FC;
+  --color-background: #F7F6FC;
   --color-surface: #FFFFFF;
-  --color-border: #E8E7F2;
+  --color-border: #E8E5F5;
   --color-primary: #5146D8;
   --color-secondary: #8B83F6;
-  --color-main-text: #24213A;
+  --color-main-text: #252342;
+  --color-navy: #252342;
   --color-muted: #77758F;
   --color-lavender-subtle: #F0EEFF;
   --color-lavender-border: #E0DEF8;
@@ -41,20 +42,20 @@ body {
 @layer utilities {
   .glass-panel {
     background: #FFFFFF;
-    border: 1px solid #E8E7F2;
-    box-shadow: 0 4px 20px -2px rgba(36, 33, 58, 0.04), 0 2px 6px -1px rgba(36, 33, 58, 0.02);
+    border: 1px solid #E8E5F5;
+    box-shadow: 0 4px 20px -2px rgba(37, 35, 66, 0.04), 0 2px 6px -1px rgba(37, 35, 66, 0.02);
   }
   
   .glass-panel-secondary {
     background: #FFFFFF;
-    border: 1px solid #E8E7F2;
-    box-shadow: 0 2px 10px rgba(36, 33, 58, 0.03);
+    border: 1px solid #E8E5F5;
+    box-shadow: 0 2px 10px rgba(37, 35, 66, 0.03);
   }
 
   .glass-panel-strong {
     background: #FFFFFF;
-    border: 1px solid #E8E7F2;
-    box-shadow: 0 10px 30px -4px rgba(36, 33, 58, 0.08), 0 4px 12px -2px rgba(36, 33, 58, 0.03);
+    border: 1px solid #E8E5F5;
+    box-shadow: 0 10px 30px -4px rgba(37, 35, 66, 0.08), 0 4px 12px -2px rgba(37, 35, 66, 0.03);
   }
 
   .amber-glow-border {

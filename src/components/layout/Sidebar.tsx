@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo, useEffect } from "react";
 import { 
   LayoutDashboard,
   Inbox, 
@@ -10,9 +11,11 @@ import {
   BarChart3, 
   Handshake, 
   Settings,
-  Mountain,
   ShieldCheck,
-  Receipt
+  Receipt,
+  ArrowLeft,
+  Building2,
+  MapPin
 } from "lucide-react";
 import { GlassPanel } from "../ui/GlassPanel";
 import Link from "next/link";
@@ -21,7 +24,6 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useHMSContext } from "../providers/HMSProvider";
 import { Homestay } from "@/lib/types";
-import { ArrowLeft, Building2 } from "lucide-react";
 
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -40,11 +42,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const { userProfile, homestays, selectedHomestayId } = useHMSContext();
 
-  const currentHomestay = homestays.find((h: Homestay) => h.id === selectedHomestayId);
-  const displayName = currentHomestay?.name?.split(' ')[0] || "Wangshi";
-  const displaySubtitle = currentHomestay?.name?.split(' ').slice(1).join(' ') || "Homestay";
-  const displayLocation = currentHomestay?.location || "Shergaon, Arunachal Pradesh";
-
   // Determine which navigation to show
   const isAdminArea = pathname.startsWith('/admin');
   
@@ -53,6 +50,33 @@ export function Sidebar() {
   const homestayMatch = pathname.match(/^\/admin\/homestays\/([^\/]+)/);
   const managingHomestayId = homestayMatch ? homestayMatch[1] : null;
   const managingHomestay = homestays.find((h: Homestay) => h.id === managingHomestayId);
+
+  const currentHomestay = homestays.find((h: Homestay) => h.id === selectedHomestayId)
+    || homestays.find((h: Homestay) => h.is_active)
+    || homestays[0];
+
+  const activeHomestay = (isAdminArea && managingHomestay) ? managingHomestay : currentHomestay;
+
+  const propertyFullName = activeHomestay?.name || "Wangshi Homestay";
+  const displayLocation = activeHomestay?.location 
+    || (activeHomestay?.city ? `${activeHomestay.city}, ${activeHomestay.state || ""}` : "Shergaon, Arunachal Pradesh");
+  const propertyLogo = activeHomestay?.logo_url || activeHomestay?.invoice_logo_url || null;
+
+  // Compute initials for logo fallback (e.g. "The Conclave" -> "TC", "Wangshi" -> "WH")
+  const propertyInitials = useMemo(() => {
+    if (!propertyFullName) return "HS";
+    const clean = propertyFullName.replace(/[^a-zA-Z0-9\s]/g, " ").trim();
+    const parts = clean.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "HS";
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }, [propertyFullName]);
+
+  // Track image load error to safely fall back to monogram
+  const [logoLoadError, setLogoLoadError] = useState(false);
+  useEffect(() => {
+    setLogoLoadError(false);
+  }, [activeHomestay?.id, propertyLogo]);
 
   // General Admin Nav Items
   const adminNavItems = [
@@ -74,35 +98,88 @@ export function Sidebar() {
     : navItems;
 
   return (
-    <GlassPanel className="h-full flex flex-col p-6 rounded-[32px]">
-      <div className="mb-10 flex flex-col items-center text-center gap-2">
-        <div className="w-12 h-12 rounded-full bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center shrink-0 mb-2 shadow-sm overflow-hidden">
-          {(isAdminArea && managingHomestay?.logo_url) || (!isAdminArea && currentHomestay?.logo_url) ? (
-            <Image 
-              src={(isAdminArea && managingHomestay ? managingHomestay.logo_url : currentHomestay?.logo_url) || ''} 
-              alt="Homestay Logo" 
-              width={48} 
-              height={48} 
-              className="w-full h-full object-cover" 
-            />
-          ) : (
-            <Mountain className="w-6 h-6 text-[#5146D8]" strokeWidth={1.5} />
-          )}
+    <GlassPanel className="h-full flex flex-col p-5 lg:p-6 rounded-[32px] overflow-hidden">
+      {/* ─── Top Brand & Property Identity Header ─── */}
+      <div className="shrink-0 mb-3 pb-3 border-b border-[#E8E5F5] space-y-2.5">
+        
+        {/* 1. Subtle HOSPIRO Software System Identity */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 relative flex items-center justify-center shrink-0">
+              <Image 
+                src="/logos/compactlogo.png" 
+                alt="HOSPIRO" 
+                width={16} 
+                height={16} 
+                className="w-full h-full object-contain" 
+                priority
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold tracking-wider text-[#252342] leading-none uppercase">
+                HOSPIRO
+              </span>
+              <span className="text-[8px] text-[#77758F] font-semibold leading-none">·</span>
+              <span className="text-[7.5px] font-semibold text-[#77758F] tracking-[0.14em] uppercase leading-none">
+                Hotel Management System
+              </span>
+            </div>
+          </div>
+          <span className="text-[8px] font-semibold text-[#5146D8] bg-[#F0EEFF] px-1.5 py-0.5 rounded-full border border-[#5146D8]/15 leading-none">
+            HMS
+          </span>
         </div>
-        <div>
-          <h1 className="text-sm font-semibold tracking-[0.15em] text-[#24213A] leading-tight uppercase">
-            {isAdminArea && managingHomestay ? managingHomestay.name : displayName}
-          </h1>
-          <h2 className="text-xs font-medium tracking-[0.2em] text-[#77758F] mt-0.5 uppercase">
-            {isAdminArea && managingHomestay ? "Managing" : displaySubtitle}
-          </h2>
-          <p className="text-[10px] text-[#8F8CA4] mt-2 tracking-wider">
-            {isAdminArea && managingHomestay ? managingHomestay.location : displayLocation}
-          </p>
+
+        {/* 2. Hero Property Identity Card */}
+        <div 
+          key={activeHomestay?.id || 'active-property'}
+          className="w-full bg-[#FFFFFF] border border-[#E8E5F5] rounded-2xl p-3 shadow-[0_4px_16px_rgba(37,35,66,0.04)] hover:border-[#5146D8]/30 transition-all duration-200"
+        >
+          <div className="flex items-start gap-3">
+            {/* Property Logo or Monogram Avatar */}
+            <div className="w-11 h-11 rounded-xl bg-[#FAF9FF] border border-[#E8E5F5] flex items-center justify-center overflow-hidden shadow-2xs relative shrink-0">
+              {propertyLogo && !logoLoadError ? (
+                <Image 
+                  src={propertyLogo} 
+                  alt={propertyFullName} 
+                  fill 
+                  className="object-contain p-0.5" 
+                  unoptimized
+                  onError={() => setLogoLoadError(true)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#F0EEFF] to-[#E6E3FC] text-[#5146D8]">
+                  <span className="text-xs font-bold tracking-wider">{propertyInitials}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Property Name & Location */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
+                <span className="text-[8.5px] uppercase font-bold text-[#5146D8] tracking-widest truncate">
+                  {isAdminArea && managingHomestay ? "Managing Property" : "Active Homestay"}
+                </span>
+              </div>
+              <h2 
+                className="text-xs lg:text-[13px] font-bold text-[#252342] leading-snug line-clamp-2 uppercase tracking-wide" 
+                title={propertyFullName}
+              >
+                {propertyFullName}
+              </h2>
+              <p className="text-[10px] text-[#77758F] font-normal leading-tight truncate mt-1 flex items-center gap-1">
+                <MapPin className="w-3 h-3 shrink-0 text-[#8B83F6]" />
+                <span className="truncate">{displayLocation}</span>
+              </p>
+            </div>
+          </div>
         </div>
+
       </div>
 
-      <nav className="flex-1 space-y-1.5">
+      {/* ─── 3. Navigation List ─── */}
+      <nav className="flex-1 space-y-1 overflow-y-auto hide-scrollbar py-1">
         {currentNavItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -110,32 +187,32 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#5146D8]/40",
+                "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#5146D8]/40",
                 isActive 
-                  ? "bg-[#F0EEFF] text-[#5146D8] font-semibold shadow-sm" 
-                  : "text-[#77758F] hover:bg-[#F7F7FC] hover:text-[#24213A]"
+                  ? "bg-[#F0EEFF] text-[#5146D8] font-bold shadow-2xs border border-[#5146D8]/15" 
+                  : "text-[#77758F] hover:bg-[#F7F6FC] hover:text-[#252342]"
               )}
             >
-              <item.icon className="h-4 w-4" strokeWidth={isActive ? 2 : 1.5} />
-              <span className="tracking-[0.05em]">{item.name}</span>
+              <item.icon className="h-4 w-4 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
+              <span className="tracking-[0.03em] truncate">{item.name}</span>
             </Link>
           );
         })}
         
         {!isAdminArea && userProfile?.role === 'super_admin' && (
           <>
-            <div className="h-px bg-[#E8E7F2] my-2 mx-4" />
+            <div className="h-px bg-[#E8E5F5] my-2 mx-3" />
             <Link
               href="/admin"
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#5146D8]/40",
+                "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#5146D8]/40",
                 pathname.startsWith('/admin')
-                  ? "bg-[#F0EEFF] text-[#5146D8] font-semibold shadow-sm" 
-                  : "text-[#77758F] hover:bg-[#F7F7FC] hover:text-[#24213A]"
+                  ? "bg-[#F0EEFF] text-[#5146D8] font-bold shadow-2xs border border-[#5146D8]/15" 
+                  : "text-[#77758F] hover:bg-[#F7F6FC] hover:text-[#252342]"
               )}
             >
-              <ShieldCheck className="h-4 w-4" strokeWidth={pathname.startsWith('/admin') ? 2 : 1.5} />
-              <span className="tracking-[0.05em]">Admin</span>
+              <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={pathname.startsWith('/admin') ? 2 : 1.5} />
+              <span className="tracking-[0.03em] truncate">Admin</span>
             </Link>
           </>
         )}

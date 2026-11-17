@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
+import Image from "next/image";
 import { AppShell } from "./AppShell";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -30,12 +31,30 @@ export function AppShellWrapper({ children }: { children: ReactNode }) {
   }
 
   // FOR ALL PRIVATE HMS ROUTES:
-  // Show a minimal loading state until Supabase confirms the session on the client
+  // Show a branded loading state until Supabase confirms the session on the client
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-[#F7F7FC]">
-        <div className="w-10 h-10 border-2 border-[#5146D8] border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(81,70,216,0.2)]"></div>
-        <p className="text-[#5146D8] tracking-widest text-xs font-semibold animate-pulse opacity-80">AUTHENTICATING...</p>
+      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-[#F7F6FC]">
+        <div className="flex flex-col items-center text-center p-8">
+          <div className="w-16 h-16 mb-4 relative flex items-center justify-center">
+            <div className="absolute -inset-2 rounded-2xl border-2 border-[#5146D8] border-t-transparent animate-spin" />
+            <Image
+              src="/logos/compactlogo.png"
+              alt="HOSPIRO"
+              width={48}
+              height={48}
+              className="w-12 h-12 object-contain drop-shadow-[0_4px_12px_rgba(81,70,216,0.22)]"
+              priority
+            />
+          </div>
+          <span className="text-base font-bold text-[#252342] tracking-wide block">HOSPIRO</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-[#77758F] font-semibold block mt-0.5 mb-3">
+            Hotel Management System
+          </span>
+          <p className="text-[#5146D8] tracking-widest text-[10px] font-semibold animate-pulse opacity-90">
+            AUTHENTICATING...
+          </p>
+        </div>
       </div>
     );
   }

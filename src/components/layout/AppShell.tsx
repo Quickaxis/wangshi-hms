@@ -11,7 +11,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen md:h-screen w-full overflow-x-hidden md:overflow-hidden relative shadow-[0_0_20px_rgba(0,0,0,0.05)] md:shadow-none">
       {/* Sidebar - hidden on mobile, block on md and up */}
-      <div className="hidden md:block w-64 h-full p-4 pr-2">
+      <div className="hidden md:block w-64 lg:w-[276px] h-full p-4 pr-2 shrink-0">
         <Sidebar />
       </div>
 

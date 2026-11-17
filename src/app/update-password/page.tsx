@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
 function UpdatePasswordContent() {
@@ -36,7 +37,7 @@ function UpdatePasswordContent() {
       } else {
         setSuccessMsg("Password updated successfully! Redirecting...");
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          window.location.href = "/";
         }, 2000);
       }
     } catch (err) {
@@ -47,61 +48,70 @@ function UpdatePasswordContent() {
   };
 
   return (
-    <div className="w-full max-w-md relative z-10">
-      <div className="glass-panel p-8 md:p-12 rounded-3xl flex flex-col items-center text-center shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
-        <h1 className="text-3xl font-bold text-[#F5F1E8] mb-2 tracking-wide">
+    <div className="w-full max-w-md relative z-10 px-4 sm:px-0">
+      <div className="bg-[#FFFFFF] border border-[#E8E5F5] p-8 md:p-12 rounded-[32px] flex flex-col items-center text-center shadow-[0_20px_50px_rgba(37,35,66,0.06)]">
+        <div className="w-20 h-20 mb-4 flex items-center justify-center shrink-0">
+          <Image
+            src="/logos/compactlogo.png"
+            alt="HOSPIRO"
+            width={80}
+            height={80}
+            className="w-full h-full object-contain drop-shadow-[0_4px_16px_rgba(81,70,216,0.18)]"
+            priority
+          />
+        </div>
+
+        <h1 className="text-2xl font-bold text-[#252342] mb-1 tracking-wide">
           Update Password
         </h1>
-        <p className="text-[#96928A] text-sm mb-8 tracking-wider">
+        <p className="text-[#77758F] text-xs font-medium mb-8 tracking-wider">
           Enter your new password below.
         </p>
 
         {errorMsg && (
-          <div className="w-full mb-6 p-4 rounded-xl bg-[rgba(255,105,120,0.1)] border border-[rgba(255,105,120,0.2)]">
-            <p className="text-[#FF6978] text-sm font-medium">{errorMsg}</p>
+          <div className="w-full mb-6 p-4 rounded-xl bg-[#FEF2F2] border border-[#FECACA]">
+            <p className="text-[#DC2626] text-sm font-medium">{errorMsg}</p>
           </div>
         )}
 
         {successMsg && (
-          <div className="w-full mb-6 p-4 rounded-xl bg-[rgba(79,231,123,0.1)] border border-[rgba(79,231,123,0.2)]">
-            <p className="text-[#4FE77B] text-sm font-medium">{successMsg}</p>
+          <div className="w-full mb-6 p-4 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0]">
+            <p className="text-[#059669] text-sm font-medium">{successMsg}</p>
           </div>
         )}
 
-        <form onSubmit={handleUpdatePassword} className="w-full">
-          <div className="mb-4">
+        <form onSubmit={handleUpdatePassword} className="w-full flex flex-col gap-4">
+          <div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="New Password"
               disabled={isLoading || !!successMsg}
-              className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3.5 text-[#F5F1E8] placeholder-[#96928A] focus:outline-none focus:border-[#F59E0B] transition-colors"
+              className="w-full bg-[#FFFFFF] border border-[#E8E5F5] rounded-xl px-4 py-3.5 text-[#252342] placeholder-[#8F8CA4] focus:outline-none focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8] transition-all"
             />
           </div>
           
-          <div className="mb-6">
+          <div>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm New Password"
               disabled={isLoading || !!successMsg}
-              className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3.5 text-[#F5F1E8] placeholder-[#96928A] focus:outline-none focus:border-[#F59E0B] transition-colors"
+              className="w-full bg-[#FFFFFF] border border-[#E8E5F5] rounded-xl px-4 py-3.5 text-[#252342] placeholder-[#8F8CA4] focus:outline-none focus:border-[#5146D8] focus:ring-1 focus:ring-[#5146D8] transition-all"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading || !!successMsg}
-            className="w-full relative group overflow-hidden rounded-xl bg-[#F59E0B] hover:bg-[#D97706] transition-all duration-300 flex items-center justify-center py-4 px-6 focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full mt-2 rounded-xl bg-[#5146D8] hover:bg-[#4338CA] text-white transition-all duration-200 flex items-center justify-center py-3.5 px-6 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5146D8]/50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-[#141211] border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <span className="text-[#141211] font-bold tracking-wide">
-                Update Password
-              </span>
+              <span>Update Password</span>
             )}
           </button>
         </form>
@@ -113,9 +123,7 @@ function UpdatePasswordContent() {
 export default function UpdatePasswordPage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#F59E0B] opacity-[0.03] blur-[120px] rounded-full pointer-events-none"></div>
-      
-      <Suspense fallback={<div className="w-10 h-10 border-2 border-[#F59E0B] border-t-transparent rounded-full animate-spin"></div>}>
+      <Suspense fallback={<div className="w-10 h-10 border-2 border-[#5146D8] border-t-transparent rounded-full animate-spin"></div>}>
         <UpdatePasswordContent />
       </Suspense>
     </div>

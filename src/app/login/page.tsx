@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { verifyAndLinkPartner } from "@/app/actions/auth";
@@ -109,18 +110,23 @@ function LoginContent() {
 
   return (
     <div className="w-full max-w-md relative z-10 w-full px-4 sm:px-0">
-      <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-8 sm:p-12 rounded-[32px] flex flex-col items-center text-center shadow-[0_20px_50px_rgba(36,33,58,0.06)]">
-        <div className="w-20 h-20 rounded-2xl bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center mb-6 shadow-sm">
-          <svg className="w-10 h-10 text-[#5146D8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
+      <div className="bg-[#FFFFFF] border border-[#E8E5F5] p-8 sm:p-12 rounded-[32px] flex flex-col items-center text-center shadow-[0_20px_50px_rgba(37,35,66,0.06)]">
+        <div className="w-24 h-24 mb-4 flex items-center justify-center shrink-0">
+          <Image
+            src="/logos/compactlogo.png"
+            alt="HOSPIRO"
+            width={96}
+            height={96}
+            className="w-full h-full object-contain drop-shadow-[0_8px_24px_rgba(81,70,216,0.22)]"
+            priority
+          />
         </div>
         
-        <h1 className="text-3xl font-bold text-[#24213A] mb-2 tracking-wide">
-          HOMESTAY SYSTEM
+        <h1 className="text-3xl font-bold text-[#252342] mb-1 tracking-wide">
+          HOSPIRO
         </h1>
-        <p className="text-[#77758F] text-sm mb-8 tracking-wider">
-          Partner Management System
+        <p className="text-[#77758F] text-xs font-semibold tracking-[0.2em] uppercase mb-8">
+          Hotel Management System
         </p>
 
         {currentError && (

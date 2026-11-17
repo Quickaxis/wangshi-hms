@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import Image from "next/image";
 import { Search, LogOut, ChevronDown, Calendar as CalendarIcon, User, BedDouble, CalendarCheck } from "lucide-react";
 import { format } from "date-fns";
 import { usePathname, useRouter } from "next/navigation";
@@ -25,6 +26,23 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   
   const { rooms, userProfile, homestays, selectedHomestayId, setSelectedHomestayId } = useHMSContext();
   const { partner, isLoading } = useAuth();
+
+  const activeHomestay = useMemo(() => {
+    return homestays.find(h => h.id === selectedHomestayId) 
+      || homestays.find(h => h.is_active) 
+      || homestays[0];
+  }, [homestays, selectedHomestayId]);
+
+  const topPropertyLogo = activeHomestay?.logo_url || activeHomestay?.invoice_logo_url || null;
+
+  const topPropertyInitials = useMemo(() => {
+    if (!activeHomestay?.name) return "HS";
+    const clean = activeHomestay.name.replace(/[^a-zA-Z0-9\s]/g, " ").trim();
+    const parts = clean.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "HS";
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }, [activeHomestay?.name]);
   
   // Create supabase client only when needed for logout
   const handleLogout = async () => {
@@ -169,22 +187,40 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   return (
     <div className="flex flex-col w-full mb-0 md:mb-8 pb-1.5 md:pb-0 relative z-50 gap-2.5 sm:gap-4 md:gap-6">
       
-      {/* Mobile-only Header Row (Hamburger, Logo, Avatar) */}
+      {/* Mobile-only Header Row (Hamburger, HOSPIRO + Property Badge, Avatar) */}
       <div className="flex md:hidden items-center justify-between w-full pt-0.5 px-1">
         <button 
           onClick={onMenuClick}
-          className="p-2 -ml-2 text-[#77758F] hover:text-[#24213A] transition-colors"
+          className="p-2 -ml-2 text-[#77758F] hover:text-[#252342] transition-colors"
+          title="Open Menu"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
         
-        <div className="flex flex-col items-center text-center">
-          <h1 className="text-[13px] font-bold tracking-[0.15em] text-[#24213A] leading-tight uppercase">
-            {(homestays.filter(h => h.is_active).find(h => h.id === selectedHomestayId)?.name || homestays.find(h => h.is_active)?.name || "Wangshi").split(' ')[0]}
-          </h1>
-          <h2 className="text-[9px] font-medium tracking-[0.2em] text-[#77758F] mt-0.5 uppercase">
-            {(homestays.filter(h => h.is_active).find(h => h.id === selectedHomestayId)?.name || homestays.find(h => h.is_active)?.name || "Homestay").split(' ').slice(1).join(' ')}
-          </h2>
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-[#FAF9FF] border border-[#E8E5F5] overflow-hidden relative flex items-center justify-center shrink-0">
+            {topPropertyLogo ? (
+              <Image 
+                src={topPropertyLogo} 
+                alt={activeHomestay?.name || "Homestay"} 
+                fill 
+                className="object-cover" 
+                unoptimized 
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#F0EEFF] to-[#E6E3FC] text-[#5146D8] text-[9px] font-bold">
+                {topPropertyInitials}
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col text-left">
+            <span className="text-xs font-bold text-[#252342] leading-tight truncate max-w-[150px] uppercase">
+              {activeHomestay?.name || "Wangshi Homestay"}
+            </span>
+            <span className="text-[8px] text-[#5146D8] font-bold tracking-widest uppercase leading-none">
+              HOSPIRO
+            </span>
+          </div>
         </div>
 
         {!isLoading && partner ? (
@@ -375,9 +411,25 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           <span className="text-xs text-[#24213A] font-medium tracking-wider">{today}</span>
         </div>
         
-        {/* Partner Selector / Homestay Selector */}
+        {/* Property Selector (Super Admin) */}
         {!isLoading && partner && userProfile?.role === 'super_admin' ? (
-          <div className="flex items-center gap-2 glass-panel-secondary px-3 py-1.5 rounded-full border border-[#E8E7F2]">
+          <div className="flex items-center gap-2 glass-panel-secondary pl-1.5 pr-3 py-1 rounded-full border border-[#E8E7F2] shadow-2xs hover:border-[#5146D8]/30 transition-all">
+            {/* Active Property Mini Logo / Monogram */}
+            <div className="w-6 h-6 rounded-full bg-[#FAF9FF] border border-[#E8E5F5] overflow-hidden relative flex items-center justify-center shrink-0">
+              {topPropertyLogo ? (
+                <Image 
+                  src={topPropertyLogo} 
+                  alt={activeHomestay?.name || "Homestay"} 
+                  fill 
+                  className="object-cover" 
+                  unoptimized 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#F0EEFF] to-[#E6E3FC] text-[#5146D8] text-[9px] font-bold">
+                  {topPropertyInitials}
+                </div>
+              )}
+            </div>
             <select
               value={
                 homestays.filter(h => h.is_active).some(h => h.id === selectedHomestayId)
@@ -395,22 +447,42 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                   }
                 }
               }}
-              className="bg-transparent border-none outline-none text-xs font-medium text-[#24213A] tracking-wide focus:ring-0 cursor-pointer"
+              className="bg-transparent border-none outline-none text-xs font-semibold text-[#252342] tracking-wide focus:ring-0 cursor-pointer pr-1"
             >
               {homestays.filter(h => h.is_active).map((h) => (
-                <option key={h.id} value={h.id} className="text-[#24213A] bg-white">
+                <option key={h.id} value={h.id} className="text-[#252342] bg-white font-medium">
                   {h.name}
                 </option>
               ))}
             </select>
           </div>
         ) : !isLoading && partner ? (
-          <div className="flex items-center gap-2 glass-panel-secondary pl-1.5 pr-3 py-1.5 rounded-full cursor-pointer hover:bg-[#F0EEFF] border border-[#E8E7F2] transition-all">
-            <div className="w-6 h-6 rounded-full bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center text-[#5146D8] font-bold text-[10px] shrink-0 shadow-sm uppercase">
-              {partner.name.substring(0, 2)}
+          <div className="flex items-center gap-2 glass-panel-secondary pl-1.5 pr-3 py-1 rounded-full border border-[#E8E7F2] shadow-2xs transition-all">
+            <div className="w-6 h-6 rounded-full bg-[#FAF9FF] border border-[#E8E5F5] overflow-hidden relative flex items-center justify-center text-[#5146D8] font-bold text-[9px] shrink-0">
+              {topPropertyLogo ? (
+                <Image 
+                  src={topPropertyLogo} 
+                  alt="Property Logo" 
+                  fill 
+                  className="object-cover" 
+                  unoptimized 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#F0EEFF] to-[#E6E3FC] text-[#5146D8] text-[9px] font-bold">
+                  {topPropertyInitials}
+                </div>
+              )}
             </div>
-            <span className="text-xs font-medium text-[#24213A] tracking-wide">{partner.name}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-[#77758F] ml-1" />
+            <div className="flex flex-col text-left pr-1">
+              <span className="text-xs font-semibold text-[#252342] tracking-wide leading-tight">
+                {activeHomestay?.name || partner.name}
+              </span>
+              {activeHomestay?.location && (
+                <span className="text-[9px] text-[#77758F] font-normal leading-none truncate max-w-[130px]">
+                  {activeHomestay.location}
+                </span>
+              )}
+            </div>
           </div>
         ) : null}
 
