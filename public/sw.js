@@ -1,7 +1,7 @@
 // HOSPIRO PWA Minimal Service Worker
-// Version: 1.0.0
-// Designed strictly to fulfill Chrome PWA installability criteria without
-// interfering with Supabase, authentication, API routes, or HMS business logic.
+// Version: 1.1.0
+// Designed strictly to fulfill Chrome PWA installability criteria and Web Push notifications
+// without interfering with Supabase, authentication, API routes, or HMS business logic.
 
 const CACHE_NAME = 'hospiro-pwa-v1';
 
@@ -110,3 +110,72 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// ------------------------------------------------------------------------------
+// 5. Web Push Notifications Handler
+// ------------------------------------------------------------------------------
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'HOSPIRO Notification',
+    body: 'New update in HOSPIRO.',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-96x96.png',
+    tag: 'hospiro-alert',
+    data: { url: '/requests' }
+  };
+
+  try {
+    if (event.data) {
+      data = Object.assign(data, event.data.json());
+    }
+  } catch (err) {
+    if (event.data) {
+      data.body = event.data.text();
+    }
+  }
+
+  const notificationOptions = {
+    body: data.body,
+    icon: data.icon || '/icons/icon-192x192.png',
+    badge: data.badge || '/icons/icon-96x96.png',
+    tag: data.tag || `hospiro-alert-${Date.now()}`,
+    data: data.data || { url: '/requests' },
+    vibrate: [200, 100, 200],
+    requireInteraction: true,
+    actions: [
+      { action: 'open', title: 'Open in HMS' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, notificationOptions)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'dismiss') {
+    return;
+  }
+
+  const targetUrl = event.notification.data?.url || '/requests';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If a window is already open under this origin, focus and navigate it
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          if ('navigate' in client) {
+            client.navigate(targetUrl);
+          }
+          return client.focus();
+        }
+      }
+      // Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});

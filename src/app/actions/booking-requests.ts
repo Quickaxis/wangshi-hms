@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createBookingAction } from "@/app/actions/bookings";
 import { DbBookingRequest } from "@/lib/types";
+import { dispatchBookingNotification } from "@/app/actions/notifications";
 
 export interface BookingRequestActionResult {
   success: boolean;
@@ -436,6 +437,98 @@ export async function rejectBookingRequestAction(
     return { success: true };
   } catch (err: unknown) {
     console.error("[HMS] Exception in rejectBookingRequestAction:", err);
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error." };
+  }
+}
+
+export interface CreateBookingRequestInput {
+  homestayId: string;
+  roomId?: string;
+  guestName: string;
+  guestPhone: string;
+  guestEmail?: string;
+  checkIn: string;
+  checkOut: string;
+  numberOfGuests?: number;
+  notes?: string;
+  estimatedTotal?: number;
+  paymentMethod?: string;
+  bookingReference?: string;
+}
+
+/**
+ * Programmatically create a website booking request and dispatch notifications.
+ */
+export async function createBookingRequestAction(
+  input: CreateBookingRequestInput
+): Promise<{ success: boolean; data?: { id: string }; error?: string }> {
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const adminClient = createAdminClient();
+
+    // Check homestay validity
+    const { data: homestay } = await adminClient
+      .from("homestays")
+      .select("id, name, is_active")
+      .eq("id", input.homestayId)
+      .single();
+
+    if (!homestay || !homestay.is_active) {
+      return { success: false, error: "Homestay not found or inactive." };
+    }
+
+    // Lookup room name if specified
+    let roomName: string | undefined;
+    if (input.roomId) {
+      const { data: room } = await adminClient
+        .from("rooms")
+        .select("name")
+        .eq("id", input.roomId)
+        .maybeSingle();
+      if (room) roomName = room.name;
+    }
+
+    // Insert request
+    const { data: inserted, error: insertError } = await adminClient
+      .from("booking_requests")
+      .insert({
+        homestay_id: input.homestayId,
+        room_id: input.roomId || null,
+        guest_name: input.guestName.trim(),
+        guest_phone: input.guestPhone.trim(),
+        guest_email: input.guestEmail?.trim() || null,
+        check_in: input.checkIn,
+        check_out: input.checkOut,
+        number_of_guests: input.numberOfGuests || 1,
+        notes: input.notes?.trim() || null,
+        estimated_total: input.estimatedTotal || 0,
+        payment_method: input.paymentMethod || "pay_at_property",
+        status: "pending",
+      })
+      .select("id")
+      .single();
+
+    if (insertError) {
+      return { success: false, error: insertError.message };
+    }
+
+    // Dispatch Web Push and in-app notifications
+    await dispatchBookingNotification({
+      homestayId: input.homestayId,
+      bookingRequestId: inserted.id,
+      guestName: input.guestName.trim(),
+      guestPhone: input.guestPhone.trim(),
+      roomName,
+      checkIn: input.checkIn,
+      checkOut: input.checkOut,
+      numberOfGuests: input.numberOfGuests || 1,
+      estimatedTotal: input.estimatedTotal || 0,
+      bookingReference: input.bookingReference || inserted.id.substring(0, 8).toUpperCase(),
+    });
+
+    return { success: true, data: { id: inserted.id } };
+  } catch (err: unknown) {
+    console.error("[HMS] Exception in createBookingRequestAction:", err);
     return { success: false, error: err instanceof Error ? err.message : "Internal server error." };
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { Search, LogOut, ChevronDown, Calendar as CalendarIcon, User, BedDouble, CalendarCheck } from "lucide-react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { format } from "date-fns";
 import { usePathname, useRouter } from "next/navigation";
 import { useHMSContext } from "../providers/HMSProvider";
@@ -223,13 +224,16 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         </div>
 
-        {!isLoading && partner ? (
-          <div className="w-8 h-8 rounded-full bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center text-[#5146D8] font-bold text-[10px] shrink-0 shadow-sm uppercase">
-            {partner.name.substring(0, 2)}
-          </div>
-        ) : (
-          <div className="w-8 h-8" /> /* placeholder to balance flex-between */
-        )}
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          {!isLoading && partner ? (
+            <div className="w-8 h-8 rounded-full bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center text-[#5146D8] font-bold text-[10px] shrink-0 shadow-sm uppercase">
+              {partner.name.substring(0, 2)}
+            </div>
+          ) : (
+            <div className="w-8 h-8" /> /* placeholder to balance flex-between */
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full gap-2 md:gap-4">
@@ -485,6 +489,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             </div>
           </div>
         ) : null}
+
+        {/* Notification Bell */}
+        <NotificationBell />
 
         {/* Logout Button (Desktop only) */}
         <button 

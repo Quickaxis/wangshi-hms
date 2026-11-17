@@ -25,8 +25,10 @@ import {
   DollarSign,
   UserCheck,
   Check,
-  X
+  X,
+  Bell
 } from "lucide-react";
+import { NotificationSettingsTab } from "@/components/settings/NotificationSettingsTab";
 import { useHMSContext } from "@/components/providers/HMSProvider";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -46,7 +48,7 @@ import {
 } from "@/app/actions/settings";
 import { Room } from "@/lib/types";
 
-type Tab = 'profile' | 'rooms' | 'policies' | 'billing' | 'branding' | 'security';
+type Tab = 'profile' | 'rooms' | 'policies' | 'billing' | 'branding' | 'security' | 'notifications';
 
 export default function SettingsPage() {
   const { userProfile, homestays, selectedHomestayId, rooms, refreshHomestays, refreshData } = useHMSContext();
@@ -644,6 +646,19 @@ export default function SettingsPage() {
           >
             <Lock className="w-4 h-4 shrink-0" />
             <span>Account & Security</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('notifications')}
+            className={cn(
+              "flex items-center gap-3 px-4 py-3 rounded-xl text-xs md:text-sm font-medium transition-all duration-200 text-left cursor-pointer",
+              activeTab === 'notifications' 
+                ? "bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8] font-bold shadow-sm" 
+                : "text-[#77758F] hover:bg-[#F7F7FC] hover:text-[#24213A] border border-transparent"
+            )}
+          >
+            <Bell className="w-4 h-4 shrink-0" />
+            <span>Push Notifications</span>
           </button>
         </div>
 
@@ -1397,6 +1412,13 @@ export default function SettingsPage() {
                 </div>
               </form>
             </div>
+          )}
+
+          {/* ================================================================= */}
+          {/* 7. PUSH NOTIFICATIONS */}
+          {/* ================================================================= */}
+          {activeTab === 'notifications' && (
+            <NotificationSettingsTab showToast={showToast} />
           )}
 
         </GlassPanel>

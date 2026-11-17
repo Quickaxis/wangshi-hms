@@ -15,7 +15,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - PWA files: sw.js, manifest.webmanifest, manifest.json, icons, logos
+     * - Public API endpoints: api/public
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest\\.webmanifest|manifest\\.json|sw\\.js|icons/|logos/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|json)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest\\.webmanifest|manifest\\.json|sw\\.js|icons/|logos/|api/public|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|json)$).*)',
   ],
 }

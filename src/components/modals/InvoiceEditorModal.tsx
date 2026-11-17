@@ -128,6 +128,8 @@ export function InvoiceEditorModal({
   const [isAddingCharge, setIsAddingCharge] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [isSavingChanges, setIsSavingChanges] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const savedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isEditingGuestInfo, setIsEditingGuestInfo] = useState(false);
   const [userNotes, setUserNotes] = useState("");
 
@@ -163,13 +165,14 @@ export function InvoiceEditorModal({
   const [showPreview, setShowPreview] = useState<boolean>(false);
   const [isPreviewMaximized, setIsPreviewMaximized] = useState<boolean>(false);
 
-  // Background body scroll lock while modal is open
+  // Background body scroll lock while modal is open & timer cleanup
   useEffect(() => {
     if (!isOpen) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prevOverflow;
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
     };
   }, [isOpen]);
 
@@ -926,6 +929,11 @@ export function InvoiceEditorModal({
         setIsEditingGuestInfo(false);
         setSuccessMsg("Folio changes saved successfully.");
         onSaved(activeInv.id, res.invoice, false);
+        setJustSaved(true);
+        if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+        savedTimeoutRef.current = setTimeout(() => {
+          setJustSaved(false);
+        }, 2000);
       } else {
         setErrorMsg(res.error || "Failed to save folio changes.");
       }
@@ -1059,14 +1067,14 @@ export function InvoiceEditorModal({
     <>
       <div className="fixed inset-0 z-50 bg-[#0F0E17]/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-hidden animate-in fade-in duration-200">
         <div className={cn(
-          "bg-[#FAF9FF] border border-[#E8E6F2] rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col w-full h-[96vh] sm:h-[94vh] max-h-[96vh] overflow-hidden transition-all",
+          "bg-[#FAF9FF] border border-[#E8E6F2] rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col w-[calc(100vw-16px)] sm:w-full h-[95dvh] max-h-[95dvh] sm:h-[94vh] sm:max-h-[94vh] overflow-hidden transition-all",
           showPreview ? "max-w-7xl 2xl:max-w-[1680px]" : "max-w-5xl"
         )}>
           
           {/* ============================================================== */}
-          {/* TOP HEADER BAR                                                 */}
+          {/* DESKTOP TOP HEADER BAR (Unchanged for screens >= 640px)        */}
           {/* ============================================================== */}
-          <div className="bg-white border-b border-[#E8E6F2] px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-3 shrink-0">
+          <div className="hidden sm:flex bg-white border-b border-[#E8E6F2] px-4 sm:px-6 py-3.5 sm:py-4 items-center justify-between gap-3 shrink-0">
             {/* Left: Back / Title / Status */}
             <div className="flex items-center gap-3 min-w-0">
               <button
@@ -1214,14 +1222,171 @@ export function InvoiceEditorModal({
           </div>
 
           {/* ============================================================== */}
+          {/* MOBILE TOP HEADER BAR (Mobile Only: dedicated non-overlap UI)   */}
+          {/* ============================================================== */}
+          <div className="sm:hidden bg-white border-b border-[#E8E6F2] px-3.5 py-2.5 space-y-2 shrink-0">
+            {/* Row 1: Back + Title + Action Icons */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="p-1 -ml-1 rounded-xl text-[#77758F] active:bg-[#F0EEFF] active:text-[#24213A] transition-colors cursor-pointer shrink-0"
+                  title="Close Folio"
+                  aria-label="Close Folio"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <h2 className="text-sm font-bold text-[#24213A] tracking-tight truncate">
+                  Guest Folio & Billing
+                </h2>
+              </div>
+
+              {/* Action Icons Row */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {/* Preview Toggle */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreview(prev => {
+                      const next = !prev;
+                      if (next) setIsPreviewMaximized(true);
+                      else setIsPreviewMaximized(false);
+                      return next;
+                    });
+                  }}
+                  className={cn(
+                    "w-8 h-8 rounded-lg border flex items-center justify-center transition-colors cursor-pointer",
+                    showPreview
+                      ? "bg-[#F0EEFF] text-[#5146D8] border-[#5146D8]/40 shadow-xs"
+                      : "bg-white text-[#77758F] border-[#E8E6F2] active:bg-[#F6F5FC]"
+                  )}
+                  title="Live Document Preview"
+                  aria-label="Live Document Preview"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+
+                {/* Print Folio */}
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="w-8 h-8 rounded-lg bg-white border border-[#E8E6F2] active:bg-[#F6F5FC] text-[#77758F] flex items-center justify-center transition-colors cursor-pointer"
+                  title="Print Folio Document"
+                  aria-label="Print Folio Document"
+                >
+                  <Printer className="w-4 h-4" />
+                </button>
+
+                {/* Issue Tax Invoice (Document Icon) */}
+                {activeInv?.status !== "issued" && activeInv?.status !== "paid" && (
+                  <button
+                    type="button"
+                    onClick={handleFinalizeInvoice}
+                    disabled={isFinalizing || isSavingChanges}
+                    className="w-8 h-8 rounded-lg bg-white border border-[#E8E6F2] active:bg-[#F6F5FC] text-[#5146D8] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
+                    title="Issue Formal Tax Invoice"
+                    aria-label="Issue Formal Tax Invoice"
+                  >
+                    {isFinalizing ? (
+                      <Clock className="w-4 h-4 animate-spin text-[#5146D8]" />
+                    ) : (
+                      <FileText className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
+
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-lg text-[#77758F] active:bg-[#F0EEFF] active:text-[#24213A] flex items-center justify-center transition-colors cursor-pointer"
+                  title="Close Modal"
+                  aria-label="Close Modal"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Row 2: Payment Status Badge & Compact Save Status Indicator */}
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#F0EEFF]">
+              {/* Payment Status Badge */}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className={cn(
+                  "text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 uppercase tracking-wider shrink-0",
+                  calculations.balanceDue <= 0
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : calculations.amountPaid > 0
+                      ? "bg-amber-50 text-amber-700 border border-amber-200"
+                      : "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                )}>
+                  <span className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    calculations.balanceDue <= 0 ? "bg-emerald-500" : calculations.amountPaid > 0 ? "bg-amber-500" : "bg-indigo-500"
+                  )} />
+                  {calculations.balanceDue <= 0 ? "Settled / Paid" : calculations.amountPaid > 0 ? "Partially Paid" : "Active Folio"}
+                </span>
+
+                {isGroupBooking && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-[#F0EEFF] text-[#5146D8] border border-[#E8E6F2] shrink-0">
+                    <Users className="w-2.5 h-2.5" />
+                    {roomCharges.length} Rooms
+                  </span>
+                )}
+              </div>
+
+              {/* Compact "All Changes Saved" / "Save" Indicator */}
+              <div className="shrink-0">
+                {isSavingChanges ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5146D8] bg-[#F0EEFF] px-2 py-0.5 rounded-full">
+                    <Clock className="w-3 h-3 animate-spin" />
+                    <span>Saving...</span>
+                  </span>
+                ) : justSaved ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full animate-in fade-in">
+                    <Check className="w-3 h-3 text-emerald-600" />
+                    <span>Saved</span>
+                  </span>
+                ) : hasUnsavedChanges ? (
+                  <button
+                    type="button"
+                    onClick={handleSaveChanges}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold bg-[#5146D8] text-white px-2.5 py-0.5 rounded-lg active:bg-[#4338CA] shadow-2xs cursor-pointer"
+                  >
+                    <Save className="w-3 h-3" />
+                    <span>Save</span>
+                  </button>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    <Check className="w-3 h-3 text-emerald-600" />
+                    <span>All Changes Saved</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Row 3: Booking Information Pill in Separate Compact Position */}
+            <div className="pt-0.5">
+              <div className="bg-[#FAF9FF] border border-[#E8E6F2] rounded-lg px-2.5 py-1 text-[11px] text-[#77758F] flex items-center gap-1.5 w-full overflow-hidden">
+                <span className="font-semibold text-[#24213A] truncate">{guestName || "Guest"}</span>
+                <span className="text-[#77758F]/50">•</span>
+                <span className="font-mono text-[10px] text-[#5146D8] font-bold shrink-0">#{invoiceNumber || "DRAFT"}</span>
+                <span className="text-[#77758F]/50">•</span>
+                <span className="truncate">{currentHomestay?.name || "Homestay"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ============================================================== */}
           {/* BODY: SPLIT VIEW OR FULL VIEW                                 */}
           {/* ============================================================== */}
           <div className="flex-1 flex overflow-hidden min-h-0">
             
             {/* MAIN GUEST FOLIO PANEL */}
             <div className={cn(
-              "flex-1 overflow-y-auto hms-editor-scrollbar overscroll-contain p-3.5 sm:p-6 lg:p-8 space-y-6 transition-all min-h-0",
-              isPreviewMaximized ? "hidden" : showPreview ? "lg:w-1/2 xl:w-[50%]" : "max-w-5xl mx-auto w-full"
+              "flex-1 overflow-y-auto overflow-x-hidden hms-editor-scrollbar overscroll-contain p-3.5 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 transition-all min-h-0 pb-28 sm:pb-8",
+              isPreviewMaximized ? "hidden" : showPreview ? "hidden lg:block lg:w-1/2 xl:w-[50%]" : "max-w-5xl mx-auto w-full"
             )}>
 
               {/* Error & Success Alerts */}
@@ -1342,9 +1507,9 @@ export function InvoiceEditorModal({
                     {/* Stay Dates */}
                     <div className="bg-[#FAF9FF] p-2.5 rounded-xl border border-[#F0EEFF]">
                       <span className="text-[10px] uppercase font-semibold text-[#77758F] block">Stay Period</span>
-                      <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <Calendar className="w-3.5 h-3.5 text-[#5146D8] shrink-0" />
-                        <span className="font-semibold text-[#24213A]">
+                        <span className="font-semibold text-[#24213A] text-xs">
                           {checkIn ? formatISTCompactDate(checkIn) : "Check-in"} → {checkOut ? formatISTCompactDate(checkOut) : "Check-out"}
                         </span>
                       </div>
@@ -1394,7 +1559,7 @@ export function InvoiceEditorModal({
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between sm:justify-end gap-2">
                     <span className="text-xs text-[#77758F]">Room Subtotal:</span>
                     <span className="font-mono font-bold text-[#5146D8] text-sm">
                       ₹{roomChargesSubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -1478,7 +1643,7 @@ export function InvoiceEditorModal({
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between sm:justify-end gap-2">
                     <span className="text-xs text-[#77758F]">Services Subtotal:</span>
                     <span className="font-mono font-bold text-[#5146D8] text-sm">
                       ₹{additionalChargesSubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -1512,9 +1677,9 @@ export function InvoiceEditorModal({
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-12 gap-2.5">
                     {/* Category Selector */}
-                    <div className="sm:col-span-3">
+                    <div className="col-span-2 sm:col-span-3">
                       <select
                         value={newChargeCat}
                         onChange={(e) => setNewChargeCat(e.target.value as InvoiceItemCategory)}
@@ -1529,7 +1694,7 @@ export function InvoiceEditorModal({
                     </div>
 
                     {/* Description */}
-                    <div className="sm:col-span-4">
+                    <div className="col-span-2 sm:col-span-4">
                       <input
                         type="text"
                         placeholder="Service description (e.g. Dinner, Laundry)"
@@ -1540,7 +1705,7 @@ export function InvoiceEditorModal({
                     </div>
 
                     {/* Qty */}
-                    <div className="sm:col-span-2">
+                    <div className="col-span-1 sm:col-span-2">
                       <input
                         type="number"
                         min="1"
@@ -1552,7 +1717,7 @@ export function InvoiceEditorModal({
                     </div>
 
                     {/* Rate */}
-                    <div className="sm:col-span-2">
+                    <div className="col-span-1 sm:col-span-2">
                       <div className="relative">
                         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-[#77758F]">₹</span>
                         <input
@@ -1568,14 +1733,21 @@ export function InvoiceEditorModal({
                     </div>
 
                     {/* Add Button */}
-                    <div className="sm:col-span-1">
+                    <div className="col-span-2 sm:col-span-1">
                       <button
                         type="submit"
                         disabled={isAddingCharge}
-                        className="w-full h-9 bg-[#5146D8] hover:bg-[#4338CA] text-white rounded-lg text-xs font-semibold flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                        className="w-full h-9 bg-[#5146D8] hover:bg-[#4338CA] text-white rounded-lg text-xs font-semibold flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer shadow-xs gap-1"
                         title="Add service charge to folio"
                       >
-                        {isAddingCharge ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        {isAddingCharge ? (
+                          <Clock className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4" />
+                            <span className="sm:hidden font-medium">Add Charge</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -1605,12 +1777,12 @@ export function InvoiceEditorModal({
                                 <X className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-12 gap-2">
                               <input
                                 type="text"
                                 value={editingDesc}
                                 onChange={(e) => setEditingDesc(e.target.value)}
-                                className="sm:col-span-5 h-8 px-2 text-xs bg-white border border-[#E8E6F2] rounded-lg text-[#24213A]"
+                                className="col-span-2 sm:col-span-5 h-8 px-2 text-xs bg-white border border-[#E8E6F2] rounded-lg text-[#24213A]"
                                 placeholder="Description"
                               />
                               <input
@@ -1618,7 +1790,7 @@ export function InvoiceEditorModal({
                                 min="1"
                                 value={editingQty}
                                 onChange={(e) => setEditingQty(Math.max(1, parseInt(e.target.value) || 1))}
-                                className="sm:col-span-2 h-8 px-2 text-xs bg-white border border-[#E8E6F2] rounded-lg text-[#24213A]"
+                                className="col-span-1 sm:col-span-2 h-8 px-2 text-xs bg-white border border-[#E8E6F2] rounded-lg text-[#24213A]"
                                 placeholder="Qty"
                               />
                               <input
@@ -1627,10 +1799,10 @@ export function InvoiceEditorModal({
                                 min="0"
                                 value={editingRate}
                                 onChange={(e) => setEditingRate(e.target.value)}
-                                className="sm:col-span-3 h-8 px-2 text-xs bg-white border border-[#E8E6F2] rounded-lg text-[#24213A]"
+                                className="col-span-1 sm:col-span-3 h-8 px-2 text-xs bg-white border border-[#E8E6F2] rounded-lg text-[#24213A]"
                                 placeholder="Price (₹)"
                               />
-                              <div className="sm:col-span-2 flex items-center gap-1.5">
+                              <div className="col-span-2 sm:col-span-2 flex items-center gap-1.5">
                                 <button
                                   type="button"
                                   onClick={handleSaveEditCharge}
@@ -1655,13 +1827,13 @@ export function InvoiceEditorModal({
                       return (
                         <div
                           key={item.id || `svc-${index}`}
-                          className="bg-[#FAF9FF] border border-[#E8E6F2] rounded-xl p-3 flex items-center justify-between gap-3 hover:border-[#5146D8]/30 transition-all text-xs"
+                          className="bg-[#FAF9FF] border border-[#E8E6F2] rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 hover:border-[#5146D8]/30 transition-all text-xs"
                         >
-                          <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
                             <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md bg-white border border-[#E8E6F2] text-[#77758F] shrink-0">
                               {item.category || "custom"}
                             </span>
-                            <span className="font-semibold text-[#24213A] truncate">
+                            <span className="font-semibold text-[#24213A] truncate flex-1 min-w-0">
                               {item.description}
                             </span>
                             <span className="text-[11px] text-[#77758F] shrink-0">
@@ -1669,28 +1841,30 @@ export function InvoiceEditorModal({
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[#E8E6F2]/50">
                             <span className="font-mono font-bold text-[#24213A]">
                               ₹{itemAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                             </span>
 
-                            <button
-                              type="button"
-                              onClick={() => handleStartEditCharge(item, index)}
-                              className="p-1.5 text-[#77758F] hover:text-[#5146D8] rounded-md hover:bg-white transition-colors cursor-pointer"
-                              title="Edit service charge"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditCharge(item, index)}
+                                className="p-1.5 text-[#77758F] hover:text-[#5146D8] rounded-md hover:bg-white transition-colors cursor-pointer"
+                                title="Edit service charge"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
 
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteCharge(item.id, index)}
-                              className="p-1.5 text-[#77758F] hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
-                              title="Remove service charge"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCharge(item.id, index)}
+                                className="p-1.5 text-[#77758F] hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
+                                title="Remove service charge"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       );
@@ -1944,7 +2118,7 @@ export function InvoiceEditorModal({
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
                       <span className="text-[11px] text-[#77758F]">
                         An official printable receipt will be generated automatically upon recording.
                       </span>
@@ -1952,7 +2126,7 @@ export function InvoiceEditorModal({
                       <button
                         type="submit"
                         disabled={isRecordingPayment || !paymentAmount}
-                        className="px-4 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        className="w-full sm:w-auto px-4 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                       >
                         {isRecordingPayment ? (
                           <Clock className="w-3.5 h-3.5 animate-spin" />
@@ -2013,7 +2187,7 @@ export function InvoiceEditorModal({
                               )}
                             </div>
 
-                            <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                            <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E8E6F2]/60">
                               <span className="font-mono font-bold text-sm text-[#059669]">
                                 +₹{Number(p.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                               </span>
@@ -2105,7 +2279,7 @@ export function InvoiceEditorModal({
                 </div>
 
                 {/* Footer Action Buttons */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#F0EEFF]">
+                <div className="hidden sm:flex items-center justify-between pt-2 border-t border-[#F0EEFF]">
                   <button
                     type="button"
                     onClick={onClose}
@@ -2177,22 +2351,31 @@ export function InvoiceEditorModal({
             {showPreview && (
               <div className={cn(
                 "bg-[#F6F5FC] border-l border-[#E8E6F2] min-h-0 transition-all flex flex-col",
-                isPreviewMaximized ? "w-full" : "hidden lg:flex lg:w-1/2 xl:w-[50%]"
+                isPreviewMaximized ? "w-full" : "w-full lg:w-1/2 xl:w-[50%]"
               )}>
                 {/* Fixed Preview Toolbar (Pinned at top, does NOT scroll away) */}
-                <div className="shrink-0 bg-white border-b border-[#E8E6F2] px-4 sm:px-6 py-2.5 flex items-center justify-between gap-2 shadow-2xs z-10">
+                <div className="shrink-0 bg-white border-b border-[#E8E6F2] px-3.5 sm:px-6 py-2.5 flex items-center justify-between gap-2 shadow-2xs z-10">
                   <div className="flex items-center gap-2 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowPreview(false)}
+                      className="p-1 -ml-1 rounded-lg text-[#77758F] hover:text-[#24213A] hover:bg-[#F0EEFF] lg:hidden cursor-pointer shrink-0"
+                      title="Back to Folio"
+                      aria-label="Back to Folio"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                    <span className="text-xs font-bold text-[#24213A] truncate">Live Invoice Document Preview</span>
+                    <span className="text-xs font-bold text-[#24213A] truncate">Live Invoice Preview</span>
                     <span className="text-[11px] text-[#77758F] hidden sm:inline shrink-0">• Standard A4</span>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Fullscreen / Split View toggle */}
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    {/* Fullscreen / Split View toggle (Desktop only) */}
                     <button
                       type="button"
                       onClick={() => setIsPreviewMaximized(prev => !prev)}
-                      className="text-xs text-[#5146D8] hover:text-[#4338CA] bg-[#F0EEFF] hover:bg-[#E5E3FA] px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 font-semibold transition-colors cursor-pointer"
+                      className="hidden lg:flex text-xs text-[#5146D8] hover:text-[#4338CA] bg-[#F0EEFF] hover:bg-[#E5E3FA] px-2.5 py-1.5 rounded-xl items-center gap-1.5 font-semibold transition-colors cursor-pointer"
                       title={isPreviewMaximized ? "Return to Split Screen View" : "Maximize Preview to Fullscreen"}
                     >
                       {isPreviewMaximized ? (
@@ -2212,11 +2395,22 @@ export function InvoiceEditorModal({
                     <button
                       type="button"
                       onClick={handlePrint}
-                      className="text-xs text-[#24213A] hover:text-[#5146D8] bg-white border border-[#E8E6F2] hover:bg-[#FAF9FF] px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-semibold transition-colors cursor-pointer shadow-2xs"
+                      className="text-xs text-[#24213A] hover:text-[#5146D8] bg-white border border-[#E8E6F2] hover:bg-[#FAF9FF] px-2.5 sm:px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-semibold transition-colors cursor-pointer shadow-2xs"
                       title="Print Document"
                     >
                       <Printer className="w-3.5 h-3.5 text-[#5146D8]" />
                       <span>Print</span>
+                    </button>
+
+                    {/* Close Preview on Mobile */}
+                    <button
+                      type="button"
+                      onClick={() => setShowPreview(false)}
+                      className="p-1 rounded-lg text-[#77758F] hover:text-[#24213A] hover:bg-[#F0EEFF] lg:hidden cursor-pointer"
+                      title="Close Preview"
+                      aria-label="Close Preview"
+                    >
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -2235,6 +2429,64 @@ export function InvoiceEditorModal({
 
           </div>
 
+          {/* ============================================================== */}
+          {/* MOBILE STICKY BOTTOM ACTION BAR (Below 768px / sm)             */}
+          {/* ============================================================== */}
+          <div className="sm:hidden bg-white/95 backdrop-blur-md border-t border-[#E8E6F2] p-2.5 pb-[calc(0.6rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(36,33,58,0.08)] shrink-0 z-20">
+            <div className="grid grid-cols-2 gap-2">
+              {/* Row 1: Close Button */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="h-9 px-3 bg-white border border-[#E8E6F2] active:bg-[#F6F5FC] text-[#24213A] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5 text-[#77758F]" />
+                <span>Close</span>
+              </button>
+
+              {/* Row 1: Print Folio */}
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="h-9 px-3 bg-white border border-[#E8E6F2] active:bg-[#F6F5FC] text-[#24213A] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5 text-[#77758F]" />
+                <span>Print Folio</span>
+              </button>
+
+              {/* Row 2: Full-Width Save Changes Button */}
+              <button
+                type="button"
+                onClick={handleSaveChanges}
+                disabled={isSavingChanges}
+                className={cn(
+                  "col-span-2 h-10 px-4 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs",
+                  justSaved
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-[#5146D8] active:bg-[#4338CA] text-white"
+                )}
+                title="Save all pending folio modifications"
+              >
+                {isSavingChanges ? (
+                  <>
+                    <Clock className="w-4 h-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : justSaved ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-600 animate-in zoom-in-75 duration-150" />
+                    <span className="font-bold">Saved</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -2243,7 +2495,7 @@ export function InvoiceEditorModal({
       {/* ================================================================== */}
       {adjustingRoomItem && (
         <div className="fixed inset-0 z-60 bg-[#0F0E17]/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white border border-[#E8E6F2] rounded-3xl shadow-2xl max-w-xl w-full p-5 sm:p-7 space-y-5 animate-in zoom-in-95 duration-150 my-auto">
+          <div className="bg-white border border-[#E8E6F2] rounded-2xl sm:rounded-3xl shadow-2xl max-w-xl w-[calc(100vw-24px)] sm:w-full p-4 sm:p-7 space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-[#F0EEFF] pb-4">
               <div className="flex items-center gap-3">
@@ -2271,7 +2523,7 @@ export function InvoiceEditorModal({
 
             {/* Current Pricing Overview Card */}
             <div className="bg-[#FAF9FF] border border-[#E8E6F2] rounded-2xl p-4">
-              <div className="grid grid-cols-3 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#77758F] block">Current Rate</span>
                   <span className="font-mono font-bold text-sm text-[#24213A] mt-0.5 block">
@@ -2362,7 +2614,7 @@ export function InvoiceEditorModal({
 
               {/* Side-by-Side Comparison Card */}
               <div className="bg-[#FAF9FF] border border-[#E8E6F2] rounded-2xl p-4">
-                <div className="grid grid-cols-3 gap-3 text-xs items-center">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs items-center">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-[#77758F] block">Original Total</span>
                     <span className="font-mono text-sm font-bold text-[#77758F] line-through mt-0.5 block">

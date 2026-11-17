@@ -2,12 +2,14 @@
 
 import { formatISTDateTime, formatISTCompactDate } from "@/lib/dateUtils";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { GlassModal } from "../ui/GlassModal";
 import { GlassButton } from "../ui/GlassButton";
 import { Room, BookingFinancialSummary } from "@/lib/types";
 import { getBookingPaymentsAction } from "@/app/actions/payments";
 import { RecordPaymentModal } from "./RecordPaymentModal";
+import { formatPhoneNumberForCall } from "@/lib/phoneUtils";
+import { getGuestProfileAndHistoryAction } from "@/app/actions/guests";
 import {
   User,
   Phone,
@@ -26,6 +28,11 @@ import {
   RotateCcw,
   Clock,
   Receipt,
+  Mail,
+  History,
+  Building2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useHMSContext } from "../providers/HMSProvider";
 import { cn } from "@/lib/utils";
@@ -40,7 +47,7 @@ interface ViewDetailsModalProps {
 }
 
 export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProps) {
-  const { rooms, updateBookingStatus, cancelBooking, selectedHomestayId } = useHMSContext();
+  const { rooms, updateBookingStatus, cancelBooking, selectedHomestayId, homestays } = useHMSContext();
   const [isUpdating, setIsUpdating] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -55,12 +62,38 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
   const [billingInvoice, setBillingInvoice] = useState<DbInvoice | null>(null);
   const [initialBillingTab, setInitialBillingTab] = useState<"items" | "payments">("items");
 
+  // Guest Stay History State
+  const [stayHistory, setStayHistory] = useState<any[]>([]);
+  const [isLoadingStayHistory, setIsLoadingStayHistory] = useState(false);
+  const [isStayHistoryOpen, setIsStayHistoryOpen] = useState(false);
+
   if (!room) return null;
 
-  // Find fresh room from context
-  const activeRoom = rooms.find((r) => r.id === room.id) || room;
-  const booking = activeRoom.currentBooking;
-  const isAvailable = activeRoom.status === "available";
+  // Prioritize booking explicitly passed on room prop (e.g. from calendar click)
+  const contextRoom = rooms.find((r) => r.id === room.id);
+  const booking = room.currentBooking || contextRoom?.currentBooking;
+  const activeRoom: Room = {
+    ...(contextRoom || room),
+    ...(booking ? { currentBooking: booking, status: "booked" as const } : {}),
+  };
+  const isAvailable = !booking && activeRoom.status === "available";
+
+  const currentHomestay = homestays?.find((h) => h.id === (activeRoom.homestay_id || selectedHomestayId)) || homestays?.[0];
+
+  const primaryGuest = booking?.guests.find((g) => g.isPrimary) || booking?.guests[0];
+  const guestPhone = booking?.guestPhone || primaryGuest?.phone || null;
+  const guestEmail = primaryGuest?.email || null;
+  const callInfo = formatPhoneNumberForCall(guestPhone);
+
+  const nights = useMemo(() => {
+    if (!booking?.checkIn || !booking?.checkOut) return 1;
+    try {
+      const diff = new Date(booking.checkOut).getTime() - new Date(booking.checkIn).getTime();
+      return Math.max(1, Math.round(diff / (1000 * 60 * 60 * 24)));
+    } catch {
+      return 1;
+    }
+  }, [booking?.checkIn, booking?.checkOut]);
 
   useEffect(() => {
     if (isOpen && booking?.id) {
@@ -71,10 +104,33 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
           setFinancialSummary(res.summary);
         }
       });
+
+      // Load guest stay history
+      if (guestPhone || guestEmail) {
+        setIsLoadingStayHistory(true);
+        getGuestProfileAndHistoryAction(guestPhone, activeRoom.homestay_id || selectedHomestayId || undefined, guestEmail)
+          .then((res) => {
+            if (res.success && res.data) {
+              setStayHistory(res.data);
+            } else {
+              setStayHistory([]);
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to load stay history:", err);
+            setStayHistory([]);
+          })
+          .finally(() => {
+            setIsLoadingStayHistory(false);
+          });
+      } else {
+        setStayHistory([]);
+      }
     } else {
       setFinancialSummary(null);
+      setStayHistory([]);
     }
-  }, [isOpen, booking?.id]);
+  }, [isOpen, booking?.id, guestPhone, guestEmail, activeRoom.homestay_id, selectedHomestayId]);
 
   const handleStatusUpdate = async (status: "confirmed" | "checked_in" | "checked_out") => {
     if (!booking) return;
@@ -159,15 +215,16 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                     Check Out
                   </GlassButton>
                 )}
-                <GlassButton
-                  variant="ghost"
-                  onClick={handleCancelBooking}
-                  disabled={isUpdating}
-                  className="px-2.5 py-1.5 text-xs flex items-center justify-center gap-1 text-[#DC2626] hover:bg-[#FEF2F2]"
-                >
-                  <XCircle className="w-3.5 h-3.5" />
-                  Cancel Stay
-                </GlassButton>
+                {callInfo && (
+                  <a
+                    href={callInfo.telHref}
+                    className="px-3 py-1.5 text-xs font-bold flex items-center justify-center gap-1.5 bg-[#059669] hover:bg-[#047857] text-white rounded-xl shadow-sm transition-all"
+                    title={`Call guest on ${callInfo.displayPhone}`}
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    Call Guest
+                  </a>
+                )}
                 <GlassButton
                   variant="primary"
                   onClick={() => handleOpenBilling("items")}
@@ -185,6 +242,15 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   Record Payment
+                </GlassButton>
+                <GlassButton
+                  variant="ghost"
+                  onClick={handleCancelBooking}
+                  disabled={isUpdating}
+                  className="px-2.5 py-1.5 text-xs flex items-center justify-center gap-1 text-[#DC2626] hover:bg-[#FEF2F2]"
+                >
+                  <XCircle className="w-3.5 h-3.5" />
+                  Cancel Stay
                 </GlassButton>
               </>
             )}
@@ -259,113 +325,303 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
           </div>
         ) : booking ? (
           <>
-            {/* Status Badge */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold tracking-widest text-[#77758F] uppercase">
-                Booking Status
-              </span>
-              <span
-                className={cn(
-                  "px-3 py-1 rounded-full text-[10px] font-semibold tracking-widest uppercase border",
-                  booking.status === "checked_in"
-                    ? "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]"
-                    : booking.status === "confirmed"
-                    ? "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]"
-                    : "bg-[#F7F7FC] border-[#E8E7F2] text-[#77758F]"
-                )}
-              >
-                {booking.status.replace("_", " ")}
-              </span>
+            {/* 1. Property, Room & Status Banner */}
+            <div className="p-3.5 rounded-2xl bg-[#F7F7FC] border border-[#E8E7F2] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-[#F0EEFF] border border-[#E0DEF8] flex items-center justify-center text-[#5146D8] shrink-0">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#77758F] block">
+                    {currentHomestay?.name || "Homestay"}
+                  </span>
+                  <div className="text-xs sm:text-sm font-bold text-[#24213A] truncate flex items-center gap-1.5">
+                    <span>{activeRoom.name}</span>
+                    {activeRoom.room_number && (
+                      <span className="text-[10px] font-semibold text-[#5146D8] bg-[#FFFFFF] px-1.5 py-0.5 rounded-md border border-[#E0DEF8]">
+                        #{activeRoom.room_number}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <span
+                  className={cn(
+                    "px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border",
+                    booking.status === "checked_in"
+                      ? "bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]"
+                      : booking.status === "confirmed"
+                      ? "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]"
+                      : booking.status === "checked_out"
+                      ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#2563EB]"
+                      : "bg-[#F7F7FC] border-[#E8E7F2] text-[#77758F]"
+                  )}
+                >
+                  {booking.status.replace("_", " ")}
+                </span>
+              </div>
             </div>
 
-            {/* Guest List Section */}
+            {/* 2. Guest Information & Direct Calling */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <h3 className="text-xs font-semibold tracking-widest text-[#77758F] uppercase">
-                  Guests ({booking.guests.length}/{activeRoom.maxCapacity})
+                <h3 className="text-xs font-bold tracking-widest text-[#77758F] uppercase flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-[#5146D8]" />
+                  Guest Details ({booking.guests.length}/{activeRoom.maxCapacity} Guests)
                 </h3>
-              </div>
-
-              <div className="bg-[#F7F7FC] border border-[#E8E7F2] p-4 rounded-xl space-y-2">
-                {booking.guests.length === 0 ? (
-                  <p className="text-xs text-[#77758F] italic">No guests currently attached.</p>
-                ) : (
-                  booking.guests.map((guest, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center p-2 rounded-lg bg-[#FFFFFF] border border-[#E8E7F2]"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
-                            guest.isPrimary
-                              ? "bg-[#F0EEFF] text-[#5146D8] border border-[#E0DEF8]"
-                              : "bg-[#F7F7FC] text-[#77758F] border border-[#E8E7F2]"
-                          )}
-                        >
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-[#24213A]">{guest.name}</p>
-                          {guest.isPrimary && (
-                            <p className="text-[10px] text-[#5146D8] font-semibold tracking-wider uppercase">
-                              Primary Guest
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                {callInfo && (
+                  <a
+                    href={callInfo.telHref}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-xs font-bold rounded-xl transition-all shadow-sm"
+                    title={`Call ${primaryGuest?.name || "Guest"}`}
+                  >
+                    <Phone className="w-3 h-3" />
+                    <span>Call Guest</span>
+                  </a>
                 )}
               </div>
-            </div>
 
-            {/* Phone & Booking Info */}
-            <div className="space-y-4 pt-1">
-              {/* Stay Dates */}
-              <div className="space-y-3">
-                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex justify-between items-center">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Booked On</span>
-                    <span className="font-medium text-[#24213A] mt-0.5">
-                      {booking.createdAt ? formatISTDateTime(booking.createdAt) : 'Unknown'}
+              {/* Primary Contact Card */}
+              <div className="bg-[#FFFFFF] border border-[#E8E7F2] rounded-2xl p-4 shadow-sm space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E7F2]/70 pb-3">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5146D8] block">
+                      Primary Guest
+                    </span>
+                    <h4 className="text-base font-bold text-[#24213A] mt-0.5">
+                      {primaryGuest?.name || "Guest"}
+                    </h4>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-[#77758F] bg-[#F7F7FC] px-2.5 py-1 rounded-xl border border-[#E8E7F2]">
+                      {booking.guests.length} {booking.guests.length === 1 ? "Guest" : "Guests"}
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex justify-between items-center">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Check-in</span>
-                    <span className="font-medium text-[#24213A] mt-0.5">{formatISTCompactDate(booking.checkIn)}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {/* Phone & Direct Call Link */}
+                  <div className="bg-[#F7F7FC] border border-[#E8E7F2] p-3 rounded-xl flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#77758F] block">
+                        Phone Number
+                      </span>
+                      <span className="font-semibold text-[#24213A] truncate block mt-0.5">
+                        {callInfo ? callInfo.displayPhone : (booking.guestPhone || "Not recorded")}
+                      </span>
+                    </div>
+                    {callInfo ? (
+                      <a
+                        href={callInfo.telHref}
+                        className="px-2.5 py-1.5 bg-[#059669] hover:bg-[#047857] text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shrink-0 transition-colors shadow-sm"
+                        title="Click to dial"
+                      >
+                        <Phone className="w-3 h-3" />
+                        Call
+                      </a>
+                    ) : (
+                      <span className="text-[10px] text-[#77758F] bg-[#FFFFFF] px-2 py-1 rounded border border-[#E8E7F2] shrink-0">
+                        No Phone
+                      </span>
+                    )}
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Time</span>
-                    <span className="font-medium text-[#24213A] mt-0.5">12:00 PM</span>
+
+                  {/* Email */}
+                  <div className="bg-[#F7F7FC] border border-[#E8E7F2] p-3 rounded-xl flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#77758F] block">
+                        Email Address
+                      </span>
+                      {guestEmail ? (
+                        <a
+                          href={`mailto:${guestEmail}`}
+                          className="font-semibold text-[#5146D8] hover:underline truncate block mt-0.5"
+                          title="Send email"
+                        >
+                          {guestEmail}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-[#77758F] italic block mt-0.5">Not recorded</span>
+                      )}
+                    </div>
+                    {guestEmail && (
+                      <a
+                        href={`mailto:${guestEmail}`}
+                        className="p-1.5 rounded-lg bg-[#FFFFFF] border border-[#E8E7F2] text-[#5146D8] hover:bg-[#F0EEFF] shrink-0"
+                        title="Email guest"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                      </a>
+                    )}
                   </div>
                 </div>
 
-                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex justify-between items-center">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Check-out</span>
-                    <span className="font-medium text-[#24213A] mt-0.5">{formatISTCompactDate(booking.checkOut)}</span>
+                {/* Additional Attached Guests (if > 1) */}
+                {booking.guests.length > 1 && (
+                  <div className="pt-2 border-t border-[#E8E7F2]/60">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#77758F] block mb-1.5">
+                      Accompanying Guests ({booking.guests.length - 1})
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {booking.guests
+                        .filter((g) => !g.isPrimary)
+                        .map((guest, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 p-2 rounded-lg bg-[#F7F7FC] border border-[#E8E7F2] text-xs"
+                          >
+                            <span className="w-5 h-5 rounded-full bg-[#FFFFFF] border border-[#E8E7F2] text-[10px] font-bold flex items-center justify-center text-[#77758F]">
+                              {idx + 2}
+                            </span>
+                            <span className="font-medium text-[#24213A] truncate">{guest.name}</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-[#77758F] tracking-wider uppercase">Time</span>
-                    <span className="font-medium text-[#24213A] mt-0.5">11:00 AM</span>
-                  </div>
-                </div>
-              </div>
+                )}
 
-              <div className="grid grid-cols-1 gap-4">
-                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-[#77758F] shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] text-[#77758F] tracking-wider uppercase">Phone</p>
-                    <p className="text-sm font-medium text-[#24213A] truncate">{booking.guestPhone || "N/A"}</p>
+                {/* 3. Guest Stay History Integration */}
+                <div className="pt-2 border-t border-[#E8E7F2]/60">
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setIsStayHistoryOpen((prev) => !prev)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-[#5146D8] hover:text-[#4338CA] transition-colors cursor-pointer"
+                    >
+                      <History className="w-3.5 h-3.5" />
+                      <span>
+                        Stay History {stayHistory.length > 0 ? `(${stayHistory.length} Stays)` : ""}
+                      </span>
+                      {isStayHistoryOpen ? (
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+
+                    <span className="text-[10px] font-semibold text-[#77758F]">
+                      {isLoadingStayHistory ? (
+                        "Loading history..."
+                      ) : stayHistory.length > 1 ? (
+                        <span className="text-[#059669] font-bold">Returning Guest ({stayHistory.length} Visits)</span>
+                      ) : stayHistory.length === 1 ? (
+                        <span>First Visit</span>
+                      ) : (
+                        <span>No prior records</span>
+                      )}
+                    </span>
                   </div>
+
+                  {isStayHistoryOpen && (
+                    <div className="mt-2.5 p-3 rounded-xl bg-[#F7F7FC] border border-[#E8E7F2] space-y-2">
+                      {isLoadingStayHistory ? (
+                        <p className="text-xs text-[#77758F] italic py-2 text-center">Loading past stays...</p>
+                      ) : stayHistory.length === 0 ? (
+                        <p className="text-xs text-[#77758F] italic py-1 text-center">
+                          No other stays recorded for this phone or email.
+                        </p>
+                      ) : (
+                        <div className="space-y-1.5 max-h-40 overflow-y-auto hide-scrollbar">
+                          {stayHistory.map((rec: any, idx: number) => {
+                            const b = rec.bookings;
+                            if (!b) return null;
+                            const isCurrentStay = b.id === booking.id;
+                            return (
+                              <div
+                                key={idx}
+                                className={cn(
+                                  "flex items-center justify-between p-2 rounded-lg border text-xs",
+                                  isCurrentStay
+                                    ? "bg-[#F0EEFF] border-[#E0DEF8]"
+                                    : "bg-[#FFFFFF] border-[#E8E7F2]"
+                                )}
+                              >
+                                <div className="min-w-0">
+                                  <div className="font-bold text-[#24213A] flex items-center gap-1.5">
+                                    <span>{b.rooms?.name || "Room"}</span>
+                                    {b.rooms?.room_number && <span>(#{b.rooms.room_number})</span>}
+                                    {isCurrentStay && (
+                                      <span className="text-[9px] bg-[#5146D8] text-white px-1.5 py-0.2 rounded font-semibold">
+                                        Current
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-[#77758F]">
+                                    {formatISTCompactDate(b.check_in)} → {formatISTCompactDate(b.check_out)}
+                                  </div>
+                                </div>
+                                <div className="text-right shrink-0 ml-2">
+                                  <span className="font-bold text-[#5146D8] block">
+                                    ₹{Number(b.total_amount || 0).toLocaleString("en-IN")}
+                                  </span>
+                                  <span className="text-[9px] uppercase font-bold text-[#77758F]">
+                                    {b.status}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+
+            {/* 4. Stay Information */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold tracking-widest text-[#77758F] uppercase flex items-center gap-1.5">
+                <CalendarIcon className="w-3.5 h-3.5 text-[#5146D8]" />
+                Stay Information
+              </h3>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl">
+                  <span className="text-[9px] text-[#77758F] uppercase tracking-wider block font-bold">
+                    Check-in
+                  </span>
+                  <span className="font-bold text-xs sm:text-sm text-[#24213A] mt-0.5 block">
+                    {formatISTCompactDate(booking.checkIn)}
+                  </span>
+                  <span className="text-[10px] text-[#77758F]">12:00 PM</span>
+                </div>
+
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl">
+                  <span className="text-[9px] text-[#77758F] uppercase tracking-wider block font-bold">
+                    Check-out
+                  </span>
+                  <span className="font-bold text-xs sm:text-sm text-[#24213A] mt-0.5 block">
+                    {formatISTCompactDate(booking.checkOut)}
+                  </span>
+                  <span className="text-[10px] text-[#77758F]">11:00 AM</span>
+                </div>
+
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl">
+                  <span className="text-[9px] text-[#77758F] uppercase tracking-wider block font-bold">
+                    Duration
+                  </span>
+                  <span className="font-bold text-xs sm:text-sm text-[#5146D8] mt-0.5 block">
+                    {nights} {nights === 1 ? "Night" : "Nights"}
+                  </span>
+                  <span className="text-[10px] text-[#77758F]">Total Stay</span>
+                </div>
+
+                <div className="bg-[#FFFFFF] border border-[#E8E7F2] p-3 rounded-xl">
+                  <span className="text-[9px] text-[#77758F] uppercase tracking-wider block font-bold">
+                    Booking ID
+                  </span>
+                  <span className="font-bold text-xs text-[#24213A] mt-0.5 block truncate">
+                    #{booking.id.slice(0, 8).toUpperCase()}
+                  </span>
+                  <span className="text-[10px] text-[#77758F] truncate block">
+                    {booking.createdAt ? formatISTDateTime(booking.createdAt).split("·")[0] : "Direct"}
+                  </span>
+                </div>
+              </div>
+            </div>
 
               {/* Financial Ledger & Payment Status Overview */}
               <div className="bg-[#F7F7FC] border border-[#E8E7F2] rounded-xl p-4 space-y-3">
@@ -485,7 +741,6 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   )}
                 </div>
               </div>
-            </div>
 
             {/* Partner & Notes */}
             <div className="space-y-4">
