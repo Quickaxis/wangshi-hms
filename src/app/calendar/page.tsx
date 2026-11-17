@@ -196,10 +196,60 @@ export default function CalendarPage() {
         });
         setFetchError("Unable to load calendar data.");
       } else if (data) {
-        const allBookings = data as unknown as DbBooking[];
+        const allBookings = (data as unknown as DbBooking[]) || [];
+
+        // Identify group bookings that do not have their lead guest info in this window
+        const groupIdsWithGuests = new Set(
+          allBookings
+            .filter((b) => b.group_id && b.guests && b.guests.some((g) => g.name && g.name.trim().toLowerCase() !== "guest"))
+            .map((b) => b.group_id)
+        );
+
+        const missingGroupIds = Array.from(
+          new Set(
+            allBookings
+              .filter((b) => b.group_id && !groupIdsWithGuests.has(b.group_id))
+              .map((b) => b.group_id as string)
+          )
+        );
+
+        if (missingGroupIds.length > 0) {
+          try {
+            const { data: externalLeadBookings } = await supabase
+              .from("bookings")
+              .select(`
+                id,
+                room_id,
+                homestay_id,
+                partner_id,
+                check_in,
+                check_out,
+                created_at,
+                status,
+                number_of_guests,
+                nightly_rate,
+                total_amount,
+                notes,
+                group_id,
+                is_group_lead,
+                partners ( id, name ),
+                guests ( id, name, phone, email, is_primary ),
+                rooms ( id, room_number, name )
+              `)
+              .in("group_id", missingGroupIds)
+              .eq("is_group_lead", true);
+
+            if (externalLeadBookings && externalLeadBookings.length > 0) {
+              allBookings.push(...(externalLeadBookings as unknown as DbBooking[]));
+            }
+          } catch (leadFetchErr) {
+            console.warn("Could not fetch external group lead bookings:", leadFetchErr);
+          }
+        }
+
         if (rooms.length > 0) {
           const roomIds = new Set(rooms.map((r) => r.id));
-          setWindowBookings(allBookings.filter((b) => roomIds.has(b.room_id)));
+          setWindowBookings(allBookings.filter((b) => roomIds.has(b.room_id) || b.is_group_lead));
         } else {
           setWindowBookings(allBookings);
         }
@@ -236,26 +286,177 @@ export default function CalendarPage() {
     });
   };
 
+  // Map group_id -> primary guest details across all bookings in the window
+  const groupGuestMap = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        guest: { id?: string; name: string; phone?: string | null; email?: string | null; is_primary?: boolean };
+        allGuests: any[];
+      }
+    >();
+
+    windowBookings.forEach((b) => {
+      if (!b.group_id) return;
+
+      const guests = b.guests || [];
+      if (guests.length === 0) return;
+
+      const primary =
+        guests.find((g) => g.is_primary && g.name && g.name.trim().toLowerCase() !== "guest") ||
+        guests.find((g) => g.name && g.name.trim().toLowerCase() !== "guest") ||
+        guests[0];
+
+      if (!primary) return;
+
+      const existing = map.get(b.group_id);
+      if (!existing) {
+        map.set(b.group_id, {
+          guest: {
+            id: primary.id,
+            name: primary.name,
+            phone: primary.phone || null,
+            email: primary.email || null,
+            is_primary: !!primary.is_primary,
+          },
+          allGuests: guests,
+        });
+      } else {
+        const isExistingGeneric = existing.guest.name?.trim().toLowerCase() === "guest";
+        const isCurrentValid = primary.name && primary.name.trim().toLowerCase() !== "guest";
+        const isCurrentLead = b.is_group_lead;
+
+        if ((isCurrentLead && isCurrentValid) || (isExistingGeneric && isCurrentValid)) {
+          map.set(b.group_id, {
+            guest: {
+              id: primary.id || existing.guest.id,
+              name: primary.name,
+              phone: primary.phone || existing.guest.phone || null,
+              email: primary.email || existing.guest.email || null,
+              is_primary: !!primary.is_primary,
+            },
+            allGuests: guests.length > 0 ? guests : existing.allGuests,
+          });
+        }
+      }
+    });
+
+    return map;
+  }, [windowBookings]);
+
+  // Resolves the effective guest for any booking, seamlessly falling back to parent group's primary guest
+  const getEffectiveGuest = useCallback(
+    (booking?: DbBooking | null) => {
+      if (!booking) {
+        return {
+          name: "Guest",
+          phone: null as string | null,
+          email: null as string | null,
+          isPrimary: true,
+          guests: [] as any[],
+          isGroup: false,
+        };
+      }
+
+      const rawGuests = booking.guests || [];
+      const ownPrimary = rawGuests.find((g) => g.is_primary) || rawGuests[0];
+      const hasValidOwnName =
+        ownPrimary &&
+        ownPrimary.name &&
+        ownPrimary.name.trim() !== "" &&
+        ownPrimary.name.trim().toLowerCase() !== "guest";
+
+      // If booking belongs to a group, check group's primary guest
+      let groupPrimary: any = undefined;
+      if (booking.group_id) {
+        const groupInfo = groupGuestMap.get(booking.group_id);
+        if (groupInfo && groupInfo.guest && groupInfo.guest.name && groupInfo.guest.name.trim().toLowerCase() !== "guest") {
+          groupPrimary = groupInfo;
+        }
+      }
+
+      // If child booking in group has NO valid own guest, fall back to group primary contact
+      if (groupPrimary && !hasValidOwnName) {
+        return {
+          name: groupPrimary.guest.name.trim(),
+          phone: groupPrimary.guest.phone || ownPrimary?.phone || null,
+          email: groupPrimary.guest.email || ownPrimary?.email || null,
+          isPrimary: true,
+          guests: groupPrimary.allGuests && groupPrimary.allGuests.length > 0 ? groupPrimary.allGuests : rawGuests,
+          isGroup: true,
+        };
+      }
+
+      // Otherwise if own booking has valid name, use it
+      if (hasValidOwnName) {
+        return {
+          name: ownPrimary.name.trim(),
+          phone: ownPrimary.phone || (groupPrimary?.guest?.phone) || null,
+          email: ownPrimary.email || (groupPrimary?.guest?.email) || null,
+          isPrimary: !!ownPrimary.is_primary,
+          guests: rawGuests,
+          isGroup: !!booking.group_id,
+        };
+      }
+
+      // If group primary exists (even if generic fallback), prefer it over blank
+      if (groupPrimary) {
+        return {
+          name: groupPrimary.guest.name.trim() || "Guest",
+          phone: groupPrimary.guest.phone || null,
+          email: groupPrimary.guest.email || null,
+          isPrimary: true,
+          guests: groupPrimary.allGuests,
+          isGroup: true,
+        };
+      }
+
+      return {
+        name: ownPrimary?.name?.trim() || "Guest",
+        phone: ownPrimary?.phone || null,
+        email: ownPrimary?.email || null,
+        isPrimary: !!ownPrimary?.is_primary,
+        guests: rawGuests,
+        isGroup: !!booking.group_id,
+      };
+    },
+    [groupGuestMap]
+  );
+
   const handleCellClick = (room: Room, date: Date) => {
     const existingBooking = getBookingForRoomOnDate(room.id, date);
     if (existingBooking) {
-      // Open View Details Modal
-      const rawGuests = existingBooking.guests || [];
-      const primaryGuest = rawGuests.find((g) => g.is_primary) || rawGuests[0];
+      // Open View Details Modal with group primary guest fallback
+      const effectiveGuest = getEffectiveGuest(existingBooking);
+      const guestsList =
+        effectiveGuest.guests.length > 0
+          ? effectiveGuest.guests.map((g: any, idx: number) => ({
+              id: g.id || `g-${existingBooking.id}-${idx}`,
+              name: g.name,
+              phone: g.phone || null,
+              email: g.email || null,
+              isPrimary: !!g.is_primary,
+            }))
+          : [
+              {
+                id: `g-${existingBooking.id}`,
+                name: effectiveGuest.name,
+                phone: effectiveGuest.phone || null,
+                email: effectiveGuest.email || null,
+                isPrimary: true,
+              },
+            ];
+
       const roomWithDetails: Room = {
         ...room,
         homestay_id: existingBooking.homestay_id || room.homestay_id,
         status: "booked",
         currentBooking: {
           id: existingBooking.id,
-          guests: rawGuests.map((g) => ({
-            id: g.id,
-            name: g.name,
-            phone: g.phone,
-            email: g.email,
-            isPrimary: !!g.is_primary,
-          })),
-          guestPhone: primaryGuest?.phone || undefined,
+          groupId: existingBooking.group_id || undefined,
+          isGroupLead: existingBooking.is_group_lead ?? undefined,
+          guests: guestsList,
+          guestPhone: effectiveGuest.phone || undefined,
           checkIn: existingBooking.check_in,
           checkOut: existingBooking.check_out,
           createdAt: existingBooking.created_at,
@@ -279,19 +480,38 @@ export default function CalendarPage() {
 
   // Open Folio from Occupancy Table
   const handleOpenFolioForBooking = async (booking: DbBooking, room: Room) => {
+    const effectiveGuest = getEffectiveGuest(booking);
+    const guestsList =
+      effectiveGuest.guests.length > 0
+        ? effectiveGuest.guests
+        : [
+            {
+              id: `g-${booking.id}`,
+              name: effectiveGuest.name,
+              phone: effectiveGuest.phone || null,
+              email: effectiveGuest.email || null,
+              is_primary: true,
+            },
+          ];
+
+    const enrichedBooking: DbBooking = {
+      ...booking,
+      guests: guestsList as any,
+    };
+
     try {
-      const res = await getOrCreateBookingFolioAction(booking.id);
+      const res = await getOrCreateBookingFolioAction(enrichedBooking.id);
       if (res.success && res.invoice) {
         setFolioInvoice(res.invoice);
       } else {
         setFolioInvoice(null);
       }
-      setFolioBooking(booking);
+      setFolioBooking(enrichedBooking);
       setIsFolioModalOpen(true);
     } catch (err) {
       console.error("Failed to load folio:", err);
       setFolioInvoice(null);
-      setFolioBooking(booking);
+      setFolioBooking(enrichedBooking);
       setIsFolioModalOpen(true);
     }
   };
@@ -328,27 +548,25 @@ export default function CalendarPage() {
     };
   }, [rooms, windowBookings, occupancyDate]);
 
-  // Filtered rooms for Occupancy View
+  // Filtered rooms for Occupancy View with group-aware search
   const filteredOccupancyRooms = useMemo(() => {
     if (!occupancySearchQuery.trim()) return rooms;
     const q = occupancySearchQuery.toLowerCase().trim();
 
     return rooms.filter((r) => {
       const booking = getBookingForRoomOnDate(r.id, occupancyDate);
+      const effectiveGuest = getEffectiveGuest(booking);
       const matchesRoom =
         r.name.toLowerCase().includes(q) ||
         (r.room_number && r.room_number.toLowerCase().includes(q));
       const matchesGuest =
-        booking?.guests?.some(
-          (g) =>
-            g.name.toLowerCase().includes(q) ||
-            (g.phone && g.phone.includes(q)) ||
-            (g.email && g.email.toLowerCase().includes(q))
-        ) || false;
+        effectiveGuest.name.toLowerCase().includes(q) ||
+        (effectiveGuest.phone && effectiveGuest.phone.includes(q)) ||
+        (effectiveGuest.email && effectiveGuest.email.toLowerCase().includes(q));
 
       return matchesRoom || matchesGuest;
     });
-  }, [rooms, occupancySearchQuery, occupancyDate, windowBookings]);
+  }, [rooms, occupancySearchQuery, occupancyDate, getEffectiveGuest]);
 
   return (
     <div className="flex flex-col h-full w-full max-w-full min-w-0 overflow-y-auto overflow-x-hidden hide-scrollbar space-y-4 md:space-y-5 pb-20 md:pb-10">
@@ -621,11 +839,10 @@ export default function CalendarPage() {
                           const isInactive = room.is_active === false;
 
                           if (isBooked) {
-                            const rawGuests = booking.guests || [];
-                            const primaryGuest = rawGuests.find((g) => g.is_primary) || rawGuests[0];
-                            const guestName = primaryGuest?.name || "Guest";
-                            const guestCount = booking.number_of_guests || rawGuests.length || 1;
-                            const callInfo = formatPhoneNumberForCall(primaryGuest?.phone);
+                            const effectiveGuest = getEffectiveGuest(booking);
+                            const guestName = effectiveGuest.name;
+                            const guestCount = booking.number_of_guests || effectiveGuest.guests.length || 1;
+                            const callInfo = formatPhoneNumberForCall(effectiveGuest.phone);
                             const statusCfg = getBookingStatusBadge(booking.status);
                             const stayRange = formatSafeDateRange(booking.check_in, booking.check_out);
 
@@ -877,9 +1094,8 @@ export default function CalendarPage() {
                     filteredOccupancyRooms.map((room) => {
                       const booking = getBookingForRoomOnDate(room.id, occupancyDate);
                       const isOccupied = !!booking;
-                      const rawGuests = booking?.guests || [];
-                      const primaryGuest = rawGuests.find((g) => g.is_primary) || rawGuests[0];
-                      const callInfo = formatPhoneNumberForCall(primaryGuest?.phone);
+                      const effectiveGuest = getEffectiveGuest(booking);
+                      const callInfo = formatPhoneNumberForCall(effectiveGuest.phone);
                       const nights = booking ? calculateStayNights(booking.check_in, booking.check_out) : 0;
                       const statusCfg = booking ? getBookingStatusBadge(booking.status) : null;
 
@@ -902,14 +1118,14 @@ export default function CalendarPage() {
 
                           {/* Guest Column with Direct Calling */}
                           <td className="px-4 py-3.5 align-middle">
-                            {isOccupied && primaryGuest ? (
+                            {isOccupied && effectiveGuest ? (
                               <div className="space-y-1">
                                 <div className="font-bold text-sm text-[#24213A] flex items-center gap-1.5">
                                   <User className="w-3.5 h-3.5 text-[#5146D8]" />
-                                  <span>{primaryGuest.name}</span>
-                                  {rawGuests.length > 1 && (
+                                  <span>{effectiveGuest.name}</span>
+                                  {effectiveGuest.guests.length > 1 && (
                                     <span className="text-[10px] font-medium text-[#77758F] bg-[#F7F7FC] px-1.5 py-0.2 rounded border border-[#E8E7F2]">
-                                      +{rawGuests.length - 1} more
+                                      +{effectiveGuest.guests.length - 1} more
                                     </span>
                                   )}
                                 </div>
@@ -918,7 +1134,7 @@ export default function CalendarPage() {
                                     <a
                                       href={callInfo.telHref}
                                       className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#ECFDF5] hover:bg-[#D1FAE5] text-[#059669] border border-[#A7F3D0] rounded-lg text-[11px] font-bold transition-colors"
-                                      title={`Click to call ${primaryGuest.name}`}
+                                      title={`Click to call ${effectiveGuest.name}`}
                                     >
                                       <Phone className="w-3 h-3" />
                                       <span>{callInfo.displayPhone}</span>
@@ -1000,7 +1216,7 @@ export default function CalendarPage() {
                                     <a
                                       href={callInfo.telHref}
                                       className="p-1.5 bg-[#059669] hover:bg-[#047857] text-white rounded-lg transition-colors shadow-sm"
-                                      title={`Call ${primaryGuest?.name || "Guest"} (${callInfo.displayPhone})`}
+                                      title={`Call ${effectiveGuest.name} (${callInfo.displayPhone})`}
                                     >
                                       <Phone className="w-3.5 h-3.5" />
                                     </a>

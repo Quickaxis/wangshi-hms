@@ -138,6 +138,8 @@ export function HMSProvider({
           nightly_rate,
           total_amount,
           notes,
+          group_id,
+          is_group_lead,
           partners ( id, name ),
           guests ( id, name, phone, email, is_primary )
         `)
@@ -154,6 +156,19 @@ export function HMSProvider({
 
       if (bookingsError) {
         console.warn("Could not fetch active bookings:", bookingsError.message);
+      }
+
+      // Map group_id -> primary guest details across all bookings in active window
+      const groupLeadGuests = new Map<string, any[]>();
+      if (activeBookings) {
+        for (const b of activeBookings) {
+          if (b.group_id && b.guests && b.guests.length > 0) {
+            const hasValidGuest = b.guests.some((g: any) => g.name && g.name.trim().toLowerCase() !== "guest");
+            if (b.is_group_lead || hasValidGuest || !groupLeadGuests.has(b.group_id)) {
+              groupLeadGuests.set(b.group_id, b.guests);
+            }
+          }
+        }
       }
 
       // Map bookings by room_id
@@ -173,7 +188,15 @@ export function HMSProvider({
         let currentBooking: CurrentBookingDetails | undefined = undefined;
 
         if (matchingBooking) {
-          const rawGuests = matchingBooking.guests || [];
+          let rawGuests = matchingBooking.guests || [];
+          // If child room in group has no guests or only generic "Guest", fallback to group lead's guests
+          if ((rawGuests.length === 0 || (rawGuests.length === 1 && rawGuests[0].name?.trim().toLowerCase() === "guest")) && matchingBooking.group_id) {
+            const groupGuests = groupLeadGuests.get(matchingBooking.group_id);
+            if (groupGuests && groupGuests.length > 0) {
+              rawGuests = groupGuests;
+            }
+          }
+
           const guestsList: BookingGuest[] = rawGuests.map((g: any) => ({
             id: g.id,
             name: g.name,
@@ -186,6 +209,8 @@ export function HMSProvider({
 
           currentBooking = {
             id: matchingBooking.id,
+            groupId: matchingBooking.group_id || undefined,
+            isGroupLead: matchingBooking.is_group_lead ?? undefined,
             guests: guestsList,
             guestPhone: primaryGuest?.phone || undefined,
             checkIn: matchingBooking.check_in,

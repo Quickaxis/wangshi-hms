@@ -10,6 +10,7 @@ import { getBookingPaymentsAction } from "@/app/actions/payments";
 import { RecordPaymentModal } from "./RecordPaymentModal";
 import { formatPhoneNumberForCall } from "@/lib/phoneUtils";
 import { getGuestProfileAndHistoryAction } from "@/app/actions/guests";
+import { createClient } from "@/lib/supabase/client";
 import {
   User,
   Phone,
@@ -33,6 +34,7 @@ import {
   Building2,
   ChevronDown,
   ChevronUp,
+  Layers,
 } from "lucide-react";
 import { useHMSContext } from "../providers/HMSProvider";
 import { cn } from "@/lib/utils";
@@ -67,6 +69,13 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
   const [isLoadingStayHistory, setIsLoadingStayHistory] = useState(false);
   const [isStayHistoryOpen, setIsStayHistoryOpen] = useState(false);
 
+  // Group Booking Primary Guest Fallback State
+  const [groupLeadGuest, setGroupLeadGuest] = useState<{
+    name: string;
+    phone?: string | null;
+    email?: string | null;
+  } | null>(null);
+
   if (!room) return null;
 
   // Prioritize booking explicitly passed on room prop (e.g. from calendar click)
@@ -80,10 +89,31 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
 
   const currentHomestay = homestays?.find((h) => h.id === (activeRoom.homestay_id || selectedHomestayId)) || homestays?.[0];
 
-  const primaryGuest = booking?.guests.find((g) => g.isPrimary) || booking?.guests[0];
-  const guestPhone = booking?.guestPhone || primaryGuest?.phone || null;
-  const guestEmail = primaryGuest?.email || null;
-  const callInfo = formatPhoneNumberForCall(guestPhone);
+  const rawPrimaryGuest = booking?.guests?.find((g) => g.isPrimary) || booking?.guests?.[0];
+  const hasValidOwnName = Boolean(
+    rawPrimaryGuest?.name &&
+    rawPrimaryGuest.name.trim() !== "" &&
+    rawPrimaryGuest.name.trim().toLowerCase() !== "guest"
+  );
+
+  const effectivePrimaryName = hasValidOwnName
+    ? rawPrimaryGuest!.name
+    : (groupLeadGuest?.name || rawPrimaryGuest?.name || "Guest");
+
+  const effectivePhone =
+    (hasValidOwnName && rawPrimaryGuest?.phone) ||
+    booking?.guestPhone ||
+    rawPrimaryGuest?.phone ||
+    groupLeadGuest?.phone ||
+    null;
+
+  const effectiveEmail =
+    (hasValidOwnName && rawPrimaryGuest?.email) ||
+    rawPrimaryGuest?.email ||
+    groupLeadGuest?.email ||
+    null;
+
+  const callInfo = formatPhoneNumberForCall(effectivePhone);
 
   const nights = useMemo(() => {
     if (!booking?.checkIn || !booking?.checkOut) return 1;
@@ -96,41 +126,87 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
   }, [booking?.checkIn, booking?.checkOut]);
 
   useEffect(() => {
-    if (isOpen && booking?.id) {
-      setIsLoadingFinancials(true);
-      getBookingPaymentsAction(booking.id).then((res) => {
-        setIsLoadingFinancials(false);
-        if (res.success && res.summary) {
-          setFinancialSummary(res.summary);
-        }
-      });
-
-      // Load guest stay history
-      if (guestPhone || guestEmail) {
-        setIsLoadingStayHistory(true);
-        getGuestProfileAndHistoryAction(guestPhone, activeRoom.homestay_id || selectedHomestayId || undefined, guestEmail)
-          .then((res) => {
-            if (res.success && res.data) {
-              setStayHistory(res.data);
-            } else {
-              setStayHistory([]);
-            }
-          })
-          .catch((err) => {
-            console.error("Failed to load stay history:", err);
-            setStayHistory([]);
-          })
-          .finally(() => {
-            setIsLoadingStayHistory(false);
-          });
-      } else {
-        setStayHistory([]);
-      }
-    } else {
+    if (!isOpen || !booking?.id) {
       setFinancialSummary(null);
+      setGroupLeadGuest(null);
+      return;
+    }
+
+    setIsLoadingFinancials(true);
+    getBookingPaymentsAction(booking.id).then((res) => {
+      setIsLoadingFinancials(false);
+      if (res.success && res.summary) {
+        setFinancialSummary(res.summary);
+      }
+    });
+
+    // If booking belongs to a group and child room has no valid own guest name/phone, query group lead
+    if (booking.groupId && (!hasValidOwnName || !booking.guestPhone)) {
+      const supabase = createClient();
+      supabase
+        .from("bookings")
+        .select(`
+          id,
+          is_group_lead,
+          guests ( id, name, phone, email, is_primary )
+        `)
+        .eq("group_id", booking.groupId)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            let found: any = undefined;
+            const lead = data.find((b: any) => b.is_group_lead);
+            if (lead?.guests && lead.guests.length > 0) {
+              found =
+                lead.guests.find((g: any) => g.is_primary && g.name?.trim().toLowerCase() !== "guest") ||
+                lead.guests.find((g: any) => g.name && g.name.trim().toLowerCase() !== "guest") ||
+                lead.guests[0];
+            }
+            if (!found) {
+              for (const b of data) {
+                const candidate = b.guests?.find((g: any) => g.name && g.name.trim().toLowerCase() !== "guest");
+                if (candidate) {
+                  found = candidate;
+                  break;
+                }
+              }
+            }
+            if (found && found.name && found.name.trim().toLowerCase() !== "guest") {
+              setGroupLeadGuest({
+                name: found.name.trim(),
+                phone: found.phone || null,
+                email: found.email || null,
+              });
+            }
+          }
+        });
+    } else {
+      setGroupLeadGuest(null);
+    }
+  }, [isOpen, booking?.id, booking?.groupId, hasValidOwnName, booking?.guestPhone]);
+
+  // Load guest stay history using effective contact
+  useEffect(() => {
+    if (isOpen && booking?.id && (effectivePhone || effectiveEmail)) {
+      setIsLoadingStayHistory(true);
+      getGuestProfileAndHistoryAction(effectivePhone, activeRoom.homestay_id || selectedHomestayId || undefined, effectiveEmail)
+        .then((res) => {
+          if (res.success && res.data) {
+            setStayHistory(res.data);
+          } else {
+            setStayHistory([]);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load stay history:", err);
+          setStayHistory([]);
+        })
+        .finally(() => {
+          setIsLoadingStayHistory(false);
+        });
+    } else {
       setStayHistory([]);
     }
-  }, [isOpen, booking?.id, guestPhone, guestEmail, activeRoom.homestay_id, selectedHomestayId]);
+  }, [isOpen, booking?.id, effectivePhone, effectiveEmail, activeRoom.homestay_id, selectedHomestayId]);
 
   const handleStatusUpdate = async (status: "confirmed" | "checked_in" | "checked_out") => {
     if (!booking) return;
@@ -375,7 +451,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                   <a
                     href={callInfo.telHref}
                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-xs font-bold rounded-xl transition-all shadow-sm"
-                    title={`Call ${primaryGuest?.name || "Guest"}`}
+                    title={`Call ${effectivePrimaryName}`}
                   >
                     <Phone className="w-3 h-3" />
                     <span>Call Guest</span>
@@ -387,16 +463,24 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
               <div className="bg-[#FFFFFF] border border-[#E8E7F2] rounded-2xl p-4 shadow-sm space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E7F2]/70 pb-3">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5146D8] block">
-                      Primary Guest
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#5146D8] block">
+                        Primary Guest
+                      </span>
+                      {booking.groupId && (
+                        <span className="text-[9px] font-bold text-[#5146D8] bg-[#F0EEFF] px-2 py-0.2 rounded-md border border-[#E0DEF8] flex items-center gap-1">
+                          <Layers className="w-2.5 h-2.5" />
+                          Group Lead
+                        </span>
+                      )}
+                    </div>
                     <h4 className="text-base font-bold text-[#24213A] mt-0.5">
-                      {primaryGuest?.name || "Guest"}
+                      {effectivePrimaryName}
                     </h4>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-semibold text-[#77758F] bg-[#F7F7FC] px-2.5 py-1 rounded-xl border border-[#E8E7F2]">
-                      {booking.guests.length} {booking.guests.length === 1 ? "Guest" : "Guests"}
+                      {booking.guests.length || 1} {booking.guests.length === 1 ? "Guest" : "Guests"}
                     </span>
                   </div>
                 </div>
@@ -409,7 +493,7 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                         Phone Number
                       </span>
                       <span className="font-semibold text-[#24213A] truncate block mt-0.5">
-                        {callInfo ? callInfo.displayPhone : (booking.guestPhone || "Not recorded")}
+                        {callInfo ? callInfo.displayPhone : (effectivePhone || "Not recorded")}
                       </span>
                     </div>
                     {callInfo ? (
@@ -434,21 +518,21 @@ export function ViewDetailsModal({ room, isOpen, onClose }: ViewDetailsModalProp
                       <span className="text-[9px] font-bold uppercase tracking-wider text-[#77758F] block">
                         Email Address
                       </span>
-                      {guestEmail ? (
+                      {effectiveEmail ? (
                         <a
-                          href={`mailto:${guestEmail}`}
+                          href={`mailto:${effectiveEmail}`}
                           className="font-semibold text-[#5146D8] hover:underline truncate block mt-0.5"
                           title="Send email"
                         >
-                          {guestEmail}
+                          {effectiveEmail}
                         </a>
                       ) : (
                         <span className="text-xs text-[#77758F] italic block mt-0.5">Not recorded</span>
                       )}
                     </div>
-                    {guestEmail && (
+                    {effectiveEmail && (
                       <a
-                        href={`mailto:${guestEmail}`}
+                        href={`mailto:${effectiveEmail}`}
                         className="p-1.5 rounded-lg bg-[#FFFFFF] border border-[#E8E7F2] text-[#5146D8] hover:bg-[#F0EEFF] shrink-0"
                         title="Email guest"
                       >

@@ -125,6 +125,8 @@ export interface BookingGuest {
 
 export interface CurrentBookingDetails {
   id: string;
+  groupId?: string;
+  isGroupLead?: boolean;
   guests: BookingGuest[];
   guestPhone?: string;
   checkIn: string; // YYYY-MM-DD
