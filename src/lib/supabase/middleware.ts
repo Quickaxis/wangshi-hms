@@ -35,14 +35,22 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect all routes except /login, /auth/callback, and /update-password
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/update-password') &&
-    !request.nextUrl.pathname.match(/\.(ico|png|jpg|jpeg|svg|css|js)$/)
-  ) {
+  const pathname = request.nextUrl.pathname
+
+  // Public routes & PWA assets that must never require auth or redirect
+  const isPublicRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/update-password') ||
+    pathname === '/manifest.webmanifest' ||
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname.startsWith('/icons/') ||
+    pathname.startsWith('/logos/') ||
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|css|js|json|webmanifest|woff|woff2|ttf)$/)
+
+  // Protect all routes except public ones
+  if (!user && !isPublicRoute) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
